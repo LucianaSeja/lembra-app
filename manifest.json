@@ -1,0 +1,24 @@
+{
+  "name": "Lembra",
+  "short_name": "Lembra",
+  "description": "Seus lembretes, do seu jeito",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0D0F0E",
+  "theme_color": "#0D0F0E",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.svg",
+      
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

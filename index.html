@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0D0F0E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lembra">
+<link rel="manifest" href="manifest.json">
+<title>Lembra</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0D0F0E;--surface:#161917;--surface2:#1E2220;--surface3:#262C29;
+  --text:#F0EDE6;--text2:#9BA39D;--text3:#5C6660;
+  --accent:#4ADE80;--accent-dim:rgba(74,222,128,0.12);--accent-text:#071a0f;
+  --border:rgba(240,237,230,0.08);
+  --red:#F87171;--red-dim:rgba(248,113,113,0.12);
+  --amber:#FBBF24;--amber-dim:rgba(251,191,36,0.12);
+  --blue:#60A5FA;--blue-dim:rgba(96,165,250,0.12);
+  --purple:#C084FC;--purple-dim:rgba(192,132,252,0.12);
+  --r:14px;--r-sm:9px;--r-xs:6px;--r-full:999px;
+}
+body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+#auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;position:relative;overflow:hidden}
+.auth-glow{position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:500px;height:300px;background:radial-gradient(ellipse,rgba(74,222,128,0.08) 0%,transparent 70%);pointer-events:none}
+.auth-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:390px;position:relative;z-index:1;animation:fadeUp 0.4s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.auth-logo{font-family:'Fraunces',serif;font-size:34px;font-weight:300;text-align:center;letter-spacing:-1px;margin-bottom:4px}
+.auth-logo em{color:var(--accent);font-style:normal}
+.auth-sub{text-align:center;font-size:13px;color:var(--text3);margin-bottom:2rem}
+.tabs{display:flex;background:var(--surface2);border-radius:var(--r-sm);padding:3px;gap:3px;margin-bottom:1.75rem}
+.tab{flex:1;padding:8px;text-align:center;font-size:13px;font-weight:500;cursor:pointer;border-radius:var(--r-xs);color:var(--text2);border:none;background:none;font-family:inherit;transition:all 0.18s}
+.tab.active{background:var(--surface3);color:var(--text)}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);margin-bottom:5px}
+.field input{width:100%;padding:11px 13px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);font-family:inherit;font-size:14px;color:var(--text);outline:none;transition:border-color 0.2s}
+.field input:focus{border-color:rgba(74,222,128,0.5)}
+.field input::placeholder{color:var(--text3)}
+.btn-main{width:100%;padding:12px;background:var(--accent);color:var(--accent-text);border:none;border-radius:var(--r-sm);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;margin-top:0.25rem}
+.btn-main:hover{opacity:0.88;transform:translateY(-1px)}
+.err{background:var(--red-dim);border:1px solid rgba(248,113,113,0.2);color:var(--red);font-size:13px;padding:10px 13px;border-radius:var(--r-sm);margin-bottom:1rem;display:none}
+#app-screen{display:none;min-height:100vh;flex-direction:column}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.25rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.hdr-logo{font-family:'Fraunces',serif;font-size:20px;font-weight:300;letter-spacing:-0.5px}
+.hdr-logo em{color:var(--accent);font-style:normal}
+.hdr-right{display:flex;align-items:center;gap:8px}
+.user-chip{display:flex;align-items:center;gap:7px;padding:4px 11px 4px 5px;background:var(--surface2);border-radius:var(--r-full);font-size:12px;color:var(--text2)}
+.avatar{width:24px;height:24px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--accent)}
+.btn-sm{padding:6px 12px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:12px;cursor:pointer;transition:all 0.15s}
+.btn-sm:hover{background:var(--surface2);color:var(--text)}
+.layout{display:grid;grid-template-columns:210px 1fr;height:calc(100vh - 56px)}
+@media(max-width:640px){.layout{grid-template-columns:1fr}.sidebar{display:none}.mob-bar{display:flex!important}}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:0.875rem 0.625rem;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.sec-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);padding:10px 8px 3px}
+.nav-btn{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r-sm);font-size:13px;color:var(--text2);cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:inherit;transition:all 0.15s}
+.nav-btn:hover{background:var(--surface2);color:var(--text)}
+.nav-btn.active{background:var(--accent-dim);color:var(--accent)}
+.nav-icon{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.8}
+.nbadge{margin-left:auto;font-size:10px;padding:2px 6px;border-radius:var(--r-full);background:var(--surface3);color:var(--text3)}
+.nav-btn.active .nbadge{background:var(--accent);color:var(--accent-text)}
+.cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+main{overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;gap:1.25rem}
+.main-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.main-title{font-family:'Fraunces',serif;font-size:26px;font-weight:300;letter-spacing:-0.8px}
+.main-meta{font-size:12px;color:var(--text3);margin-top:2px}
+.add-btn{display:flex;align-items:center;gap:7px;padding:9px 16px;background:var(--accent);color:var(--accent-text);border:none;border-radius:var(--r-sm);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;flex-shrink:0}
+.add-btn:hover{opacity:0.88;transform:translateY(-1px)}
+.add-btn svg{width:14px;height:14px;stroke:var(--accent-text);fill:none;stroke-width:2.5}
+.input-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;display:none;flex-direction:column;gap:0.875rem;animation:fadeUp 0.2s ease}
+.input-form.open{display:flex}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:500px){.form-row{grid-template-columns:1fr}}
+.inp{width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);font-family:inherit;font-size:13px;color:var(--text);outline:none;transition:border-color 0.2s}
+.inp:focus{border-color:rgba(74,222,128,0.4)}
+.inp::placeholder{color:var(--text3)}
+select.inp option{background:#1E2220}
+.recur-row{display:flex;gap:6px;flex-wrap:wrap}
+.rchip{padding:6px 12px;border-radius:var(--r-full);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:12px;cursor:pointer;transition:all 0.15s}
+.rchip:hover{border-color:var(--accent);color:var(--accent)}
+.rchip.sel{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+.form-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.voice-btn{display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:13px;cursor:pointer;transition:all 0.2s}
+.voice-btn:hover{background:var(--surface2);color:var(--text)}
+.voice-btn.on{background:var(--red-dim);border-color:rgba(248,113,113,0.3);color:var(--red)}
+.voice-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+@keyframes mic{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.voice-btn.on svg{animation:mic 0.8s infinite}
+.voice-tx{font-size:12px;color:var(--text3);font-style:italic}
+.form-btns{display:flex;gap:8px}
+.btn-cancel{padding:8px 15px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:13px;cursor:pointer}
+.btn-cancel:hover{background:var(--surface2)}
+.btn-save{padding:8px 18px;border-radius:var(--r-sm);border:none;background:var(--accent);color:var(--accent-text);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.btn-save:hover{opacity:0.88}
+.section-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:10px}
+.reminders-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1.5rem}
+.rcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.125rem;display:flex;align-items:flex-start;gap:12px;transition:border-color 0.2s;position:relative;overflow:hidden}
+.rcard:hover{border-color:rgba(240,237,230,0.16)}
+.rcard.done{opacity:0.4}
+.rcard.done .r-title{text-decoration:line-through;color:var(--text3)}
+.chk{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--text3);background:none;cursor:pointer;flex-shrink:0;margin-top:1px;transition:all 0.2s;display:flex;align-items:center;justify-content:center}
+.chk:hover{border-color:var(--accent)}
+.rcard.done .chk{background:var(--accent);border-color:var(--accent)}
+.chk svg{width:10px;height:10px;stroke:var(--accent-text);fill:none;stroke-width:2.5;display:none}
+.rcard.done .chk svg{display:block}
+.r-body{flex:1;min-width:0}
+.r-title{font-size:14px;font-weight:500;margin-bottom:5px;line-height:1.3}
+.r-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.r-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:var(--r-full);font-size:11px;font-weight:500}
+.r-time{font-size:11px;color:var(--text3)}
+.r-recur{font-size:11px;color:var(--blue);background:var(--blue-dim);padding:2px 7px;border-radius:var(--r-full)}
+.r-gcal{font-size:11px;color:var(--accent);background:var(--accent-dim);padding:2px 7px;border-radius:var(--r-full)}
+.r-acts{display:flex;gap:4px;opacity:0;transition:opacity 0.15s}
+.rcard:hover .r-acts{opacity:1}
+.r-act{width:28px;height:28px;border-radius:var(--r-xs);border:1px solid var(--border);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.r-act:hover{background:var(--surface2)}
+.r-act svg{width:13px;height:13px;stroke:var(--text2);fill:none;stroke-width:1.8}
+.r-act.del:hover{background:var(--red-dim)}
+.r-act.del:hover svg{stroke:var(--red)}
+.pbar{position:absolute;left:0;top:0;bottom:0;width:3px}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem 2rem;gap:1rem;color:var(--text3);text-align:center}
+.empty-ico{width:48px;height:48px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center}
+.empty-ico svg{width:22px;height:22px;stroke:var(--text3);fill:none;stroke-width:1.5}
+.gcal-banner{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.gcal-ico{width:36px;height:36px;border-radius:var(--r-sm);background:var(--blue-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.gcal-ico svg{width:18px;height:18px;stroke:var(--blue);fill:none;stroke-width:1.8}
+.gcal-txt{flex:1}
+.gcal-txt strong{font-size:13px;display:block;margin-bottom:2px}
+.gcal-txt span{font-size:12px;color:var(--text3)}
+.gcal-connect{padding:7px 14px;border-radius:var(--r-sm);background:var(--blue-dim);border:1px solid rgba(96,165,250,0.25);color:var(--blue);font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s}
+.gcal-connect:hover{opacity:0.8}
+.gcal-connect.on{background:var(--accent-dim);border-color:rgba(74,222,128,0.25);color:var(--accent);cursor:default}
+.notif-bar{position:fixed;top:70px;right:1rem;z-index:200;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.notif{background:var(--surface3);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 15px;font-size:13px;color:var(--text);max-width:300px;pointer-events:all;animation:fadeUp 0.3s ease;box-shadow:0 4px 20px rgba(0,0,0,0.3)}
+.notif-ttl{font-weight:600;font-size:11px;color:var(--accent);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.05em}
+.mob-bar{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:8px 1rem;gap:4px;z-index:100}
+.mob-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px;border-radius:var(--r-sm);border:none;background:none;color:var(--text3);font-family:inherit;font-size:10px;cursor:pointer;transition:all 0.15s}
+.mob-btn.active{color:var(--accent)}
+.mob-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+.modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:300;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-wrap.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2rem;width:100%;max-width:400px;animation:fadeUp 0.25s ease}
+.modal h3{font-family:'Fraunces',serif;font-size:22px;font-weight:300;margin-bottom:0.5rem}
+.modal p{font-size:13px;color:var(--text2);margin-bottom:1.5rem;line-height:1.6}
+.modal-btns{display:flex;gap:10px}
+</style>
+</head>
+<body>
+
+<div id="auth-screen">
+  <div class="auth-glow"></div>
+  <div class="auth-box">
+    <div class="auth-logo">Lemb<em>ra</em></div>
+    <div class="auth-sub">Seus lembretes, do seu jeito</div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('login')">Entrar</button>
+      <button class="tab" onclick="switchTab('signup')">Criar conta</button>
+    </div>
+    <div class="err" id="auth-err"></div>
+    <div id="login-form">
+      <div class="field"><label>Email</label><input type="email" id="l-email" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="field"><label>Senha</label><input type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn-main" onclick="doLogin()">Entrar</button>
+    </div>
+    <div id="signup-form" style="display:none">
+      <div class="field"><label>Nome</label><input type="text" id="s-name" placeholder="Seu nome completo"></div>
+      <div class="field"><label>Email</label><input type="email" id="s-email" placeholder="seu@email.com"></div>
+      <div class="field"><label>Senha</label><input type="password" id="s-pass" placeholder="Mínimo 6 caracteres"></div>
+      <button class="btn-main" onclick="doSignup()">Criar conta</button>
+    </div>
+  </div>
+</div>
+
+<div id="app-screen">
+  <header>
+    <div class="hdr-logo">Lemb<em>ra</em></div>
+    <div class="hdr-right">
+      <div class="user-chip">
+        <div class="avatar" id="hdr-av">?</div>
+        <span id="hdr-nm">—</span>
+      </div>
+      <button class="btn-sm" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sec-label">Visualizar</div>
+      <button class="nav-btn active" id="nav-hoje" onclick="setView('hoje',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Hoje <span class="nbadge" id="b-hoje">0</span>
+      </button>
+      <button class="nav-btn" onclick="setView('todos',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><polyline points="3 6 4 7 6 5"/><polyline points="3 12 4 13 6 11"/><polyline points="3 18 4 19 6 17"/></svg>
+        Todos <span class="nbadge" id="b-todos">0</span>
+      </button>
+      <button class="nav-btn" onclick="setView('feitos',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Concluídos
+      </button>
+      <div class="sec-label">Categorias</div>
+      <button class="nav-btn" onclick="setView('cat-trabalho',this)">
+        <span class="cat-dot" style="background:#60A5FA"></span>Trabalho <span class="nbadge" id="b-trabalho">0</span>
+      </button>
+      <button class="nav-btn" onclick="setView('cat-pessoal',this)">
+        <span class="cat-dot" style="background:#C084FC"></span>Pessoal <span class="nbadge" id="b-pessoal">0</span>
+      </button>
+      <button class="nav-btn" onclick="setView('cat-saude',this)">
+        <span class="cat-dot" style="background:#F87171"></span>Saúde <span class="nbadge" id="b-saude">0</span>
+      </button>
+      <button class="nav-btn" onclick="setView('cat-financeiro',this)">
+        <span class="cat-dot" style="background:#FBBF24"></span>Financeiro <span class="nbadge" id="b-financeiro">0</span>
+      </button>
+      <button class="nav-btn" onclick="setView('cat-outro',this)">
+        <span class="cat-dot" style="background:#9BA39D"></span>Outro
+      </button>
+    </div>
+
+    <main id="main">
+      <div class="gcal-banner">
+        <div class="gcal-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+        <div class="gcal-txt"><strong>Google Agenda</strong><span>Conecte para criar eventos automaticamente</span></div>
+        <button class="gcal-connect" id="gcal-btn" onclick="openGcalModal()">Conectar</button>
+      </div>
+
+      <div class="main-hdr">
+        <div>
+          <div class="main-title" id="view-title">Hoje</div>
+          <div class="main-meta" id="view-meta"></div>
+        </div>
+        <button class="add-btn" onclick="toggleForm()">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Novo lembrete
+        </button>
+      </div>
+
+      <div class="input-form" id="input-form">
+        <input class="inp" id="f-title" placeholder="O que você precisa lembrar?">
+        <div class="form-row">
+          <select class="inp" id="f-cat">
+            <option value="trabalho">💼 Trabalho</option>
+            <option value="pessoal">🏠 Pessoal</option>
+            <option value="saude">❤️ Saúde</option>
+            <option value="financeiro">💰 Financeiro</option>
+            <option value="outro">📌 Outro</option>
+          </select>
+          <select class="inp" id="f-prio">
+            <option value="normal">Prioridade normal</option>
+            <option value="alta">🔴 Alta prioridade</option>
+            <option value="baixa">Baixa prioridade</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <input class="inp" type="date" id="f-date">
+          <input class="inp" type="time" id="f-time">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);margin-bottom:8px">Recorrência</div>
+          <div class="recur-row">
+            <button class="rchip sel" onclick="selRecur(this,'nenhuma')">Nenhuma</button>
+            <button class="rchip" onclick="selRecur(this,'diario')">Diário</button>
+            <button class="rchip" onclick="selRecur(this,'semanal')">Semanal</button>
+            <button class="rchip" onclick="selRecur(this,'quinzenal')">Quinzenal</button>
+            <button class="rchip" onclick="selRecur(this,'mensal')">Mensal</button>
+          </div>
+        </div>
+        <div class="form-footer">
+          <div style="display:flex;align-items:center;gap:10px">
+            <button class="voice-btn" id="voice-btn" onclick="toggleVoice()">
+              <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              Usar voz
+            </button>
+            <span class="voice-tx" id="voice-tx"></span>
+          </div>
+          <div class="form-btns">
+            <button class="btn-cancel" onclick="toggleForm()">Cancelar</button>
+            <button class="btn-save" onclick="saveReminder()">Salvar</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="list-container"></div>
+    </main>
+  </div>
+
+  <div class="mob-bar">
+    <button class="mob-btn active" onclick="setView('hoje',this);mobActive(this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Hoje
+    </button>
+    <button class="mob-btn" onclick="setView('todos',this);mobActive(this)">
+      <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/></svg>Todos
+    </button>
+    <button class="mob-btn" onclick="toggleForm()">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Novo
+    </button>
+    <button class="mob-btn" onclick="setView('feitos',this);mobActive(this)">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Feitos
+    </button>
+  </div>
+</div>
+
+<div class="notif-bar" id="notif-bar"></div>
+
+<div class="modal-wrap" id="gcal-modal">
+  <div class="modal">
+    <h3>Google Agenda</h3>
+    <p>Para a integração real funcionar, o app precisa estar hospedado no Vercel com as credenciais do Google configuradas. Após hospedar, você voltará aqui e vai conectar sua conta.<br><br>Por enquanto, você pode simular a conexão — os lembretes ficam marcados para sincronizar depois.</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" style="flex:1" onclick="closeGcalModal()">Fechar</button>
+      <button class="btn-save" style="flex:1" onclick="simulateGcal()">Simular conexão</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const USERS_KEY='lembra_users';
+const DATA_KEY=e=>'lembra_data_'+e;
+const SESSION_KEY='lembra_session';
+let user=null,reminders=[],view='hoje',recur='nenhuma',gcalOn=false,recognition=null,isListening=false,notifTimers=[];
+
+const catColors={trabalho:'#60A5FA',pessoal:'#C084FC',saude:'#F87171',financeiro:'#FBBF24',outro:'#9BA39D'};
+const catBg={trabalho:'rgba(96,165,250,0.12)',pessoal:'rgba(192,132,252,0.12)',saude:'rgba(248,113,113,0.12)',financeiro:'rgba(251,191,36,0.12)',outro:'rgba(155,163,157,0.12)'};
+const catLbl={trabalho:'Trabalho',pessoal:'Pessoal',saude:'Saúde',financeiro:'Financeiro',outro:'Outro'};
+const viewLbl={hoje:'Hoje',todos:'Todos os lembretes',feitos:'Concluídos','cat-trabalho':'Trabalho','cat-pessoal':'Pessoal','cat-saude':'Saúde','cat-financeiro':'Financeiro','cat-outro':'Outro'};
+
+function getUsers(){return JSON.parse(localStorage.getItem(USERS_KEY)||'{}')}
+function saveUsers(u){localStorage.setItem(USERS_KEY,JSON.stringify(u))}
+function loadReminders(){return JSON.parse(localStorage.getItem(DATA_KEY(user.email))||'[]')}
+function persist(){localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders))}
+function today(){return new Date().toISOString().split('T')[0]}
+function initials(n){return n.trim().split(/\s+/).map(x=>x[0]).join('').toUpperCase().slice(0,2)}
+function fmtDate(d){const p=d.split('-');return`${p[2]}/${p[1]}/${p[0]}`}
+
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((x,i)=>x.classList.toggle('active',i===(t==='login'?0:1)));
+  document.getElementById('login-form').style.display=t==='login'?'block':'none';
+  document.getElementById('signup-form').style.display=t==='signup'?'block':'none';
+  document.getElementById('auth-err').style.display='none';
+}
+function showErr(m){const e=document.getElementById('auth-err');e.textContent=m;e.style.display='block'}
+function doLogin(){
+  const email=document.getElementById('l-email').value.trim(),pass=document.getElementById('l-pass').value;
+  if(!email||!pass)return showErr('Preencha todos os campos');
+  const users=getUsers();
+  if(!users[email])return showErr('Email não encontrado');
+  if(users[email].pass!==btoa(pass))return showErr('Senha incorreta');
+  startSession(users[email]);
+}
+function doSignup(){
+  const name=document.getElementById('s-name').value.trim(),email=document.getElementById('s-email').value.trim(),pass=document.getElementById('s-pass').value;
+  if(!name||!email||!pass)return showErr('Preencha todos os campos');
+  if(pass.length<6)return showErr('Senha deve ter ao menos 6 caracteres');
+  if(!/\S+@\S+\.\S+/.test(email))return showErr('Email inválido');
+  const users=getUsers();
+  if(users[email])return showErr('Este email já está cadastrado');
+  users[email]={name,email,pass:btoa(pass)};
+  saveUsers(users);
+  startSession(users[email]);
+}
+function startSession(u){
+  user=u;
+  localStorage.setItem(SESSION_KEY,JSON.stringify(u));
+  reminders=loadReminders();
+  gcalOn=localStorage.getItem('gcal_'+u.email)==='1';
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app-screen').style.display='flex';
+  document.getElementById('hdr-nm').textContent=u.name.split(' ')[0];
+  document.getElementById('hdr-av').textContent=initials(u.name);
+  const d=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('view-meta').textContent=d.charAt(0).toUpperCase()+d.slice(1);
+  document.getElementById('f-date').value=today();
+  updateGcalBtn();
+  render();
+  scheduleNotifs();
+}
+function doLogout(){
+  localStorage.removeItem(SESSION_KEY);
+  user=null;reminders=[];
+  document.getElementById('app-screen').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+  notifTimers.forEach(clearTimeout);notifTimers=[];
+}
+
+function openGcalModal(){document.getElementById('gcal-modal').classList.add('open')}
+function closeGcalModal(){document.getElementById('gcal-modal').classList.remove('open')}
+function simulateGcal(){
+  gcalOn=true;localStorage.setItem('gcal_'+user.email,'1');
+  updateGcalBtn();closeGcalModal();
+  notify('Google Agenda','Conexão simulada! Configure as credenciais reais após hospedar no Vercel.');
+}
+function updateGcalBtn(){
+  const b=document.getElementById('gcal-btn');
+  if(gcalOn){b.textContent='✓ Conectado';b.classList.add('on')}
+  else{b.textContent='Conectar';b.classList.remove('on')}
+}
+
+function toggleForm(){
+  const f=document.getElementById('input-form');f.classList.toggle('open');
+  if(f.classList.contains('open'))document.getElementById('f-title').focus();
+}
+function selRecur(btn,val){
+  document.querySelectorAll('.rchip').forEach(x=>x.classList.remove('sel'));
+  btn.classList.add('sel');recur=val;
+}
+function saveReminder(){
+  const title=document.getElementById('f-title').value.trim();
+  if(!title)return;
+  const r={id:Date.now(),title,cat:document.getElementById('f-cat').value,prio:document.getElementById('f-prio').value,date:document.getElementById('f-date').value,time:document.getElementById('f-time').value,recur,done:false,gcal:gcalOn,created:Date.now()};
+  reminders.unshift(r);persist();
+  if(gcalOn&&r.date)notify('Google Agenda',`"${r.title}" adicionado à sua agenda`);
+  document.getElementById('f-title').value='';
+  document.getElementById('f-time').value='';
+  document.getElementById('f-date').value=today();
+  document.querySelectorAll('.rchip').forEach(x=>x.classList.remove('sel'));
+  document.querySelector('.rchip').classList.add('sel');recur='nenhuma';
+  toggleForm();render();scheduleNotifs();
+}
+function toggleDone(id){
+  const r=reminders.find(x=>x.id===id);if(r){r.done=!r.done;persist();render()}
+}
+function deleteReminder(id){
+  reminders=reminders.filter(x=>x.id!==id);persist();render();
+}
+
+function toggleVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR)return notify('Voz','Use o Chrome para reconhecimento de voz');
+  if(isListening){recognition.stop();return}
+  recognition=new SR();recognition.lang='pt-BR';recognition.interimResults=true;
+  recognition.onstart=()=>{
+    isListening=true;
+    const b=document.getElementById('voice-btn');b.classList.add('on');
+    b.innerHTML='<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Ouvindo...';
+  };
+  recognition.onresult=e=>{
+    let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;
+    document.getElementById('voice-tx').textContent=t;
+    if(e.results[e.results.length-1].isFinal){document.getElementById('f-title').value=t;document.getElementById('voice-tx').textContent=''}
+  };
+  recognition.onend=()=>{
+    isListening=false;
+    const b=document.getElementById('voice-btn');b.classList.remove('on');
+    b.innerHTML='<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Usar voz';
+  };
+  recognition.start();
+}
+
+function getFiltered(){
+  const t=today();
+  if(view==='hoje')return reminders.filter(r=>!r.done&&r.date===t);
+  if(view==='todos')return reminders.filter(r=>!r.done);
+  if(view==='feitos')return reminders.filter(r=>r.done);
+  if(view.startsWith('cat-'))return reminders.filter(r=>!r.done&&r.cat===view.slice(4));
+  return reminders;
+}
+function render(){
+  updateBadges();
+  const list=getFiltered();
+  const c=document.getElementById('list-container');
+  if(!list.length){
+    c.innerHTML='<div class="empty-state"><div class="empty-ico"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><p style="font-size:14px;line-height:1.7">Nenhum lembrete aqui ainda.<br>Clique em <strong>Novo lembrete</strong> para começar.</p></div>';
+    return;
+  }
+  const t=today();
+  const groups={};
+  list.forEach(r=>{const k=r.date||'z-sem-data';if(!groups[k])groups[k]=[];groups[k].push(r)});
+  const sorted=Object.keys(groups).sort();
+  let html='';
+  sorted.forEach(k=>{
+    const dk=k==='z-sem-data'?'sem-data':k;
+    let lbl=dk==='sem-data'?'Sem data':dk===t?'Hoje':fmtDate(dk);
+    if(dk>t&&dk!=='sem-data'){const d=new Date(dk+'T12:00');lbl=d.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'short'});lbl=lbl.charAt(0).toUpperCase()+lbl.slice(1)}
+    html+=`<div><div class="section-lbl">${lbl}</div><div class="reminders-list">`;
+    groups[k].forEach(r=>{
+      const pcolor=r.prio==='alta'?'#F87171':'transparent';
+      html+=`<div class="rcard${r.done?' done':''}">
+        <div class="pbar" style="background:${pcolor}"></div>
+        <button class="chk" onclick="toggleDone(${r.id})"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button>
+        <div class="r-body">
+          <div class="r-title">${r.title}</div>
+          <div class="r-meta">
+            <span class="r-tag" style="background:${catBg[r.cat]};color:${catColors[r.cat]}">${catLbl[r.cat]}</span>
+            ${r.time?`<span class="r-time">${r.time}</span>`:''}
+            ${r.recur&&r.recur!=='nenhuma'?`<span class="r-recur">↻ ${r.recur}</span>`:''}
+            ${r.gcal?`<span class="r-gcal">📅</span>`:''}
+          </div>
+        </div>
+        <div class="r-acts">
+          <button class="r-act del" onclick="deleteReminder(${r.id})">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          </button>
+        </div>
+      </div>`;
+    });
+    html+='</div></div>';
+  });
+  c.innerHTML=html;
+}
+function updateBadges(){
+  const t=today(),a=reminders.filter(r=>!r.done);
+  document.getElementById('b-hoje').textContent=a.filter(r=>r.date===t).length;
+  document.getElementById('b-todos').textContent=a.length;
+  document.getElementById('b-trabalho').textContent=a.filter(r=>r.cat==='trabalho').length;
+  document.getElementById('b-pessoal').textContent=a.filter(r=>r.cat==='pessoal').length;
+  document.getElementById('b-saude').textContent=a.filter(r=>r.cat==='saude').length;
+  document.getElementById('b-financeiro').textContent=a.filter(r=>r.cat==='financeiro').length;
+}
+function setView(v,btn){
+  view=v;
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  document.getElementById('view-title').textContent=viewLbl[v]||v;
+  render();
+}
+function mobActive(btn){document.querySelectorAll('.mob-btn').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}
+
+function notify(title,msg){
+  const bar=document.getElementById('notif-bar'),el=document.createElement('div');
+  el.className='notif';el.innerHTML=`<div class="notif-ttl">${title}</div>${msg}`;
+  bar.appendChild(el);
+  setTimeout(()=>{el.style.cssText='opacity:0;transform:translateX(20px);transition:all 0.3s';setTimeout(()=>el.remove(),300)},4500);
+}
+function scheduleNotifs(){
+  notifTimers.forEach(clearTimeout);notifTimers=[];
+  const now=new Date();
+  reminders.filter(r=>!r.done&&r.date&&r.time).forEach(r=>{
+    const dt=new Date(`${r.date}T${r.time}`),diff=dt-now;
+    if(diff>0&&diff<86400000)notifTimers.push(setTimeout(()=>notify('Lembrete',r.title),diff));
+  });
+}
+
+window.onload=()=>{
+  const s=localStorage.getItem(SESSION_KEY);
+  if(s){const u=JSON.parse(s);if(getUsers()[u.email])startSession(u)}
+};
+</script>
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("/sw.js");</script>
+</body>
+</html>
