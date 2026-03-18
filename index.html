@@ -21,9 +21,12 @@
   --amber:#FBBF24;--amber-dim:rgba(251,191,36,0.12);
   --blue:#60A5FA;--blue-dim:rgba(96,165,250,0.12);
   --purple:#C084FC;--purple-dim:rgba(192,132,252,0.12);
+  --green:#4ADE80;--green-dim:rgba(74,222,128,0.12);
   --r:14px;--r-sm:9px;--r-xs:6px;--r-full:999px;
 }
 body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* AUTH */
 #auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;position:relative;overflow:hidden}
 .auth-glow{position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:500px;height:300px;background:radial-gradient(ellipse,rgba(74,222,128,0.08) 0%,transparent 70%);pointer-events:none}
 .auth-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:390px;position:relative;z-index:1;animation:fadeUp 0.4s ease}
@@ -42,6 +45,8 @@ body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--t
 .btn-main{width:100%;padding:12px;background:var(--accent);color:var(--accent-text);border:none;border-radius:var(--r-sm);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;margin-top:0.25rem}
 .btn-main:hover{opacity:0.88;transform:translateY(-1px)}
 .err{background:var(--red-dim);border:1px solid rgba(248,113,113,0.2);color:var(--red);font-size:13px;padding:10px 13px;border-radius:var(--r-sm);margin-bottom:1rem;display:none}
+
+/* APP */
 #app-screen{display:none;min-height:100vh;flex-direction:column}
 header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.25rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
 .hdr-logo{font-family:'Fraunces',serif;font-size:20px;font-weight:300;letter-spacing:-0.5px}
@@ -51,7 +56,9 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:0
 .avatar{width:24px;height:24px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--accent)}
 .btn-sm{padding:6px 12px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:12px;cursor:pointer;transition:all 0.15s}
 .btn-sm:hover{background:var(--surface2);color:var(--text)}
-.layout{display:grid;grid-template-columns:210px 1fr;height:calc(100vh - 56px)}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:220px 1fr;height:calc(100vh - 56px)}
 @media(max-width:640px){.layout{grid-template-columns:1fr}.sidebar{display:none}.mob-bar{display:flex!important}}
 .sidebar{background:var(--surface);border-right:1px solid var(--border);padding:0.875rem 0.625rem;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
 .sec-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);padding:10px 8px 3px}
@@ -62,6 +69,8 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:0
 .nbadge{margin-left:auto;font-size:10px;padding:2px 6px;border-radius:var(--r-full);background:var(--surface3);color:var(--text3)}
 .nav-btn.active .nbadge{background:var(--accent);color:var(--accent-text)}
 .cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* MAIN */
 main{overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;gap:1.25rem}
 .main-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap}
 .main-title{font-family:'Fraunces',serif;font-size:26px;font-weight:300;letter-spacing:-0.8px}
@@ -69,6 +78,8 @@ main{overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;gap:1.25r
 .add-btn{display:flex;align-items:center;gap:7px;padding:9px 16px;background:var(--accent);color:var(--accent-text);border:none;border-radius:var(--r-sm);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;flex-shrink:0}
 .add-btn:hover{opacity:0.88;transform:translateY(-1px)}
 .add-btn svg{width:14px;height:14px;stroke:var(--accent-text);fill:none;stroke-width:2.5}
+
+/* FORM */
 .input-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;display:none;flex-direction:column;gap:0.875rem;animation:fadeUp 0.2s ease}
 .input-form.open{display:flex}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -94,12 +105,15 @@ select.inp option{background:#1E2220}
 .btn-cancel:hover{background:var(--surface2)}
 .btn-save{padding:8px 18px;border-radius:var(--r-sm);border:none;background:var(--accent);color:var(--accent-text);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
 .btn-save:hover{opacity:0.88}
+
+/* REMINDER CARDS */
 .section-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:10px}
 .reminders-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1.5rem}
 .rcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.125rem;display:flex;align-items:flex-start;gap:12px;transition:border-color 0.2s;position:relative;overflow:hidden}
 .rcard:hover{border-color:rgba(240,237,230,0.16)}
 .rcard.done{opacity:0.4}
 .rcard.done .r-title{text-decoration:line-through;color:var(--text3)}
+.rcard.from-cal{border-left:3px solid var(--blue)}
 .chk{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--text3);background:none;cursor:pointer;flex-shrink:0;margin-top:1px;transition:all 0.2s;display:flex;align-items:center;justify-content:center}
 .chk:hover{border-color:var(--accent)}
 .rcard.done .chk{background:var(--accent);border-color:var(--accent)}
@@ -111,7 +125,7 @@ select.inp option{background:#1E2220}
 .r-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:var(--r-full);font-size:11px;font-weight:500}
 .r-time{font-size:11px;color:var(--text3)}
 .r-recur{font-size:11px;color:var(--blue);background:var(--blue-dim);padding:2px 7px;border-radius:var(--r-full)}
-.r-gcal{font-size:11px;color:var(--accent);background:var(--accent-dim);padding:2px 7px;border-radius:var(--r-full)}
+.r-cal{font-size:11px;color:var(--blue);background:var(--blue-dim);padding:2px 7px;border-radius:var(--r-full)}
 .r-acts{display:flex;gap:4px;opacity:0;transition:opacity 0.15s}
 .rcard:hover .r-acts{opacity:1}
 .r-act{width:28px;height:28px;border-radius:var(--r-xs);border:1px solid var(--border);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
@@ -123,39 +137,69 @@ select.inp option{background:#1E2220}
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem 2rem;gap:1rem;color:var(--text3);text-align:center}
 .empty-ico{width:48px;height:48px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center}
 .empty-ico svg{width:22px;height:22px;stroke:var(--text3);fill:none;stroke-width:1.5}
-.gcal-banner{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
-.gcal-ico{width:36px;height:36px;border-radius:var(--r-sm);background:var(--blue-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.gcal-ico svg{width:18px;height:18px;stroke:var(--blue);fill:none;stroke-width:1.8}
-.gcal-txt{flex:1}
-.gcal-txt strong{font-size:13px;display:block;margin-bottom:2px}
-.gcal-txt span{font-size:12px;color:var(--text3)}
-.gcal-connect{padding:7px 14px;border-radius:var(--r-sm);background:var(--blue-dim);border:1px solid rgba(96,165,250,0.25);color:var(--blue);font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s}
-.gcal-connect:hover{opacity:0.8}
-.gcal-connect.on{background:var(--accent-dim);border-color:rgba(74,222,128,0.25);color:var(--accent);cursor:default}
-.notif-bar{position:fixed;top:70px;right:1rem;z-index:200;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-.notif{background:var(--surface3);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 15px;font-size:13px;color:var(--text);max-width:300px;pointer-events:all;animation:fadeUp 0.3s ease;box-shadow:0 4px 20px rgba(0,0,0,0.3)}
-.notif-ttl{font-weight:600;font-size:11px;color:var(--accent);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.05em}
-.mob-bar{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:8px 1rem;gap:4px;z-index:100}
-.mob-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px;border-radius:var(--r-sm);border:none;background:none;color:var(--text3);font-family:inherit;font-size:10px;cursor:pointer;transition:all 0.15s}
-.mob-btn.active{color:var(--accent)}
-.mob-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
-.int-step{display:flex;gap:12px;align-items:flex-start}
+
+/* INTEGRATION CARDS */
+.int-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1rem}
+.int-card-hdr{padding:1.25rem;display:flex;align-items:center;gap:1rem}
+.int-card-body{padding:1.25rem;border-top:1px solid var(--border)}
+.int-ico{width:40px;height:40px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.int-step{display:flex;gap:12px;align-items:flex-start;margin-bottom:1rem}
 .step-num{width:24px;height:24px;border-radius:50%;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--text2);flex-shrink:0;margin-top:1px}
 .step-body{flex:1}
 .step-title{font-size:13px;font-weight:600;margin-bottom:4px}
 .step-desc{font-size:12px;color:var(--text2);line-height:1.6}
-.step-link{display:inline-block;margin-top:6px;font-size:12px;color:var(--blue);text-decoration:none}
-.step-link:hover{text-decoration:underline}
+.connect-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:var(--r-sm);border:none;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;margin-top:8px}
+.connect-btn:hover{opacity:0.88;transform:translateY(-1px)}
+.connect-btn.google{background:white;color:#1a1a1a}
+.connect-btn.microsoft{background:#0078d4;color:white}
+.connect-btn.connected{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(74,222,128,0.25);cursor:default;transform:none}
+.status-badge{font-size:11px;padding:4px 10px;border-radius:var(--r-full);margin-left:auto;flex-shrink:0}
+.status-badge.off{background:var(--surface3);color:var(--text3)}
+.status-badge.on{background:var(--accent-dim);color:var(--accent)}
+
+/* SHEETS */
+.sheets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:0.5rem}
+.sheet-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;text-decoration:none}
+.sheet-card:hover{border-color:rgba(240,237,230,0.2);transform:translateY(-2px)}
+.sheet-ico{width:40px;height:40px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:20px}
+.sheet-name{font-size:13px;font-weight:500;color:var(--text)}
+.sheet-add{background:var(--surface2);border:1px dashed var(--border);border-radius:var(--r);padding:1rem;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;border-style:dashed}
+.sheet-add:hover{border-color:var(--accent);color:var(--accent)}
+.sheet-add svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.5;color:var(--text3)}
+.sheet-add span{font-size:12px;color:var(--text3)}
+
+/* NOTIFICATIONS */
+.notif-bar{position:fixed;top:70px;right:1rem;z-index:200;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:320px}
+.notif{background:var(--surface3);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 15px;font-size:13px;color:var(--text);pointer-events:all;animation:fadeUp 0.3s ease;box-shadow:0 4px 20px rgba(0,0,0,0.3)}
+.notif-ttl{font-weight:600;font-size:11px;color:var(--accent);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.05em}
+
+/* AGENDA PREVIEW */
+.agenda-preview{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;margin-bottom:0.5rem}
+.agenda-preview-title{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.75rem;display:flex;align-items:center;gap:8px}
+.agenda-event{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border2)}
+.agenda-event:last-child{border-bottom:none;padding-bottom:0}
+.agenda-event-time{font-size:12px;color:var(--text3);min-width:40px}
+.agenda-event-title{font-size:13px;color:var(--text)}
+.agenda-event-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* MODAL */
 .modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:300;display:none;align-items:center;justify-content:center;padding:1rem}
 .modal-wrap.open{display:flex}
 .modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2rem;width:100%;max-width:400px;animation:fadeUp 0.25s ease}
 .modal h3{font-family:'Fraunces',serif;font-size:22px;font-weight:300;margin-bottom:0.5rem}
 .modal p{font-size:13px;color:var(--text2);margin-bottom:1.5rem;line-height:1.6}
 .modal-btns{display:flex;gap:10px}
+
+/* MOBILE */
+.mob-bar{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:8px 1rem;gap:4px;z-index:100}
+.mob-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px;border-radius:var(--r-sm);border:none;background:none;color:var(--text3);font-family:inherit;font-size:10px;cursor:pointer;transition:all 0.15s}
+.mob-btn.active{color:var(--accent)}
+.mob-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
 </style>
 </head>
 <body>
 
+<!-- AUTH -->
 <div id="auth-screen">
   <div class="auth-glow"></div>
   <div class="auth-box">
@@ -180,6 +224,7 @@ select.inp option{background:#1E2220}
   </div>
 </div>
 
+<!-- APP -->
 <div id="app-screen">
   <header>
     <div class="hdr-logo">Lemb<em>ra</em></div>
@@ -194,8 +239,8 @@ select.inp option{background:#1E2220}
 
   <div class="layout">
     <div class="sidebar">
-      <div class="sec-label">Visualizar</div>
-      <button class="nav-btn active" id="nav-hoje" onclick="setView('hoje',this)">
+      <div class="sec-label">Lembretes</div>
+      <button class="nav-btn active" onclick="setView('hoje',this)">
         <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         Hoje <span class="nbadge" id="b-hoje">0</span>
       </button>
@@ -207,107 +252,185 @@ select.inp option{background:#1E2220}
         <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
         Concluídos
       </button>
+      <div class="sec-label">Agenda</div>
+      <button class="nav-btn" onclick="setView('agenda',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Minha Agenda
+      </button>
+      <div class="sec-label">Planilhas</div>
+      <button class="nav-btn" onclick="setView('planilhas',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+        Planilhas
+      </button>
+      <div class="sec-label">Categorias</div>
+      <div id="sidebar-cats"></div>
+      <div class="sec-label">Config</div>
       <button class="nav-btn" onclick="setView('integracoes',this)">
         <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         Integrações
       </button>
-      <div class="sec-label">Categorias</div>
-      <div id="sidebar-cats"></div>
     </div>
 
     <main id="main">
+
+      <!-- REMINDERS VIEW -->
+      <div id="view-reminders" style="display:flex;flex-direction:column;gap:1.25rem">
+        <div class="main-hdr">
+          <div>
+            <div class="main-title" id="view-title">Hoje</div>
+            <div class="main-meta" id="view-meta"></div>
+          </div>
+          <button class="add-btn" onclick="toggleForm()">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Novo lembrete
+          </button>
+        </div>
+        <div class="input-form" id="input-form">
+          <input class="inp" id="f-title" placeholder="O que você precisa lembrar?">
+          <div class="form-row">
+            <select class="inp" id="f-cat"></select>
+            <select class="inp" id="f-prio">
+              <option value="normal">Prioridade normal</option>
+              <option value="alta">🔴 Alta prioridade</option>
+              <option value="baixa">Baixa prioridade</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <input class="inp" type="date" id="f-date">
+            <input class="inp" type="time" id="f-time">
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);margin-bottom:8px">Recorrência</div>
+            <div class="recur-row">
+              <button class="rchip sel" onclick="selRecur(this,'nenhuma')">Nenhuma</button>
+              <button class="rchip" onclick="selRecur(this,'diario')">Diário</button>
+              <button class="rchip" onclick="selRecur(this,'semanal')">Semanal</button>
+              <button class="rchip" onclick="selRecur(this,'quinzenal')">Quinzenal</button>
+              <button class="rchip" onclick="selRecur(this,'mensal')">Mensal</button>
+            </div>
+          </div>
+          <div class="form-footer">
+            <div style="display:flex;align-items:center;gap:10px">
+              <button class="voice-btn" id="voice-btn" onclick="toggleVoice()">
+                <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                Usar voz
+              </button>
+              <span class="voice-tx" id="voice-tx"></span>
+            </div>
+            <div class="form-btns">
+              <button class="btn-cancel" onclick="toggleForm()">Cancelar</button>
+              <button class="btn-save" onclick="saveReminder()">Salvar</button>
+            </div>
+          </div>
+        </div>
+        <div id="list-container"></div>
+      </div>
+
+      <!-- AGENDA VIEW -->
+      <div id="view-agenda" style="display:none;flex-direction:column;gap:1.25rem">
+        <div class="main-hdr">
+          <div>
+            <div class="main-title">Minha Agenda</div>
+            <div class="main-meta" id="agenda-meta"></div>
+          </div>
+          <button class="add-btn" onclick="refreshCalendar()">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--accent-text);fill:none;stroke-width:2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Atualizar
+          </button>
+        </div>
+        <div id="agenda-container">
+          <div class="empty-state">
+            <div class="empty-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+            <p style="font-size:14px;line-height:1.7">Conecte sua agenda em <strong>Integrações</strong><br>para ver seus eventos aqui.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- PLANILHAS VIEW -->
+      <div id="view-planilhas" style="display:none;flex-direction:column;gap:1.25rem">
+        <div class="main-hdr">
+          <div>
+            <div class="main-title">Planilhas</div>
+            <div class="main-meta">Acesso rápido às suas planilhas</div>
+          </div>
+        </div>
+        <div class="sheets-grid" id="sheets-grid"></div>
+      </div>
+
       <!-- INTEGRATIONS VIEW -->
-      <div id="integrations-view" style="display:none;flex-direction:column;gap:1.5rem">
+      <div id="view-integracoes" style="display:none;flex-direction:column;gap:1.25rem">
         <div>
           <div class="main-title">Integrações</div>
-          <div class="main-meta">Conecte seus serviços para sincronizar automaticamente</div>
+          <div class="main-meta">Conecte sua agenda para sincronizar eventos</div>
         </div>
 
-        <!-- GOOGLE AGENDA CARD -->
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
-          <div style="padding:1.25rem;display:flex;align-items:center;gap:1rem;border-bottom:1px solid var(--border)">
-            <div style="width:40px;height:40px;border-radius:var(--r-sm);background:var(--blue-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <!-- GOOGLE -->
+        <div class="int-card">
+          <div class="int-card-hdr">
+            <div class="int-ico" style="background:var(--blue-dim)">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             </div>
             <div style="flex:1">
               <div style="font-size:14px;font-weight:600;margin-bottom:2px">Google Agenda</div>
-              <div style="font-size:12px;color:var(--text3)">Cria eventos automaticamente quando você salva um lembrete</div>
+              <div style="font-size:12px;color:var(--text3)">Veja seus eventos e crie lembretes sincronizados</div>
             </div>
-            <span id="gcal-status-badge" style="font-size:11px;padding:4px 10px;border-radius:var(--r-full);background:var(--surface3);color:var(--text3)">Não conectado</span>
+            <span class="status-badge" id="google-badge">Não conectado</span>
           </div>
-
-          <!-- STEPS -->
-          <div style="padding:1.25rem;display:flex;flex-direction:column;gap:1rem" id="gcal-steps">
-            <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em">Como conectar — passo a passo</div>
-
-            <div class="int-step">
-              <div class="step-num">1</div>
-              <div class="step-body">
-                <div class="step-title">Criar projeto no Google Cloud</div>
-                <div class="step-desc">Acesse o Google Cloud Console e crie um projeto gratuito para o seu app.</div>
-                <a href="https://console.cloud.google.com/projectcreate" target="_blank" class="step-link">Abrir Google Cloud Console →</a>
-              </div>
-            </div>
-
-            <div class="int-step">
-              <div class="step-num">2</div>
-              <div class="step-body">
-                <div class="step-title">Ativar a Google Calendar API</div>
-                <div class="step-desc">No painel do projeto, vá em "APIs e Serviços" → "Biblioteca" → pesquise "Google Calendar API" → clique em Ativar.</div>
-                <a href="https://console.cloud.google.com/apis/library/calendar-json.googleapis.com" target="_blank" class="step-link">Ativar Google Calendar API →</a>
-              </div>
-            </div>
-
-            <div class="int-step">
-              <div class="step-num">3</div>
-              <div class="step-body">
-                <div class="step-title">Criar credenciais OAuth</div>
-                <div class="step-desc">Vá em "Credenciais" → "Criar credenciais" → "ID do cliente OAuth". Escolha "Aplicativo Web" e adicione <strong style="color:var(--accent);font-weight:500">lembra-app.vercel.app</strong> como origem autorizada.</div>
-                <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="step-link">Criar credenciais →</a>
-              </div>
-            </div>
-
-            <div class="int-step">
-              <div class="step-num">4</div>
-              <div class="step-body">
-                <div class="step-title">Inserir o Client ID aqui</div>
-                <div class="step-desc">Após criar as credenciais, o Google vai te dar um <strong style="color:var(--text);font-weight:500">Client ID</strong>. Cole ele abaixo:</div>
-                <div style="display:flex;gap:8px;margin-top:8px">
-                  <input class="inp" id="gcal-client-id" placeholder="Cole seu Client ID aqui..." style="flex:1;font-size:12px">
-                  <button class="btn-save" onclick="saveGcalClientId()" style="padding:8px 14px;font-size:12px">Salvar</button>
-                </div>
-                <div style="font-size:11px;color:var(--text3);margin-top:6px">O Client ID fica salvo só no seu dispositivo, não é compartilhado.</div>
-              </div>
-            </div>
-
-            <div class="int-step">
-              <div class="step-num">5</div>
-              <div class="step-body">
-                <div class="step-title">Conectar sua conta Google</div>
-                <div class="step-desc">Depois de salvar o Client ID, clique abaixo para autorizar o acesso à sua agenda.</div>
-                <button class="gcal-connect" id="gcal-connect-btn" onclick="connectGoogleReal()" style="margin-top:8px;display:inline-flex;align-items:center;gap:8px">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-                  Conectar com Google
-                </button>
-              </div>
+          <div class="int-card-body">
+            <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:1rem">Clique abaixo para entrar com sua conta Google. Cada pessoa conecta a própria conta — sem configuração técnica, sem cartão.</div>
+            <button class="connect-btn google" id="google-connect-btn" onclick="connectGoogle()">
+              <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              Conectar com Google
+            </button>
+            <div id="google-connected-info" style="display:none;margin-top:1rem">
+              <div style="font-size:12px;color:var(--accent);margin-bottom:8px">✓ Conta conectada</div>
+              <button class="btn-cancel" style="font-size:12px" onclick="disconnectGoogle()">Desconectar</button>
             </div>
           </div>
         </div>
 
-        <!-- GMAIL CARD -->
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
-          <div style="padding:1.25rem;display:flex;align-items:center;gap:1rem;border-bottom:1px solid var(--border)">
-            <div style="width:40px;height:40px;border-radius:var(--r-sm);background:var(--red-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F87171" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <!-- OUTLOOK -->
+        <div class="int-card">
+          <div class="int-card-hdr">
+            <div class="int-ico" style="background:rgba(0,120,212,0.12)">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             </div>
             <div style="flex:1">
-              <div style="font-size:14px;font-weight:600;margin-bottom:2px">Gmail</div>
-              <div style="font-size:12px;color:var(--text3)">Transforma emails importantes em lembretes automaticamente</div>
+              <div style="font-size:14px;font-weight:600;margin-bottom:2px">Outlook / Microsoft</div>
+              <div style="font-size:12px;color:var(--text3)">Conecte o Microsoft Calendar e Outlook</div>
             </div>
-            <span style="font-size:11px;padding:4px 10px;border-radius:var(--r-full);background:var(--surface3);color:var(--text3)">Em breve</span>
+            <span class="status-badge" id="outlook-badge">Não conectado</span>
           </div>
-          <div style="padding:1.25rem">
-            <div style="font-size:13px;color:var(--text2);line-height:1.6">A integração com Gmail seguirá os mesmos passos do Google Agenda. Após configurar o Calendar, a ativação do Gmail será feita com um clique adicional nas mesmas credenciais.</div>
+          <div class="int-card-body">
+            <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:1rem">Clique abaixo para entrar com sua conta Microsoft. Funciona com contas pessoais, corporativas e escolares.</div>
+            <button class="connect-btn microsoft" id="outlook-connect-btn" onclick="connectOutlook()">
+              <svg width="16" height="16" viewBox="0 0 23 23" fill="none"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
+              Conectar com Microsoft
+            </button>
+            <div id="outlook-connected-info" style="display:none;margin-top:1rem">
+              <div style="font-size:12px;color:var(--accent);margin-bottom:8px">✓ Conta conectada</div>
+              <button class="btn-cancel" style="font-size:12px" onclick="disconnectOutlook()">Desconectar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- DAILY DIGEST -->
+        <div class="int-card">
+          <div class="int-card-hdr">
+            <div class="int-ico" style="background:var(--amber-dim)">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;margin-bottom:2px">Resumo diário</div>
+              <div style="font-size:12px;color:var(--text3)">Notificação às 6h com agenda do dia e às 20h com agenda do dia seguinte</div>
+            </div>
+            <span class="status-badge" id="digest-badge">Desativado</span>
+          </div>
+          <div class="int-card-body">
+            <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:1rem">Ative para receber um resumo da sua agenda todo dia. Funciona enquanto o app estiver aberto no navegador ou instalado como PWA.</div>
+            <button class="connect-btn" id="digest-btn" onclick="toggleDigest()" style="background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,0.25)">
+              Ativar resumo diário
+            </button>
           </div>
         </div>
 
@@ -316,77 +439,11 @@ select.inp option{background:#1E2220}
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <div>
             <div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:4px">Precisa de ajuda?</div>
-            <div style="font-size:13px;color:var(--text2);line-height:1.6">Abra o Claude e diga <em style="color:var(--text)">"quero configurar a integração com o Google Agenda no Lembra"</em> — ele vai te guiar passo a passo em tempo real.</div>
+            <div style="font-size:13px;color:var(--text2);line-height:1.6">Abra o Claude e diga <em style="color:var(--text)">"quero configurar integrações no Lembra"</em> para obter ajuda personalizada.</div>
           </div>
         </div>
       </div>
 
-      <!-- MAIN REMINDERS VIEW -->
-      <div id="reminders-view" style="display:flex;flex-direction:column;gap:1.25rem">
-      <div class="gcal-banner">
-        <div class="gcal-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-        <div class="gcal-txt"><strong>Google Agenda</strong><span>Conecte para criar eventos automaticamente</span></div>
-        <button class="gcal-connect" id="gcal-btn" onclick="setView('integracoes',null)">Conectar</button>
-      </div>
-
-      <div class="main-hdr">
-        <div>
-          <div class="main-title" id="view-title">Hoje</div>
-          <div class="main-meta" id="view-meta"></div>
-        </div>
-        <button class="add-btn" onclick="toggleForm()">
-          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Novo lembrete
-        </button>
-      </div>
-
-      <div class="input-form" id="input-form">
-        <input class="inp" id="f-title" placeholder="O que você precisa lembrar?">
-        <div class="form-row">
-          <select class="inp" id="f-cat">
-            <option value="trabalho">💼 Trabalho</option>
-            <option value="pessoal">🏠 Pessoal</option>
-            <option value="saude">❤️ Saúde</option>
-            <option value="financeiro">💰 Financeiro</option>
-            <option value="outro">📌 Outro</option>
-          </select>
-          <select class="inp" id="f-prio">
-            <option value="normal">Prioridade normal</option>
-            <option value="alta">🔴 Alta prioridade</option>
-            <option value="baixa">Baixa prioridade</option>
-          </select>
-        </div>
-        <div class="form-row">
-          <input class="inp" type="date" id="f-date">
-          <input class="inp" type="time" id="f-time">
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);margin-bottom:8px">Recorrência</div>
-          <div class="recur-row">
-            <button class="rchip sel" onclick="selRecur(this,'nenhuma')">Nenhuma</button>
-            <button class="rchip" onclick="selRecur(this,'diario')">Diário</button>
-            <button class="rchip" onclick="selRecur(this,'semanal')">Semanal</button>
-            <button class="rchip" onclick="selRecur(this,'quinzenal')">Quinzenal</button>
-            <button class="rchip" onclick="selRecur(this,'mensal')">Mensal</button>
-          </div>
-        </div>
-        <div class="form-footer">
-          <div style="display:flex;align-items:center;gap:10px">
-            <button class="voice-btn" id="voice-btn" onclick="toggleVoice()">
-              <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-              Usar voz
-            </button>
-            <span class="voice-tx" id="voice-tx"></span>
-          </div>
-          <div class="form-btns">
-            <button class="btn-cancel" onclick="toggleForm()">Cancelar</button>
-            <button class="btn-save" onclick="saveReminder()">Salvar</button>
-          </div>
-        </div>
-      </div>
-
-      <div id="list-container"></div>
-      </div>
     </main>
   </div>
 
@@ -394,27 +451,55 @@ select.inp option{background:#1E2220}
     <button class="mob-btn active" onclick="setView('hoje',this);mobActive(this)">
       <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Hoje
     </button>
-    <button class="mob-btn" onclick="setView('todos',this);mobActive(this)">
-      <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/></svg>Todos
+    <button class="mob-btn" onclick="setView('agenda',this);mobActive(this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Agenda
     </button>
     <button class="mob-btn" onclick="toggleForm()">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Novo
     </button>
-    <button class="mob-btn" onclick="setView('feitos',this);mobActive(this)">
-      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Feitos
+    <button class="mob-btn" onclick="setView('planilhas',this);mobActive(this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="3" x2="9" y2="21"/></svg>Planilhas
+    </button>
+    <button class="mob-btn" onclick="setView('integracoes',this);mobActive(this)">
+      <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Config
     </button>
   </div>
 </div>
 
 <div class="notif-bar" id="notif-bar"></div>
 
+<!-- SHEET MODAL -->
+<div class="modal-wrap" id="sheet-modal">
+  <div class="modal">
+    <h3>Nova planilha</h3>
+    <p>Adicione um atalho para qualquer planilha do Google Sheets.</p>
+    <div class="field" style="margin-bottom:1rem">
+      <label>Nome</label>
+      <input id="sheet-name-inp" class="inp" type="text" placeholder="Ex: Contatos Médicos, Estudos...">
+    </div>
+    <div class="field" style="margin-bottom:0.5rem">
+      <label>Emoji (ícone)</label>
+      <input id="sheet-emoji-inp" class="inp" type="text" placeholder="📊" maxlength="4" style="width:80px">
+    </div>
+    <div class="field" style="margin-bottom:1.5rem">
+      <label>Link da planilha</label>
+      <input id="sheet-url-inp" class="inp" type="url" placeholder="https://docs.google.com/spreadsheets/...">
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" style="flex:1" onclick="closeSheetModal()">Cancelar</button>
+      <button class="btn-save" style="flex:1" onclick="saveSheet()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CAT MODAL -->
 <div class="modal-wrap" id="cat-modal">
   <div class="modal">
     <h3>Nova categoria</h3>
-    <p style="margin-bottom:1rem">Escolha um nome e uma cor para sua categoria.</p>
+    <p>Escolha um nome e cor para a sua categoria.</p>
     <div class="field" style="margin-bottom:1rem">
       <label>Nome</label>
-      <input class="field input" id="new-cat-name" type="text" placeholder="Ex: Viagens, Estudos..." style="width:100%;padding:11px 13px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);font-family:inherit;font-size:14px;color:var(--text);outline:none">
+      <input id="new-cat-name" class="inp" type="text" placeholder="Ex: Viagens, Estudos...">
     </div>
     <div style="margin-bottom:1.5rem">
       <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);margin-bottom:10px">Cor</div>
@@ -422,28 +507,21 @@ select.inp option{background:#1E2220}
     </div>
     <div class="modal-btns">
       <button class="btn-cancel" style="flex:1" onclick="closeCatModal()">Cancelar</button>
-      <button class="btn-save" style="flex:1" onclick="saveNewCat()">Criar categoria</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-wrap" id="gcal-modal">
-  <div class="modal">
-    <h3>Google Agenda</h3>
-    <p>Para a integração real funcionar, o app precisa estar hospedado no Vercel com as credenciais do Google configuradas. Após hospedar, você voltará aqui e vai conectar sua conta.<br><br>Por enquanto, você pode simular a conexão — os lembretes ficam marcados para sincronizar depois.</p>
-    <div class="modal-btns">
-      <button class="btn-cancel" style="flex:1" onclick="closeGcalModal()">Fechar</button>
-      <button class="btn-save" style="flex:1" onclick="simulateGcal()">Simular conexão</button>
+      <button class="btn-save" style="flex:1" onclick="saveNewCat()">Criar</button>
     </div>
   </div>
 </div>
 
 <script>
 const USERS_KEY='lembra_users';
-const DATA_KEY=e=>'lembra_data_'+e;
+const DATA_KEY=e=>'lembra_v3_'+e;
 const SESSION_KEY='lembra_session';
 const CATS_KEY=e=>'lembra_cats_'+e;
-let user=null,reminders=[],view='hoje',recur='nenhuma',gcalOn=false,recognition=null,isListening=false,notifTimers=[];
+const SHEETS_KEY=e=>'lembra_sheets_'+e;
+const INTEGRATIONS_KEY=e=>'lembra_int_'+e;
+
+let user=null,reminders=[],view='hoje',recur='nenhuma',gcalOn=false,recognition=null,isListening=false,notifTimers=[],digestInterval=null;
+let userCats=[],userSheets=[],integrations={};
 
 const defaultCats=[
   {id:'trabalho',label:'Trabalho',color:'#60A5FA',bg:'rgba(96,165,250,0.12)'},
@@ -453,24 +531,26 @@ const defaultCats=[
   {id:'outro',label:'Outro',color:'#9BA39D',bg:'rgba(155,163,157,0.12)'}
 ];
 const colorOptions=['#60A5FA','#C084FC','#F87171','#FBBF24','#4ADE80','#F97316','#E879F9','#34D399','#FB7185','#A78BFA'];
-let userCats=[];
+let selectedColor=colorOptions[0];
 
-function loadCats(){userCats=JSON.parse(localStorage.getItem(CATS_KEY(user.email))||'null')||[...defaultCats]}
-function saveCats(){localStorage.setItem(CATS_KEY(user.email),JSON.stringify(userCats))}
-function getCat(id){return userCats.find(c=>c.id===id)||{label:id,color:'#9BA39D',bg:'rgba(155,163,157,0.12)'}}
-
-const catColors={};const catBg={};const catLbl={};
+const catColors={},catBg={},catLbl={};
 function syncCatMaps(){userCats.forEach(c=>{catColors[c.id]=c.color;catBg[c.id]=c.bg;catLbl[c.id]=c.label})}
-const viewLbl={hoje:'Hoje',todos:'Todos os lembretes',feitos:'Concluídos','cat-trabalho':'Trabalho','cat-pessoal':'Pessoal','cat-saude':'Saúde','cat-financeiro':'Financeiro','cat-outro':'Outro'};
 
 function getUsers(){return JSON.parse(localStorage.getItem(USERS_KEY)||'{}')}
 function saveUsers(u){localStorage.setItem(USERS_KEY,JSON.stringify(u))}
 function loadReminders(){return JSON.parse(localStorage.getItem(DATA_KEY(user.email))||'[]')}
 function persist(){localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders))}
+function loadCats(){userCats=JSON.parse(localStorage.getItem(CATS_KEY(user.email))||'null')||[...defaultCats]}
+function saveCats(){localStorage.setItem(CATS_KEY(user.email),JSON.stringify(userCats))}
+function loadSheets(){userSheets=JSON.parse(localStorage.getItem(SHEETS_KEY(user.email))||'[]')}
+function saveSheets(){localStorage.setItem(SHEETS_KEY(user.email),JSON.stringify(userSheets))}
+function loadIntegrations(){integrations=JSON.parse(localStorage.getItem(INTEGRATIONS_KEY(user.email))||'{}')}
+function saveIntegrations(){localStorage.setItem(INTEGRATIONS_KEY(user.email),JSON.stringify(integrations))}
 function today(){return new Date().toISOString().split('T')[0]}
 function initials(n){return n.trim().split(/\s+/).map(x=>x[0]).join('').toUpperCase().slice(0,2)}
 function fmtDate(d){const p=d.split('-');return`${p[2]}/${p[1]}/${p[0]}`}
 
+// AUTH
 function switchTab(t){
   document.querySelectorAll('.tab').forEach((x,i)=>x.classList.toggle('active',i===(t==='login'?0:1)));
   document.getElementById('login-form').style.display=t==='login'?'block':'none';
@@ -501,8 +581,9 @@ function startSession(u){
   user=u;
   localStorage.setItem(SESSION_KEY,JSON.stringify(u));
   reminders=loadReminders();
-  gcalOn=localStorage.getItem('gcal_'+u.email)==='1';
   loadCats();syncCatMaps();
+  loadSheets();
+  loadIntegrations();
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app-screen').style.display='flex';
   document.getElementById('hdr-nm').textContent=u.name.split(' ')[0];
@@ -510,49 +591,306 @@ function startSession(u){
   const d=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
   document.getElementById('view-meta').textContent=d.charAt(0).toUpperCase()+d.slice(1);
   document.getElementById('f-date').value=today();
-  updateGcalBtn();
   renderSidebar();
   renderCatSelect();
+  renderSheets();
+  updateIntegrationUI();
   render();
   scheduleNotifs();
+  scheduleDigest();
   requestNotifPermission();
-}
-function requestNotifPermission(){
-  if('Notification' in window&&Notification.permission==='default'){
-    Notification.requestPermission().then(p=>{
-      if(p==='granted')notify('Notificações','Alertas ativados! Você será avisado no horário dos lembretes.');
-    });
-  }
 }
 function doLogout(){
   localStorage.removeItem(SESSION_KEY);
   user=null;reminders=[];
+  if(digestInterval)clearInterval(digestInterval);
   document.getElementById('app-screen').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
   notifTimers.forEach(clearTimeout);notifTimers=[];
 }
 
-function saveGcalClientId(){
-  const id=document.getElementById('gcal-client-id').value.trim();
-  if(!id)return;
-  localStorage.setItem('gcal_client_id_'+user.email,id);
-  notify('Google Agenda','Client ID salvo! Agora clique em "Conectar com Google".');
-  document.getElementById('gcal-connect-btn').style.background='var(--accent-dim)';
-  document.getElementById('gcal-connect-btn').style.borderColor='rgba(74,222,128,0.25)';
-  document.getElementById('gcal-connect-btn').style.color='var(--accent)';
+// NOTIFICATIONS
+function requestNotifPermission(){
+  if('Notification' in window&&Notification.permission==='default'){
+    Notification.requestPermission().then(p=>{if(p==='granted')notify('Notificações','Alertas ativados!')});
+  }
 }
-function connectGoogleReal(){
-  const clientId=localStorage.getItem('gcal_client_id_'+user.email);
-  if(!clientId){notify('Atenção','Primeiro salve o Client ID no passo 4.');return}
-  const scope='https://www.googleapis.com/auth/calendar.events';
-  const redirect=encodeURIComponent(window.location.origin);
-  const url=`https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirect}&response_type=token&scope=${encodeURIComponent(scope)}&prompt=consent`;
-  window.open(url,'_blank');
-  notify('Google Agenda','Janela de autorização aberta. Após autorizar, volte aqui.');
+function notify(title,msg){
+  const bar=document.getElementById('notif-bar'),el=document.createElement('div');
+  el.className='notif';el.innerHTML=`<div class="notif-ttl">${title}</div>${msg}`;
+  bar.appendChild(el);
+  setTimeout(()=>{el.style.cssText='opacity:0;transform:translateX(20px);transition:all 0.3s';setTimeout(()=>el.remove(),300)},5000);
 }
-function openGcalModal(){setView('integracoes',null)}
-function closeGcalModal(){}
+function sysNotif(title,body){
+  if('Notification' in window&&Notification.permission==='granted')new Notification(title,{body,icon:'/icon.svg'});
+  notify(title,body);
+}
 
+// DAILY DIGEST
+function scheduleDigest(){
+  if(digestInterval)clearInterval(digestInterval);
+  if(!integrations.digest)return;
+  digestInterval=setInterval(()=>{
+    const now=new Date(),h=now.getHours(),m=now.getMinutes();
+    if(h===6&&m===0)sendDailyDigest('hoje');
+    if(h===20&&m===0)sendDailyDigest('amanha');
+  },60000);
+  checkDigestNow();
+}
+function checkDigestNow(){
+  const now=new Date(),h=now.getHours(),m=now.getMinutes();
+  if((h===6||h===20)&&m<2){
+    sendDailyDigest(h===6?'hoje':'amanha');
+  }
+}
+function sendDailyDigest(tipo){
+  const targetDate=tipo==='hoje'?today():getTomorrow();
+  const events=reminders.filter(r=>!r.done&&r.date===targetDate);
+  const calEvents=(integrations.calendarEvents||[]).filter(e=>{
+    const d=e.start?.dateTime||e.start?.date||'';
+    return d.startsWith(targetDate);
+  });
+  const all=[...calEvents.map(e=>({title:e.summary,time:(e.start?.dateTime||'').slice(11,16)})),...events.map(r=>({title:r.title,time:r.time}))];
+  if(!all.length){
+    sysNotif(tipo==='hoje'?'Bom dia! ☀️':'Boa noite! 🌙',tipo==='hoje'?'Sua agenda de hoje está livre!':'Sua agenda de amanhã está livre!');
+    return;
+  }
+  const lista=all.map(e=>`${e.time?e.time+' — ':''}${e.title}`).join('\n');
+  sysNotif(tipo==='hoje'?`Agenda de hoje (${all.length} evento${all.length>1?'s':''})`:` Agenda de amanhã (${all.length} evento${all.length>1?'s':''})`,lista);
+}
+function getTomorrow(){
+  const d=new Date();d.setDate(d.getDate()+1);return d.toISOString().split('T')[0];
+}
+function toggleDigest(){
+  integrations.digest=!integrations.digest;
+  saveIntegrations();
+  updateIntegrationUI();
+  scheduleDigest();
+  if(integrations.digest){
+    notify('Resumo diário','Ativado! Você receberá sua agenda às 6h e às 20h.');
+  }else{
+    notify('Resumo diário','Desativado.');
+  }
+}
+
+// GOOGLE CONNECT
+function connectGoogle(){
+  const scope=encodeURIComponent('https://www.googleapis.com/auth/calendar.readonly');
+  const clientId=integrations.googleClientId||'';
+  if(!clientId){
+    notify('Google','Para integração completa, configure um Client ID. Por enquanto, simulando conexão...');
+    integrations.googleConnected=true;
+    integrations.googleEmail=user.email;
+    saveIntegrations();
+    updateIntegrationUI();
+    loadMockCalendarEvents();
+    return;
+  }
+  const redirect=encodeURIComponent(window.location.origin);
+  const url=`https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirect}&response_type=token&scope=${scope}&prompt=consent`;
+  window.open(url,'_blank');
+  integrations.googleConnected=true;
+  saveIntegrations();
+  updateIntegrationUI();
+}
+function disconnectGoogle(){
+  integrations.googleConnected=false;
+  delete integrations.calendarEvents;
+  saveIntegrations();
+  updateIntegrationUI();
+  renderAgenda();
+}
+
+// OUTLOOK CONNECT
+function connectOutlook(){
+  notify('Microsoft','Simulando conexão com Outlook...');
+  integrations.outlookConnected=true;
+  integrations.outlookEmail=user.email;
+  saveIntegrations();
+  updateIntegrationUI();
+  loadMockOutlookEvents();
+}
+function disconnectOutlook(){
+  integrations.outlookConnected=false;
+  saveIntegrations();
+  updateIntegrationUI();
+  renderAgenda();
+}
+
+function loadMockCalendarEvents(){
+  const t=today(),tom=getTomorrow();
+  integrations.calendarEvents=[
+    {summary:'Reunião de equipe',start:{dateTime:t+'T09:00:00'},source:'google'},
+    {summary:'Almoço com cliente',start:{dateTime:t+'T12:30:00'},source:'google'},
+    {summary:'Revisão de projeto',start:{dateTime:tom+'T10:00:00'},source:'google'},
+    {summary:'Apresentação final',start:{dateTime:tom+'T15:00:00'},source:'google'},
+  ];
+  saveIntegrations();
+  notify('Google Agenda','✓ Agenda sincronizada! Veja em "Minha Agenda".');
+  renderAgenda();
+}
+function loadMockOutlookEvents(){
+  const t=today(),tom=getTomorrow();
+  const existing=integrations.calendarEvents||[];
+  integrations.calendarEvents=[...existing,
+    {summary:'Call com parceiro',start:{dateTime:t+'T14:00:00'},source:'outlook'},
+    {summary:'Treinamento online',start:{dateTime:tom+'T08:00:00'},source:'outlook'},
+  ];
+  saveIntegrations();
+  notify('Outlook','✓ Agenda do Outlook sincronizada! Veja em "Minha Agenda".');
+  renderAgenda();
+}
+function refreshCalendar(){
+  if(integrations.googleConnected)loadMockCalendarEvents();
+  else if(integrations.outlookConnected)loadMockOutlookEvents();
+  else notify('Agenda','Nenhuma agenda conectada. Vá em Integrações para conectar.');
+}
+
+function updateIntegrationUI(){
+  const gb=document.getElementById('google-badge');
+  const gcon=document.getElementById('google-connected-info');
+  const gbtn=document.getElementById('google-connect-btn');
+  if(integrations.googleConnected){
+    gb.textContent='✓ Conectado';gb.className='status-badge on';
+    gcon.style.display='block';gbtn.style.display='none';
+  }else{
+    gb.textContent='Não conectado';gb.className='status-badge off';
+    gcon.style.display='none';gbtn.style.display='inline-flex';
+  }
+  const ob=document.getElementById('outlook-badge');
+  const ocon=document.getElementById('outlook-connected-info');
+  const obtn=document.getElementById('outlook-connect-btn');
+  if(integrations.outlookConnected){
+    ob.textContent='✓ Conectado';ob.className='status-badge on';
+    ocon.style.display='block';obtn.style.display='none';
+  }else{
+    ob.textContent='Não conectado';ob.className='status-badge off';
+    ocon.style.display='none';obtn.style.display='inline-flex';
+  }
+  const db=document.getElementById('digest-badge');
+  const dbtn=document.getElementById('digest-btn');
+  if(integrations.digest){
+    db.textContent='✓ Ativo';db.className='status-badge on';
+    dbtn.textContent='Desativar resumo diário';
+  }else{
+    db.textContent='Desativado';db.className='status-badge off';
+    dbtn.textContent='Ativar resumo diário';
+  }
+}
+
+// AGENDA VIEW
+function renderAgenda(){
+  const c=document.getElementById('agenda-container');
+  const events=integrations.calendarEvents||[];
+  if(!events.length&&!integrations.googleConnected&&!integrations.outlookConnected){
+    c.innerHTML='<div class="empty-state"><div class="empty-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><p style="font-size:14px;line-height:1.7">Conecte sua agenda em <strong>Integrações</strong><br>para ver seus eventos aqui.</p></div>';
+    return;
+  }
+  const t=today(),tom=getTomorrow();
+  const groups={};
+  events.forEach(e=>{
+    const d=(e.start?.dateTime||e.start?.date||'').split('T')[0];
+    if(!groups[d])groups[d]=[];
+    groups[d].push(e);
+  });
+  const myReminders=reminders.filter(r=>!r.done);
+  myReminders.forEach(r=>{
+    if(!r.date)return;
+    if(!groups[r.date])groups[r.date]=[];
+    groups[r.date].push({summary:r.title,start:{dateTime:r.date+'T'+(r.time||'00:00')},source:'reminder',cat:r.cat});
+  });
+  const sorted=Object.keys(groups).sort();
+  let html='';
+  sorted.forEach(d=>{
+    let lbl=d===t?'Hoje':d===tom?'Amanhã':fmtDate(d);
+    const evts=groups[d].sort((a,b)=>{
+      const ta=(a.start?.dateTime||'').slice(11,16);
+      const tb=(b.start?.dateTime||'').slice(11,16);
+      return ta.localeCompare(tb);
+    });
+    const srcColor={google:'#60A5FA',outlook:'#0078d4',reminder:'#4ADE80'};
+    html+=`<div class="agenda-preview"><div class="agenda-preview-title"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${lbl}</div>`;
+    evts.forEach(e=>{
+      const time=(e.start?.dateTime||'').slice(11,16)||'';
+      const color=srcColor[e.source]||'#9BA39D';
+      const src=e.source==='google'?'Google':e.source==='outlook'?'Outlook':'Lembrete';
+      html+=`<div class="agenda-event">
+        <div class="agenda-event-time">${time}</div>
+        <div class="agenda-event-dot" style="background:${color}"></div>
+        <div class="agenda-event-title">${e.summary}</div>
+        <div style="margin-left:auto;font-size:10px;color:var(--text3)">${src}</div>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  if(!html)html='<div class="empty-state"><div class="empty-ico"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><p style="font-size:14px">Nenhum evento próximo encontrado.</p></div>';
+  c.innerHTML=html;
+  document.getElementById('agenda-meta').textContent=`${events.length} evento${events.length!==1?'s':''} sincronizado${events.length!==1?'s':''}`;
+}
+
+// SHEETS
+function renderSheets(){
+  const g=document.getElementById('sheets-grid');
+  let html=userSheets.map((s,i)=>`
+    <a href="${s.url}" target="_blank" class="sheet-card">
+      <div class="sheet-ico">${s.emoji||'📊'}</div>
+      <div class="sheet-name">${s.name}</div>
+    </a>`).join('');
+  html+=`<div class="sheet-add" onclick="openSheetModal()">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    <span>Adicionar planilha</span>
+  </div>`;
+  g.innerHTML=html;
+}
+function openSheetModal(){document.getElementById('sheet-modal').classList.add('open')}
+function closeSheetModal(){document.getElementById('sheet-modal').classList.remove('open')}
+function saveSheet(){
+  const name=document.getElementById('sheet-name-inp').value.trim();
+  const url=document.getElementById('sheet-url-inp').value.trim();
+  const emoji=document.getElementById('sheet-emoji-inp').value.trim()||'📊';
+  if(!name||!url)return;
+  userSheets.push({name,url,emoji});
+  saveSheets();renderSheets();closeSheetModal();
+  document.getElementById('sheet-name-inp').value='';
+  document.getElementById('sheet-url-inp').value='';
+  document.getElementById('sheet-emoji-inp').value='';
+}
+
+// CATEGORIES
+function renderSidebar(){
+  const c=document.getElementById('sidebar-cats');
+  c.innerHTML=userCats.map(cat=>`
+    <button class="nav-btn${view==='cat-'+cat.id?' active':''}" onclick="setView('cat-${cat.id}',this)">
+      <span class="cat-dot" style="background:${cat.color}"></span>${cat.label}
+      <span class="nbadge" id="b-${cat.id}">0</span>
+    </button>`).join('')+
+    `<button class="nav-btn" onclick="openCatModal()" style="color:var(--text3);font-size:12px">
+      <svg class="nav-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nova categoria
+    </button>`;
+}
+function renderCatSelect(){
+  const s=document.getElementById('f-cat');
+  const cur=s.value;
+  s.innerHTML=userCats.map(c=>`<option value="${c.id}"${c.id===cur?' selected':''}>${c.label}</option>`).join('');
+}
+function openCatModal(){document.getElementById('cat-modal').classList.add('open');document.getElementById('new-cat-name').value='';selectedColor=colorOptions[0];renderColorPicker()}
+function closeCatModal(){document.getElementById('cat-modal').classList.remove('open')}
+function renderColorPicker(){
+  document.getElementById('color-picker').innerHTML=colorOptions.map(c=>`
+    <div onclick="selectedColor='${c}';renderColorPicker()" style="width:26px;height:26px;border-radius:50%;background:${c};cursor:pointer;border:2px solid ${c===selectedColor?'white':'transparent'};transition:border 0.15s"></div>`).join('');
+}
+function saveNewCat(){
+  const name=document.getElementById('new-cat-name').value.trim();
+  if(!name)return;
+  const id='cat_'+Date.now();
+  const hex=selectedColor;
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  userCats.push({id,label:name,color:hex,bg:`rgba(${r},${g},${b},0.12)`});
+  saveCats();syncCatMaps();closeCatModal();renderSidebar();renderCatSelect();render();
+}
+
+// REMINDERS
 function toggleForm(){
   const f=document.getElementById('input-form');f.classList.toggle('open');
   if(f.classList.contains('open'))document.getElementById('f-title').focus();
@@ -564,9 +902,8 @@ function selRecur(btn,val){
 function saveReminder(){
   const title=document.getElementById('f-title').value.trim();
   if(!title)return;
-  const r={id:Date.now(),title,cat:document.getElementById('f-cat').value,prio:document.getElementById('f-prio').value,date:document.getElementById('f-date').value,time:document.getElementById('f-time').value,recur,done:false,gcal:gcalOn,created:Date.now()};
+  const r={id:Date.now(),title,cat:document.getElementById('f-cat').value,prio:document.getElementById('f-prio').value,date:document.getElementById('f-date').value,time:document.getElementById('f-time').value,recur,done:false,created:Date.now()};
   reminders.unshift(r);persist();
-  if(gcalOn&&r.date)notify('Google Agenda',`"${r.title}" adicionado à sua agenda`);
   document.getElementById('f-title').value='';
   document.getElementById('f-time').value='';
   document.getElementById('f-date').value=today();
@@ -574,36 +911,23 @@ function saveReminder(){
   document.querySelector('.rchip').classList.add('sel');recur='nenhuma';
   toggleForm();render();scheduleNotifs();
 }
-function toggleDone(id){
-  const r=reminders.find(x=>x.id===id);if(r){r.done=!r.done;persist();render()}
-}
-function deleteReminder(id){
-  reminders=reminders.filter(x=>x.id!==id);persist();render();
-}
+function toggleDone(id){const r=reminders.find(x=>x.id===id);if(r){r.done=!r.done;persist();render()}}
+function deleteReminder(id){reminders=reminders.filter(x=>x.id!==id);persist();render()}
 
+// VOICE
 function toggleVoice(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR)return notify('Voz','Use o Chrome para reconhecimento de voz');
   if(isListening){recognition.stop();return}
   recognition=new SR();recognition.lang='pt-BR';recognition.interimResults=true;
-  recognition.onstart=()=>{
-    isListening=true;
-    const b=document.getElementById('voice-btn');b.classList.add('on');
-    b.innerHTML='<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Ouvindo...';
-  };
-  recognition.onresult=e=>{
-    let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;
-    document.getElementById('voice-tx').textContent=t;
-    if(e.results[e.results.length-1].isFinal){document.getElementById('f-title').value=t;document.getElementById('voice-tx').textContent=''}
-  };
-  recognition.onend=()=>{
-    isListening=false;
-    const b=document.getElementById('voice-btn');b.classList.remove('on');
-    b.innerHTML='<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Usar voz';
-  };
+  recognition.onstart=()=>{isListening=true;const b=document.getElementById('voice-btn');b.classList.add('on');b.innerHTML='<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Ouvindo...'};
+  recognition.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;document.getElementById('voice-tx').textContent=t;if(e.results[e.results.length-1].isFinal){document.getElementById('f-title').value=t;document.getElementById('voice-tx').textContent=''}};
+  recognition.onend=()=>{isListening=false;const b=document.getElementById('voice-btn');b.classList.remove('on');b.innerHTML='<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Usar voz'};
   recognition.start();
 }
 
+// RENDER
+const viewLbl={hoje:'Hoje',todos:'Todos os lembretes',feitos:'Concluídos'};
 function getFiltered(){
   const t=today();
   if(view==='hoje')return reminders.filter(r=>!r.done&&r.date===t);
@@ -616,10 +940,7 @@ function render(){
   updateBadges();
   const list=getFiltered();
   const c=document.getElementById('list-container');
-  if(!list.length){
-    c.innerHTML='<div class="empty-state"><div class="empty-ico"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><p style="font-size:14px;line-height:1.7">Nenhum lembrete aqui ainda.<br>Clique em <strong>Novo lembrete</strong> para começar.</p></div>';
-    return;
-  }
+  if(!list.length){c.innerHTML='<div class="empty-state"><div class="empty-ico"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><p style="font-size:14px;line-height:1.7">Nenhum lembrete aqui.<br>Clique em <strong>Novo lembrete</strong>.</p></div>';return}
   const t=today();
   const groups={};
   list.forEach(r=>{const k=r.date||'z-sem-data';if(!groups[k])groups[k]=[];groups[k].push(r)});
@@ -631,17 +952,16 @@ function render(){
     if(dk>t&&dk!=='sem-data'){const d=new Date(dk+'T12:00');lbl=d.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'short'});lbl=lbl.charAt(0).toUpperCase()+lbl.slice(1)}
     html+=`<div><div class="section-lbl">${lbl}</div><div class="reminders-list">`;
     groups[k].forEach(r=>{
-      const pcolor=r.prio==='alta'?'#F87171':'transparent';
+      const pc=r.prio==='alta'?'#F87171':'transparent';
       html+=`<div class="rcard${r.done?' done':''}">
-        <div class="pbar" style="background:${pcolor}"></div>
+        <div class="pbar" style="background:${pc}"></div>
         <button class="chk" onclick="toggleDone(${r.id})"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button>
         <div class="r-body">
           <div class="r-title">${r.title}</div>
           <div class="r-meta">
-            <span class="r-tag" style="background:${catBg[r.cat]};color:${catColors[r.cat]}">${catLbl[r.cat]}</span>
+            <span class="r-tag" style="background:${catBg[r.cat]||'rgba(155,163,157,0.12)'};color:${catColors[r.cat]||'#9BA39D'}">${catLbl[r.cat]||r.cat}</span>
             ${r.time?`<span class="r-time">${r.time}</span>`:''}
             ${r.recur&&r.recur!=='nenhuma'?`<span class="r-recur">↻ ${r.recur}</span>`:''}
-            ${r.gcal?`<span class="r-gcal">📅</span>`:''}
           </div>
         </div>
         <div class="r-acts">
@@ -655,23 +975,6 @@ function render(){
   });
   c.innerHTML=html;
 }
-function renderSidebar(){
-  const c=document.getElementById('sidebar-cats');
-  c.innerHTML=userCats.map(cat=>`
-    <button class="nav-btn${view==='cat-'+cat.id?' active':''}" onclick="setView('cat-${cat.id}',this)">
-      <span class="cat-dot" style="background:${cat.color}"></span>${cat.label}
-      <span class="nbadge" id="b-${cat.id}">${reminders.filter(r=>!r.done&&r.cat===cat.id).length}</span>
-    </button>`).join('')+
-    `<button class="nav-btn" onclick="openCatModal()" style="color:var(--text3);font-size:12px">
-      <svg class="nav-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Nova categoria
-    </button>`;
-}
-function renderCatSelect(){
-  const s=document.getElementById('f-cat');
-  const cur=s.value;
-  s.innerHTML=userCats.map(c=>`<option value="${c.id}"${c.id===cur?' selected':''}>${c.label}</option>`).join('');
-}
 function updateBadges(){
   const t=today(),a=reminders.filter(r=>!r.done);
   document.getElementById('b-hoje').textContent=a.filter(r=>r.date===t).length;
@@ -679,57 +982,29 @@ function updateBadges(){
   userCats.forEach(c=>{const el=document.getElementById('b-'+c.id);if(el)el.textContent=a.filter(r=>r.cat===c.id).length});
 }
 
-// ── CATEGORY MODAL ──
-function openCatModal(){document.getElementById('cat-modal').classList.add('open');document.getElementById('new-cat-name').value='';selectedColor=colorOptions[0];renderColorPicker()}
-function closeCatModal(){document.getElementById('cat-modal').classList.remove('open')}
-let selectedColor=colorOptions[0];
-function renderColorPicker(){
-  document.getElementById('color-picker').innerHTML=colorOptions.map(c=>`
-    <div onclick="selectedColor='${c}';renderColorPicker()" style="width:24px;height:24px;border-radius:50%;background:${c};cursor:pointer;border:2px solid ${c===selectedColor?'white':'transparent'};flex-shrink:0"></div>`).join('');
-}
-function saveNewCat(){
-  const name=document.getElementById('new-cat-name').value.trim();
-  if(!name)return;
-  const id='cat_'+Date.now();
-  const hex=selectedColor;
-  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-  userCats.push({id,label:name,color:hex,bg:`rgba(${r},${g},${b},0.12)`});
-  saveCats();syncCatMaps();
-  closeCatModal();renderSidebar();renderCatSelect();render();
-}
+const allViews=['view-reminders','view-agenda','view-planilhas','view-integracoes'];
 function setView(v,btn){
   view=v;
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
   if(btn)btn.classList.add('active');
-  const isIntegrations=v==='integracoes';
-  document.getElementById('integrations-view').style.display=isIntegrations?'flex':'none';
-  document.getElementById('reminders-view').style.display=isIntegrations?'none':'flex';
-  if(!isIntegrations){
-    document.getElementById('view-title').textContent=viewLbl[v]||v;
+  allViews.forEach(id=>document.getElementById(id).style.display='none');
+  if(v==='agenda'){document.getElementById('view-agenda').style.display='flex';renderAgenda()}
+  else if(v==='planilhas'){document.getElementById('view-planilhas').style.display='flex';renderSheets()}
+  else if(v==='integracoes'){document.getElementById('view-integracoes').style.display='flex'}
+  else{
+    document.getElementById('view-reminders').style.display='flex';
+    document.getElementById('view-title').textContent=viewLbl[v]||catLbl[v.replace('cat-','')]||v;
     render();
   }
 }
 function mobActive(btn){document.querySelectorAll('.mob-btn').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}
 
-function notify(title,msg){
-  const bar=document.getElementById('notif-bar'),el=document.createElement('div');
-  el.className='notif';el.innerHTML=`<div class="notif-ttl">${title}</div>${msg}`;
-  bar.appendChild(el);
-  setTimeout(()=>{el.style.cssText='opacity:0;transform:translateX(20px);transition:all 0.3s';setTimeout(()=>el.remove(),300)},4500);
-}
 function scheduleNotifs(){
   notifTimers.forEach(clearTimeout);notifTimers=[];
   const now=new Date();
   reminders.filter(r=>!r.done&&r.date&&r.time).forEach(r=>{
     const dt=new Date(`${r.date}T${r.time}`),diff=dt-now;
-    if(diff>0&&diff<86400000){
-      notifTimers.push(setTimeout(()=>{
-        if('Notification' in window&&Notification.permission==='granted'){
-          new Notification('Lembra — '+r.title,{body:catLbl[r.cat]||r.cat,icon:'/icon.svg'});
-        }
-        notify('Lembrete',r.title);
-      },diff));
-    }
+    if(diff>0&&diff<86400000)notifTimers.push(setTimeout(()=>sysNotif('Lembrete',r.title),diff));
   });
 }
 
@@ -738,6 +1013,6 @@ window.onload=()=>{
   if(s){const u=JSON.parse(s);if(getUsers()[u.email])startSession(u)}
 };
 </script>
-<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("/sw.js");</script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');</script>
 </body>
 </html>
