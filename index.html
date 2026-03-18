@@ -139,6 +139,13 @@ select.inp option{background:#1E2220}
 .mob-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px;border-radius:var(--r-sm);border:none;background:none;color:var(--text3);font-family:inherit;font-size:10px;cursor:pointer;transition:all 0.15s}
 .mob-btn.active{color:var(--accent)}
 .mob-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+.int-step{display:flex;gap:12px;align-items:flex-start}
+.step-num{width:24px;height:24px;border-radius:50%;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--text2);flex-shrink:0;margin-top:1px}
+.step-body{flex:1}
+.step-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.step-desc{font-size:12px;color:var(--text2);line-height:1.6}
+.step-link{display:inline-block;margin-top:6px;font-size:12px;color:var(--blue);text-decoration:none}
+.step-link:hover{text-decoration:underline}
 .modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:300;display:none;align-items:center;justify-content:center;padding:1rem}
 .modal-wrap.open{display:flex}
 .modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2rem;width:100%;max-width:400px;animation:fadeUp 0.25s ease}
@@ -200,29 +207,126 @@ select.inp option{background:#1E2220}
         <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
         Concluídos
       </button>
+      <button class="nav-btn" onclick="setView('integracoes',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Integrações
+      </button>
       <div class="sec-label">Categorias</div>
-      <button class="nav-btn" onclick="setView('cat-trabalho',this)">
-        <span class="cat-dot" style="background:#60A5FA"></span>Trabalho <span class="nbadge" id="b-trabalho">0</span>
-      </button>
-      <button class="nav-btn" onclick="setView('cat-pessoal',this)">
-        <span class="cat-dot" style="background:#C084FC"></span>Pessoal <span class="nbadge" id="b-pessoal">0</span>
-      </button>
-      <button class="nav-btn" onclick="setView('cat-saude',this)">
-        <span class="cat-dot" style="background:#F87171"></span>Saúde <span class="nbadge" id="b-saude">0</span>
-      </button>
-      <button class="nav-btn" onclick="setView('cat-financeiro',this)">
-        <span class="cat-dot" style="background:#FBBF24"></span>Financeiro <span class="nbadge" id="b-financeiro">0</span>
-      </button>
-      <button class="nav-btn" onclick="setView('cat-outro',this)">
-        <span class="cat-dot" style="background:#9BA39D"></span>Outro
-      </button>
+      <div id="sidebar-cats"></div>
     </div>
 
     <main id="main">
+      <!-- INTEGRATIONS VIEW -->
+      <div id="integrations-view" style="display:none;flex-direction:column;gap:1.5rem">
+        <div>
+          <div class="main-title">Integrações</div>
+          <div class="main-meta">Conecte seus serviços para sincronizar automaticamente</div>
+        </div>
+
+        <!-- GOOGLE AGENDA CARD -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+          <div style="padding:1.25rem;display:flex;align-items:center;gap:1rem;border-bottom:1px solid var(--border)">
+            <div style="width:40px;height:40px;border-radius:var(--r-sm);background:var(--blue-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;margin-bottom:2px">Google Agenda</div>
+              <div style="font-size:12px;color:var(--text3)">Cria eventos automaticamente quando você salva um lembrete</div>
+            </div>
+            <span id="gcal-status-badge" style="font-size:11px;padding:4px 10px;border-radius:var(--r-full);background:var(--surface3);color:var(--text3)">Não conectado</span>
+          </div>
+
+          <!-- STEPS -->
+          <div style="padding:1.25rem;display:flex;flex-direction:column;gap:1rem" id="gcal-steps">
+            <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em">Como conectar — passo a passo</div>
+
+            <div class="int-step">
+              <div class="step-num">1</div>
+              <div class="step-body">
+                <div class="step-title">Criar projeto no Google Cloud</div>
+                <div class="step-desc">Acesse o Google Cloud Console e crie um projeto gratuito para o seu app.</div>
+                <a href="https://console.cloud.google.com/projectcreate" target="_blank" class="step-link">Abrir Google Cloud Console →</a>
+              </div>
+            </div>
+
+            <div class="int-step">
+              <div class="step-num">2</div>
+              <div class="step-body">
+                <div class="step-title">Ativar a Google Calendar API</div>
+                <div class="step-desc">No painel do projeto, vá em "APIs e Serviços" → "Biblioteca" → pesquise "Google Calendar API" → clique em Ativar.</div>
+                <a href="https://console.cloud.google.com/apis/library/calendar-json.googleapis.com" target="_blank" class="step-link">Ativar Google Calendar API →</a>
+              </div>
+            </div>
+
+            <div class="int-step">
+              <div class="step-num">3</div>
+              <div class="step-body">
+                <div class="step-title">Criar credenciais OAuth</div>
+                <div class="step-desc">Vá em "Credenciais" → "Criar credenciais" → "ID do cliente OAuth". Escolha "Aplicativo Web" e adicione <strong style="color:var(--accent);font-weight:500">lembra-app.vercel.app</strong> como origem autorizada.</div>
+                <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="step-link">Criar credenciais →</a>
+              </div>
+            </div>
+
+            <div class="int-step">
+              <div class="step-num">4</div>
+              <div class="step-body">
+                <div class="step-title">Inserir o Client ID aqui</div>
+                <div class="step-desc">Após criar as credenciais, o Google vai te dar um <strong style="color:var(--text);font-weight:500">Client ID</strong>. Cole ele abaixo:</div>
+                <div style="display:flex;gap:8px;margin-top:8px">
+                  <input class="inp" id="gcal-client-id" placeholder="Cole seu Client ID aqui..." style="flex:1;font-size:12px">
+                  <button class="btn-save" onclick="saveGcalClientId()" style="padding:8px 14px;font-size:12px">Salvar</button>
+                </div>
+                <div style="font-size:11px;color:var(--text3);margin-top:6px">O Client ID fica salvo só no seu dispositivo, não é compartilhado.</div>
+              </div>
+            </div>
+
+            <div class="int-step">
+              <div class="step-num">5</div>
+              <div class="step-body">
+                <div class="step-title">Conectar sua conta Google</div>
+                <div class="step-desc">Depois de salvar o Client ID, clique abaixo para autorizar o acesso à sua agenda.</div>
+                <button class="gcal-connect" id="gcal-connect-btn" onclick="connectGoogleReal()" style="margin-top:8px;display:inline-flex;align-items:center;gap:8px">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                  Conectar com Google
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GMAIL CARD -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+          <div style="padding:1.25rem;display:flex;align-items:center;gap:1rem;border-bottom:1px solid var(--border)">
+            <div style="width:40px;height:40px;border-radius:var(--r-sm);background:var(--red-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F87171" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;margin-bottom:2px">Gmail</div>
+              <div style="font-size:12px;color:var(--text3)">Transforma emails importantes em lembretes automaticamente</div>
+            </div>
+            <span style="font-size:11px;padding:4px 10px;border-radius:var(--r-full);background:var(--surface3);color:var(--text3)">Em breve</span>
+          </div>
+          <div style="padding:1.25rem">
+            <div style="font-size:13px;color:var(--text2);line-height:1.6">A integração com Gmail seguirá os mesmos passos do Google Agenda. Após configurar o Calendar, a ativação do Gmail será feita com um clique adicional nas mesmas credenciais.</div>
+          </div>
+        </div>
+
+        <!-- HELP -->
+        <div style="background:var(--accent-dim);border:1px solid rgba(74,222,128,0.15);border-radius:var(--r);padding:1.25rem;display:flex;gap:1rem;align-items:flex-start">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:4px">Precisa de ajuda?</div>
+            <div style="font-size:13px;color:var(--text2);line-height:1.6">Abra o Claude e diga <em style="color:var(--text)">"quero configurar a integração com o Google Agenda no Lembra"</em> — ele vai te guiar passo a passo em tempo real.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN REMINDERS VIEW -->
+      <div id="reminders-view" style="display:flex;flex-direction:column;gap:1.25rem">
       <div class="gcal-banner">
         <div class="gcal-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
         <div class="gcal-txt"><strong>Google Agenda</strong><span>Conecte para criar eventos automaticamente</span></div>
-        <button class="gcal-connect" id="gcal-btn" onclick="openGcalModal()">Conectar</button>
+        <button class="gcal-connect" id="gcal-btn" onclick="setView('integracoes',null)">Conectar</button>
       </div>
 
       <div class="main-hdr">
@@ -282,6 +386,7 @@ select.inp option{background:#1E2220}
       </div>
 
       <div id="list-container"></div>
+      </div>
     </main>
   </div>
 
@@ -303,6 +408,25 @@ select.inp option{background:#1E2220}
 
 <div class="notif-bar" id="notif-bar"></div>
 
+<div class="modal-wrap" id="cat-modal">
+  <div class="modal">
+    <h3>Nova categoria</h3>
+    <p style="margin-bottom:1rem">Escolha um nome e uma cor para sua categoria.</p>
+    <div class="field" style="margin-bottom:1rem">
+      <label>Nome</label>
+      <input class="field input" id="new-cat-name" type="text" placeholder="Ex: Viagens, Estudos..." style="width:100%;padding:11px 13px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);font-family:inherit;font-size:14px;color:var(--text);outline:none">
+    </div>
+    <div style="margin-bottom:1.5rem">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);margin-bottom:10px">Cor</div>
+      <div id="color-picker" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" style="flex:1" onclick="closeCatModal()">Cancelar</button>
+      <button class="btn-save" style="flex:1" onclick="saveNewCat()">Criar categoria</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-wrap" id="gcal-modal">
   <div class="modal">
     <h3>Google Agenda</h3>
@@ -318,11 +442,25 @@ select.inp option{background:#1E2220}
 const USERS_KEY='lembra_users';
 const DATA_KEY=e=>'lembra_data_'+e;
 const SESSION_KEY='lembra_session';
+const CATS_KEY=e=>'lembra_cats_'+e;
 let user=null,reminders=[],view='hoje',recur='nenhuma',gcalOn=false,recognition=null,isListening=false,notifTimers=[];
 
-const catColors={trabalho:'#60A5FA',pessoal:'#C084FC',saude:'#F87171',financeiro:'#FBBF24',outro:'#9BA39D'};
-const catBg={trabalho:'rgba(96,165,250,0.12)',pessoal:'rgba(192,132,252,0.12)',saude:'rgba(248,113,113,0.12)',financeiro:'rgba(251,191,36,0.12)',outro:'rgba(155,163,157,0.12)'};
-const catLbl={trabalho:'Trabalho',pessoal:'Pessoal',saude:'Saúde',financeiro:'Financeiro',outro:'Outro'};
+const defaultCats=[
+  {id:'trabalho',label:'Trabalho',color:'#60A5FA',bg:'rgba(96,165,250,0.12)'},
+  {id:'pessoal',label:'Pessoal',color:'#C084FC',bg:'rgba(192,132,252,0.12)'},
+  {id:'saude',label:'Saúde',color:'#F87171',bg:'rgba(248,113,113,0.12)'},
+  {id:'financeiro',label:'Financeiro',color:'#FBBF24',bg:'rgba(251,191,36,0.12)'},
+  {id:'outro',label:'Outro',color:'#9BA39D',bg:'rgba(155,163,157,0.12)'}
+];
+const colorOptions=['#60A5FA','#C084FC','#F87171','#FBBF24','#4ADE80','#F97316','#E879F9','#34D399','#FB7185','#A78BFA'];
+let userCats=[];
+
+function loadCats(){userCats=JSON.parse(localStorage.getItem(CATS_KEY(user.email))||'null')||[...defaultCats]}
+function saveCats(){localStorage.setItem(CATS_KEY(user.email),JSON.stringify(userCats))}
+function getCat(id){return userCats.find(c=>c.id===id)||{label:id,color:'#9BA39D',bg:'rgba(155,163,157,0.12)'}}
+
+const catColors={};const catBg={};const catLbl={};
+function syncCatMaps(){userCats.forEach(c=>{catColors[c.id]=c.color;catBg[c.id]=c.bg;catLbl[c.id]=c.label})}
 const viewLbl={hoje:'Hoje',todos:'Todos os lembretes',feitos:'Concluídos','cat-trabalho':'Trabalho','cat-pessoal':'Pessoal','cat-saude':'Saúde','cat-financeiro':'Financeiro','cat-outro':'Outro'};
 
 function getUsers(){return JSON.parse(localStorage.getItem(USERS_KEY)||'{}')}
@@ -364,6 +502,7 @@ function startSession(u){
   localStorage.setItem(SESSION_KEY,JSON.stringify(u));
   reminders=loadReminders();
   gcalOn=localStorage.getItem('gcal_'+u.email)==='1';
+  loadCats();syncCatMaps();
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app-screen').style.display='flex';
   document.getElementById('hdr-nm').textContent=u.name.split(' ')[0];
@@ -372,8 +511,18 @@ function startSession(u){
   document.getElementById('view-meta').textContent=d.charAt(0).toUpperCase()+d.slice(1);
   document.getElementById('f-date').value=today();
   updateGcalBtn();
+  renderSidebar();
+  renderCatSelect();
   render();
   scheduleNotifs();
+  requestNotifPermission();
+}
+function requestNotifPermission(){
+  if('Notification' in window&&Notification.permission==='default'){
+    Notification.requestPermission().then(p=>{
+      if(p==='granted')notify('Notificações','Alertas ativados! Você será avisado no horário dos lembretes.');
+    });
+  }
 }
 function doLogout(){
   localStorage.removeItem(SESSION_KEY);
@@ -383,18 +532,26 @@ function doLogout(){
   notifTimers.forEach(clearTimeout);notifTimers=[];
 }
 
-function openGcalModal(){document.getElementById('gcal-modal').classList.add('open')}
-function closeGcalModal(){document.getElementById('gcal-modal').classList.remove('open')}
-function simulateGcal(){
-  gcalOn=true;localStorage.setItem('gcal_'+user.email,'1');
-  updateGcalBtn();closeGcalModal();
-  notify('Google Agenda','Conexão simulada! Configure as credenciais reais após hospedar no Vercel.');
+function saveGcalClientId(){
+  const id=document.getElementById('gcal-client-id').value.trim();
+  if(!id)return;
+  localStorage.setItem('gcal_client_id_'+user.email,id);
+  notify('Google Agenda','Client ID salvo! Agora clique em "Conectar com Google".');
+  document.getElementById('gcal-connect-btn').style.background='var(--accent-dim)';
+  document.getElementById('gcal-connect-btn').style.borderColor='rgba(74,222,128,0.25)';
+  document.getElementById('gcal-connect-btn').style.color='var(--accent)';
 }
-function updateGcalBtn(){
-  const b=document.getElementById('gcal-btn');
-  if(gcalOn){b.textContent='✓ Conectado';b.classList.add('on')}
-  else{b.textContent='Conectar';b.classList.remove('on')}
+function connectGoogleReal(){
+  const clientId=localStorage.getItem('gcal_client_id_'+user.email);
+  if(!clientId){notify('Atenção','Primeiro salve o Client ID no passo 4.');return}
+  const scope='https://www.googleapis.com/auth/calendar.events';
+  const redirect=encodeURIComponent(window.location.origin);
+  const url=`https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirect}&response_type=token&scope=${encodeURIComponent(scope)}&prompt=consent`;
+  window.open(url,'_blank');
+  notify('Google Agenda','Janela de autorização aberta. Após autorizar, volte aqui.');
 }
+function openGcalModal(){setView('integracoes',null)}
+function closeGcalModal(){}
 
 function toggleForm(){
   const f=document.getElementById('input-form');f.classList.toggle('open');
@@ -498,21 +655,59 @@ function render(){
   });
   c.innerHTML=html;
 }
+function renderSidebar(){
+  const c=document.getElementById('sidebar-cats');
+  c.innerHTML=userCats.map(cat=>`
+    <button class="nav-btn${view==='cat-'+cat.id?' active':''}" onclick="setView('cat-${cat.id}',this)">
+      <span class="cat-dot" style="background:${cat.color}"></span>${cat.label}
+      <span class="nbadge" id="b-${cat.id}">${reminders.filter(r=>!r.done&&r.cat===cat.id).length}</span>
+    </button>`).join('')+
+    `<button class="nav-btn" onclick="openCatModal()" style="color:var(--text3);font-size:12px">
+      <svg class="nav-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nova categoria
+    </button>`;
+}
+function renderCatSelect(){
+  const s=document.getElementById('f-cat');
+  const cur=s.value;
+  s.innerHTML=userCats.map(c=>`<option value="${c.id}"${c.id===cur?' selected':''}>${c.label}</option>`).join('');
+}
 function updateBadges(){
   const t=today(),a=reminders.filter(r=>!r.done);
   document.getElementById('b-hoje').textContent=a.filter(r=>r.date===t).length;
   document.getElementById('b-todos').textContent=a.length;
-  document.getElementById('b-trabalho').textContent=a.filter(r=>r.cat==='trabalho').length;
-  document.getElementById('b-pessoal').textContent=a.filter(r=>r.cat==='pessoal').length;
-  document.getElementById('b-saude').textContent=a.filter(r=>r.cat==='saude').length;
-  document.getElementById('b-financeiro').textContent=a.filter(r=>r.cat==='financeiro').length;
+  userCats.forEach(c=>{const el=document.getElementById('b-'+c.id);if(el)el.textContent=a.filter(r=>r.cat===c.id).length});
+}
+
+// ── CATEGORY MODAL ──
+function openCatModal(){document.getElementById('cat-modal').classList.add('open');document.getElementById('new-cat-name').value='';selectedColor=colorOptions[0];renderColorPicker()}
+function closeCatModal(){document.getElementById('cat-modal').classList.remove('open')}
+let selectedColor=colorOptions[0];
+function renderColorPicker(){
+  document.getElementById('color-picker').innerHTML=colorOptions.map(c=>`
+    <div onclick="selectedColor='${c}';renderColorPicker()" style="width:24px;height:24px;border-radius:50%;background:${c};cursor:pointer;border:2px solid ${c===selectedColor?'white':'transparent'};flex-shrink:0"></div>`).join('');
+}
+function saveNewCat(){
+  const name=document.getElementById('new-cat-name').value.trim();
+  if(!name)return;
+  const id='cat_'+Date.now();
+  const hex=selectedColor;
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  userCats.push({id,label:name,color:hex,bg:`rgba(${r},${g},${b},0.12)`});
+  saveCats();syncCatMaps();
+  closeCatModal();renderSidebar();renderCatSelect();render();
 }
 function setView(v,btn){
   view=v;
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
   if(btn)btn.classList.add('active');
-  document.getElementById('view-title').textContent=viewLbl[v]||v;
-  render();
+  const isIntegrations=v==='integracoes';
+  document.getElementById('integrations-view').style.display=isIntegrations?'flex':'none';
+  document.getElementById('reminders-view').style.display=isIntegrations?'none':'flex';
+  if(!isIntegrations){
+    document.getElementById('view-title').textContent=viewLbl[v]||v;
+    render();
+  }
 }
 function mobActive(btn){document.querySelectorAll('.mob-btn').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}
 
@@ -527,7 +722,14 @@ function scheduleNotifs(){
   const now=new Date();
   reminders.filter(r=>!r.done&&r.date&&r.time).forEach(r=>{
     const dt=new Date(`${r.date}T${r.time}`),diff=dt-now;
-    if(diff>0&&diff<86400000)notifTimers.push(setTimeout(()=>notify('Lembrete',r.title),diff));
+    if(diff>0&&diff<86400000){
+      notifTimers.push(setTimeout(()=>{
+        if('Notification' in window&&Notification.permission==='granted'){
+          new Notification('Lembra — '+r.title,{body:catLbl[r.cat]||r.cat,icon:'/icon.svg'});
+        }
+        notify('Lembrete',r.title);
+      },diff));
+    }
   });
 }
 
