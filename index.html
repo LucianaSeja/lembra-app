@@ -859,6 +859,7 @@ window.onload=()=>{
 </script>
 <!-- Supabase -->
 <!-- Supabase -->
+<!-- Supabase -->
 <script src="supabase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -884,6 +885,7 @@ function initSupabase(){
     if(typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL !== 'COLE_SEU_PROJECT_URL_AQUI'){
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         auth: {
+          flowType: 'pkce',
           detectSessionInUrl: true,
           persistSession: true,
           autoRefreshToken: true
@@ -893,7 +895,7 @@ function initSupabase(){
       
       supabaseClient.auth.onAuthStateChange((event, session) => {
         console.log('Auth event:', event, session ? 'com sessão' : 'sem sessão');
-        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session && session.user) {
+        if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session && session.user) {
           loginSupabaseUser(session.user);
         }
       });
