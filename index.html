@@ -15,7 +15,7 @@
 :root{
   --bg:#0D0F0E;--surface:#161917;--surface2:#1E2220;--surface3:#262C29;
   --text:#F0EDE6;--text2:#9BA39D;--text3:#5C6660;
-  --accent:#4ADE80;--accent-dim:rgba(74,222,128,0.12);--accent-text:#071a0f;
+  --accent:#4ADE80;--accent-dim:rgba(74,222,128,0.12 );--accent-text:#071a0f;
   --border:rgba(240,237,230,0.08);
   --red:#F87171;--red-dim:rgba(248,113,113,0.12);
   --amber:#FBBF24;--amber-dim:rgba(251,191,36,0.12);
@@ -127,61 +127,41 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .pbar{position:absolute;left:0;top:0;bottom:0;width:3px}
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem 2rem;gap:1rem;color:var(--text3);text-align:center}
 .empty-ico{width:48px;height:48px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center}
-.empty-ico svg{width:22px;height:22px;stroke:var(--text3);fill:none;stroke-width:1.5}
-/* SHEETS */
-.sheets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
-.sheet-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;text-decoration:none}
-.sheet-card:hover{border-color:rgba(240,237,230,0.2);transform:translateY(-2px)}
-.sheet-ico{width:44px;height:44px;border-radius:var(--r-sm);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:22px}
-.sheet-name{font-size:13px;font-weight:500;color:var(--text)}
-.sheet-add{background:transparent;border:1.5px dashed var(--border);border-radius:var(--r);padding:1rem;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
-.sheet-add:hover{border-color:var(--accent)}
-.sheet-add svg{width:22px;height:22px;stroke:var(--text3);fill:none;stroke-width:1.5}
-.sheet-add:hover svg{stroke:var(--accent)}
-.sheet-add span{font-size:12px;color:var(--text3)}
-.sheet-add:hover span{color:var(--accent)}
-/* INTEGRATIONS */
-.int-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1rem}
-.int-card-hdr{padding:1.25rem;display:flex;align-items:center;gap:1rem}
-.int-card-body{padding:1.25rem;border-top:1px solid var(--border)}
-.int-ico{width:40px;height:40px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.connect-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:var(--r-sm);border:none;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;margin-top:8px}
-.connect-btn:hover{opacity:0.88;transform:translateY(-1px)}
-.connect-btn.google{background:white;color:#1a1a1a}
-.connect-btn.microsoft{background:#0078d4;color:white}
-.status-badge{font-size:11px;padding:4px 10px;border-radius:var(--r-full);margin-left:auto;flex-shrink:0}
-.status-badge.off{background:var(--surface3);color:var(--text3)}
-.status-badge.on{background:var(--accent-dim);color:var(--accent)}
-/* AGENDA */
-.agenda-preview{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;margin-bottom:0.75rem}
-.agenda-ttl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.75rem;display:flex;align-items:center;gap:8px}
-.agenda-event{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
-.agenda-event:last-child{border-bottom:none;padding-bottom:0}
-.agenda-event-time{font-size:12px;color:var(--text3);min-width:42px}
-.agenda-event-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.agenda-event-title{font-size:13px;color:var(--text);flex:1}
-.agenda-event-src{font-size:10px;color:var(--text3)}
-/* NOTIF */
-.notif-bar{position:fixed;top:70px;right:1rem;z-index:200;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:320px}
-.notif{background:var(--surface3);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 15px;font-size:13px;color:var(--text);pointer-events:all;animation:fadeUp 0.3s ease;box-shadow:0 4px 20px rgba(0,0,0,0.3)}
-.notif-ttl{font-weight:600;font-size:11px;color:var(--accent);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.05em}
+.empty-ico svg{width:20px;height:20px;stroke:var(--text2);fill:none;stroke-width:1.5}
+/* AGENDA & SHEETS */
+.grid-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.int-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.2s}
+.int-card:hover{border-color:rgba(240,237,230,0.16);transform:translateY(-2px)}
+.int-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.int-ico svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8}
+.int-info{flex:1;min-width:0}
+.int-title{font-size:14px;font-weight:500;margin-bottom:2px}
+.int-sub{font-size:12px;color:var(--text3)}
+.sheet-form{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:1rem;margin-bottom:1rem;display:none;flex-direction:column;gap:10px}
+.sheet-form.open{display:flex}
 /* MODAL */
-.modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:300;display:none;align-items:center;justify-content:center;padding:1rem}
-.modal-wrap.open{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2rem;width:100%;max-width:420px;animation:fadeUp 0.25s ease;max-height:90vh;overflow-y:auto}
-.modal h3{font-family:'Fraunces',serif;font-size:22px;font-weight:300;margin-bottom:0.5rem}
-.modal p{font-size:13px;color:var(--text2);margin-bottom:1.5rem;line-height:1.6}
-.modal-btns{display:flex;gap:10px;margin-top:1.5rem}
-/* EMOJI PICKER */
-.emoji-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.emoji-opt{width:36px;height:36px;border-radius:var(--r-xs);border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
-.emoji-opt:hover{border-color:var(--accent);background:var(--accent-dim)}
-.emoji-opt.sel{border-color:var(--accent);background:var(--accent-dim)}
-/* MOB */
-.mob-bar{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:8px 1rem;gap:4px;z-index:100}
-.mob-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px;border-radius:var(--r-sm);border:none;background:none;color:var(--text3);font-family:inherit;font-size:10px;cursor:pointer;transition:all 0.15s}
+.modal-overlay{position:fixed;inset:0;background:rgba(13,15,14,0.8);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000;padding:1rem}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:400px;padding:1.5rem;animation:fadeUp 0.2s ease}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.modal-title{font-size:16px;font-weight:500}
+.modal-close{background:none;border:none;color:var(--text2);cursor:pointer;padding:4px}
+.modal-close:hover{color:var(--text)}
+/* NOTIF */
+.notif-container{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:10px;z-index:2000}
+.notif{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 10px 30px rgba(0,0,0,0.5);animation:slideIn 0.3s ease;max-width:320px}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+.notif-ico{width:32px;height:32px;border-radius:50%;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.notif-ico svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.notif-info{flex:1}
+.notif-title{font-size:13px;font-weight:600;margin-bottom:2px}
+.notif-desc{font-size:12px;color:var(--text2)}
+/* MOBILE BAR */
+.mob-bar{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:8px 16px 24px;justify-content:space-between;z-index:100}
+.mob-btn{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--text3);background:none;border:none;font-size:10px;font-family:inherit;cursor:pointer}
+.mob-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8}
 .mob-btn.active{color:var(--accent)}
-.mob-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+.mob-add{width:44px;height:44px;border-radius:50%;background:var(--accent);color:var(--accent-text);display:flex;align-items:center;justify-content:center;border:none;transform:translateY(-12px);box-shadow:0 4px 12px rgba(74,222,128,0.2)}
+.mob-add svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2}
 </style>
 </head>
 <body>
@@ -193,13 +173,13 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
     <div class="auth-logo">Lemb<em>ra</em></div>
     <div class="auth-sub">Seus lembretes, do seu jeito</div>
     <div class="tabs">
-      <button class="tab active" onclick="switchTab('login')">Entrar</button>
-      <button class="tab" onclick="switchTab('signup')">Criar conta</button>
+      <button class="tab active" onclick="switchAuth('login')">Entrar</button>
+      <button class="tab" onclick="switchAuth('signup')">Criar conta</button>
     </div>
-    <div class="err" id="auth-err"></div>
+    <div id="auth-err" class="err"></div>
     <div id="login-form">
-      <div class="field"><label>Email</label><input type="email" id="l-email" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
-      <div class="field"><label>Senha</label><input type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="field"><label>Email</label><input type="email" id="l-email" placeholder="seu@email.com"></div>
+      <div class="field"><label>Senha</label><input type="password" id="l-pass" placeholder="••••••••"></div>
       <button class="btn-main" onclick="doLogin()">Entrar</button>
       <div style="display:flex;align-items:center;gap:12px;margin:1.25rem 0 1rem"><div style="flex:1;height:1px;background:var(--border)"></div><span style="font-size:12px;color:var(--text3)">ou</span><div style="flex:1;height:1px;background:var(--border)"></div></div>
       <button onclick="loginWithGoogle()" style="width:100%;padding:11px;background:white;border:none;border-radius:var(--r-sm);font-family:inherit;font-size:14px;font-weight:500;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:opacity 0.2s" onmouseover="this.style.opacity='.9'" onmouseout="this.style.opacity='1'">
@@ -244,35 +224,37 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
         <svg class="nav-icon" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><polyline points="3 6 4 7 6 5"/><polyline points="3 12 4 13 6 11"/><polyline points="3 18 4 19 6 17"/></svg>
         Todos <span class="nbadge" id="b-todos">0</span>
       </button>
-      <button class="nav-btn" onclick="setView('feitos',this)">
+      <button class="nav-btn" onclick="setView('concluidos',this)">
         <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
         Concluídos
       </button>
-      <div class="sec-label">Agenda</div>
+      
+      <div class="sec-label" style="margin-top:10px">Agenda</div>
       <button class="nav-btn" onclick="setView('agenda',this)">
         <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         Minha Agenda
       </button>
-      <div class="sec-label">Planilhas</div>
+      
+      <div class="sec-label" style="margin-top:10px">Planilhas</div>
       <button class="nav-btn" onclick="setView('planilhas',this)">
-        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
         Planilhas
       </button>
-      <div class="sec-label">Categorias</div>
-      <div id="sidebar-cats"></div>
-      <div class="sec-label">Config</div>
-      <button class="nav-btn" onclick="setView('integracoes',this)">
-        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-        Integrações
+
+      <div class="sec-label" style="margin-top:10px">Categorias</div>
+      <div id="cat-list"></div>
+      <button class="nav-btn" onclick="openCatModal()" style="color:var(--text3)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nova categoria
       </button>
     </div>
 
-    <main id="main">
-      <!-- REMINDERS -->
-      <div id="view-reminders" style="display:flex;flex-direction:column;gap:1.25rem">
+    <main>
+      <!-- VIEW: REMINDERS -->
+      <div id="view-reminders">
         <div class="main-hdr">
           <div>
-            <div class="main-title" id="view-title">Hoje</div>
+            <h1 class="main-title" id="view-title">Hoje</h1>
             <div class="main-meta" id="view-meta"></div>
           </div>
           <button class="add-btn" onclick="toggleForm()">
@@ -280,38 +262,41 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
             Novo lembrete
           </button>
         </div>
-        <div class="input-form" id="input-form">
-          <input class="inp" id="f-title" placeholder="O que você precisa lembrar?">
-          <textarea class="inp" id="f-desc" placeholder="Detalhes, observações... (opcional)" rows="2"></textarea>
+
+        <div class="input-form" id="form-box">
+          <input type="hidden" id="f-id">
+          <input type="text" class="inp" id="f-title" placeholder="O que você precisa lembrar?" style="font-size:15px;font-weight:500">
+          <textarea class="inp" id="f-desc" placeholder="Detalhes, observações... (opcional)"></textarea>
           <div class="form-row">
             <select class="inp" id="f-cat"></select>
             <select class="inp" id="f-prio">
-              <option value="normal">Prioridade normal</option>
-              <option value="alta">🔴 Alta prioridade</option>
-              <option value="baixa">Baixa prioridade</option>
+              <option value="1">Prioridade baixa</option>
+              <option value="2" selected>Prioridade normal</option>
+              <option value="3">Prioridade alta</option>
             </select>
           </div>
           <div class="form-row">
-            <input class="inp" type="date" id="f-date">
-            <input class="inp" type="time" id="f-time">
+            <input type="date" class="inp" id="f-date">
+            <input type="time" class="inp" id="f-time">
           </div>
           <div>
-            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);margin-bottom:8px">Recorrência</div>
+            <label style="display:block;font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase">Recorrência</label>
             <div class="recur-row">
-              <button class="rchip sel" onclick="selRecur(this,'nenhuma')">Nenhuma</button>
-              <button class="rchip" onclick="selRecur(this,'diario')">Diário</button>
-              <button class="rchip" onclick="selRecur(this,'semanal')">Semanal</button>
-              <button class="rchip" onclick="selRecur(this,'quinzenal')">Quinzenal</button>
-              <button class="rchip" onclick="selRecur(this,'mensal')">Mensal</button>
+              <button class="rchip sel" onclick="setRecur('none',this)">Nenhuma</button>
+              <button class="rchip" onclick="setRecur('daily',this)">Diário</button>
+              <button class="rchip" onclick="setRecur('weekly',this)">Semanal</button>
+              <button class="rchip" onclick="setRecur('biweekly',this)">Quinzenal</button>
+              <button class="rchip" onclick="setRecur('monthly',this)">Mensal</button>
             </div>
+            <input type="hidden" id="f-recur" value="none">
           </div>
           <div class="form-footer">
             <div style="display:flex;align-items:center;gap:10px">
-              <button class="voice-btn" id="voice-btn" onclick="toggleVoice()">
-                <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              <button class="voice-btn" id="btn-voice" onclick="toggleVoice()">
+                <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
                 Usar voz
               </button>
-              <span class="voice-tx" id="voice-tx"></span>
+              <span class="voice-tx" id="voice-st"></span>
             </div>
             <div class="form-btns">
               <button class="btn-cancel" onclick="toggleForm()">Cancelar</button>
@@ -319,289 +304,205 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
             </div>
           </div>
         </div>
+
         <div id="list-container"></div>
       </div>
 
-      <!-- AGENDA -->
-      <div id="view-agenda" style="display:none;flex-direction:column;gap:1.25rem">
+      <!-- VIEW: AGENDA -->
+      <div id="view-agenda" style="display:none;flex-direction:column;gap:1.5rem">
         <div class="main-hdr">
-          <div><div class="main-title">Minha Agenda</div><div class="main-meta" id="agenda-meta">—</div></div>
-          <button class="add-btn" onclick="refreshCalendar()">
-            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--accent-text);fill:none;stroke-width:2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          <div>
+            <h1 class="main-title">Minha Agenda</h1>
+            <div class="main-meta">Integrações com calendários e emails</div>
+          </div>
+          <button class="btn-sm" onclick="renderAgenda()" style="display:flex;align-items:center;gap:6px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 1 0-9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/></svg>
             Atualizar
           </button>
         </div>
-
-        <!-- QUICK ACCESS -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
-          <a href="https://calendar.google.com/calendar/u/2/r" target="_blank" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(240,237,230,0.2)'" onmouseout="this.style.borderColor='var(--border)'">
-            <div style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--blue-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <div class="grid-cards">
+          <div class="int-card" onclick="window.open('https://calendar.google.com','_blank' )">
+            <div class="int-ico" style="background:rgba(66,133,244,0.1);color:#4285F4">
+              <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             </div>
-            <div><div style="font-size:13px;font-weight:600;color:var(--text)">Google Agenda</div><div style="font-size:11px;color:var(--text3)">Abrir calendário</div></div>
-          </a>
-          <a href="https://mail.google.com/mail/u/2/#search/is:unread" target="_blank" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(240,237,230,0.2)'" onmouseout="this.style.borderColor='var(--border)'">
-            <div style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--red-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F87171" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <div class="int-info">
+              <div class="int-title">Google Agenda</div>
+              <div class="int-sub">Abrir calendário</div>
             </div>
-            <div><div style="font-size:13px;font-weight:600;color:var(--text)">Gmail</div><div style="font-size:11px;color:var(--text3)">Não lidos</div></div>
-          </a>
-          <a href="https://mail.google.com/mail/u/2/#inbox" target="_blank" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(240,237,230,0.2)'" onmouseout="this.style.borderColor='var(--border)'">
-            <div style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--red-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F87171" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <div class="int-card" onclick="window.open('https://mail.google.com/mail/u/0/#search/is%3Aunread','_blank' )">
+            <div class="int-ico" style="background:rgba(234,67,53,0.1);color:#EA4335">
+              <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             </div>
-            <div><div style="font-size:13px;font-weight:600;color:var(--text)">Gmail</div><div style="font-size:11px;color:var(--text3)">Todos os e-mails</div></div>
-          </a>
-          <a href="https://outlook.live.com/mail/0/inbox" target="_blank" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(240,237,230,0.2)'" onmouseout="this.style.borderColor='var(--border)'">
-            <div style="width:36px;height:36px;border-radius:var(--r-sm);background:rgba(0,120,212,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <div class="int-info">
+              <div class="int-title">Gmail</div>
+              <div class="int-sub">Não lidos</div>
             </div>
-            <div><div style="font-size:13px;font-weight:600;color:var(--text)">Outlook</div><div style="font-size:11px;color:var(--text3)">Abrir caixa de entrada</div></div>
-          </a>
-          <a href="https://calendar.google.com/calendar/u/2/r/day" target="_blank" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(240,237,230,0.2)'" onmouseout="this.style.borderColor='var(--border)'">
-            <div style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--accent-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="int-card" onclick="window.open('https://mail.google.com','_blank' )">
+            <div class="int-ico" style="background:rgba(234,67,53,0.1);color:#EA4335">
+              <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             </div>
-            <div><div style="font-size:13px;font-weight:600;color:var(--text)">Agenda hoje</div><div style="font-size:11px;color:var(--text3)">Ver dia atual</div></div>
-          </a>
+            <div class="int-info">
+              <div class="int-title">Gmail</div>
+              <div class="int-sub">Todos os e-mails</div>
+            </div>
+          </div>
+          <div class="int-card" onclick="window.open('https://outlook.live.com/mail/0/inbox','_blank' )">
+            <div class="int-ico" style="background:rgba(0,114,198,0.1);color:#0072C6">
+              <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div class="int-info">
+              <div class="int-title">Outlook</div>
+              <div class="int-sub">Abrir caixa de entrada</div>
+            </div>
+          </div>
+          <div class="int-card" onclick="setView('hoje',document.querySelector('.nav-btn'))">
+            <div class="int-ico" style="background:var(--accent-dim);color:var(--accent)">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="int-info">
+              <div class="int-title">Agenda hoje</div>
+              <div class="int-sub">Ver dia atual</div>
+            </div>
+          </div>
         </div>
-
-        <div id="agenda-container"></div>
+        <div id="agenda-content" style="margin-top:1rem"></div>
       </div>
 
-      <!-- PLANILHAS -->
-      <div id="view-planilhas" style="display:none;flex-direction:column;gap:1.25rem">
+      <!-- VIEW: PLANILHAS -->
+      <div id="view-planilhas" style="display:none;flex-direction:column;gap:1.5rem">
         <div class="main-hdr">
-          <div><div class="main-title">Planilhas</div><div class="main-meta">Acesso rápido às suas planilhas</div></div>
-        </div>
-        <div class="sheets-grid" id="sheets-grid"></div>
-      </div>
-
-      <!-- INTEGRACOES -->
-      <div id="view-integracoes" style="display:none;flex-direction:column;gap:1rem">
-        <div><div class="main-title">Integrações</div><div class="main-meta">Conecte sua agenda Google ou Outlook</div></div>
-
-        <div class="int-card">
-          <div class="int-card-hdr">
-            <div class="int-ico" style="background:var(--blue-dim)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-            <div style="flex:1"><div style="font-size:14px;font-weight:600;margin-bottom:2px">Google Agenda</div><div style="font-size:12px;color:var(--text3)">Sincroniza com a sua conta Google</div></div>
-            <span class="status-badge" id="google-badge">Não conectado</span>
+          <div>
+            <h1 class="main-title">Planilhas</h1>
+            <div class="main-meta">Links rápidos para suas planilhas</div>
           </div>
-          <div class="int-card-body">
-            <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:1rem">Clique abaixo para escolher qual conta Google conectar. Cada pessoa conecta a própria conta.</div>
-            <div id="google-connect-area">
-              <button class="connect-btn google" onclick="connectGoogle()">
-                <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-                Entrar com Google
-              </button>
-            </div>
-            <div id="google-connected-area" style="display:none">
-              <div style="font-size:12px;color:var(--accent);margin-bottom:4px">✓ Conectado como <span id="google-email-lbl"></span></div>
-              <button class="btn-cancel" style="font-size:12px;margin-top:6px" onclick="disconnectGoogle()">Desconectar</button>
-            </div>
+          <button class="add-btn" onclick="toggleSheetForm()">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nova planilha
+          </button>
+        </div>
+        <div class="sheet-form" id="sheet-form">
+          <input type="text" class="inp" id="sh-name" placeholder="Nome da planilha (ex: Controle Financeiro)">
+          <input type="url" class="inp" id="sh-url" placeholder="Link (https://docs.google.com/spreadsheets/... )">
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
+            <button class="btn-cancel" onclick="toggleSheetForm()">Cancelar</button>
+            <button class="btn-save" onclick="saveSheet()">Salvar</button>
           </div>
         </div>
-
-        <div class="int-card">
-          <div class="int-card-hdr">
-            <div class="int-ico" style="background:rgba(0,120,212,0.12)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-            <div style="flex:1"><div style="font-size:14px;font-weight:600;margin-bottom:2px">Outlook / Microsoft</div><div style="font-size:12px;color:var(--text3)">Contas pessoais, corporativas e escolares</div></div>
-            <span class="status-badge" id="outlook-badge">Não conectado</span>
-          </div>
-          <div class="int-card-body">
-            <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:1rem">Clique abaixo para escolher qual conta Microsoft conectar.</div>
-            <div id="outlook-connect-area">
-              <button class="connect-btn microsoft" onclick="connectOutlook()">
-                <svg width="16" height="16" viewBox="0 0 23 23" fill="none"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
-                Entrar com Microsoft
-              </button>
-            </div>
-            <div id="outlook-connected-area" style="display:none">
-              <div style="font-size:12px;color:var(--accent);margin-bottom:4px">✓ Conectado como <span id="outlook-email-lbl"></span></div>
-              <button class="btn-cancel" style="font-size:12px;margin-top:6px" onclick="disconnectOutlook()">Desconectar</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="int-card">
-          <div class="int-card-hdr">
-            <div class="int-ico" style="background:var(--amber-dim)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-            <div style="flex:1"><div style="font-size:14px;font-weight:600;margin-bottom:2px">Resumo diário</div><div style="font-size:12px;color:var(--text3)">Notificação às 6h com agenda do dia e às 20h com agenda de amanhã</div></div>
-            <span class="status-badge" id="digest-badge">Desativado</span>
-          </div>
-          <div class="int-card-body">
-            <button id="digest-btn" onclick="toggleDigest()" style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:var(--r-sm);background:var(--amber-dim);border:1px solid rgba(251,191,36,0.25);color:var(--amber);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">
-              Ativar resumo diário
-            </button>
-          </div>
-        </div>
-
-        <div style="background:var(--accent-dim);border:1px solid rgba(74,222,128,0.15);border-radius:var(--r);padding:1.25rem;display:flex;gap:1rem">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <div><div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:4px">Precisa de ajuda?</div><div style="font-size:13px;color:var(--text2);line-height:1.6">Abra o Claude e diga <em style="color:var(--text)">"quero configurar integrações no Lembra"</em> para ajuda personalizada.</div></div>
-        </div>
+        <div class="grid-cards" id="sheets-list"></div>
       </div>
     </main>
   </div>
-
-  <div class="mob-bar">
-    <button class="mob-btn active" onclick="setView('hoje',this);mobActive(this)">
-      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Hoje
-    </button>
-    <button class="mob-btn" onclick="setView('agenda',this);mobActive(this)">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Agenda
-    </button>
-    <button class="mob-btn" onclick="toggleForm()">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Novo
-    </button>
-    <button class="mob-btn" onclick="setView('planilhas',this);mobActive(this)">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="3" x2="9" y2="21"/></svg>Planilhas
-    </button>
-    <button class="mob-btn" onclick="setView('integracoes',this);mobActive(this)">
-      <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Config
-    </button>
-  </div>
 </div>
 
-<div class="notif-bar" id="notif-bar"></div>
+<!-- MOB BAR -->
+<div class="mob-bar">
+  <button class="mob-btn active" onclick="setView('hoje');mobActive(this)">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Hoje
+  </button>
+  <button class="mob-btn" onclick="setView('todos');mobActive(this)">
+    <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><polyline points="3 6 4 7 6 5"/><polyline points="3 12 4 13 6 11"/><polyline points="3 18 4 19 6 17"/></svg>
+    Todos
+  </button>
+  <button class="mob-add" onclick="toggleForm();window.scrollTo(0,0)">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+  <button class="mob-btn" onclick="setView('agenda');mobActive(this)">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Agenda
+  </button>
+  <button class="mob-btn" onclick="setView('planilhas');mobActive(this)">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+    Planilhas
+  </button>
+</div>
 
-<!-- CONFIRM DELETE MODAL -->
-<div class="modal-wrap" id="confirm-modal">
+<!-- MODALS -->
+<div class="modal-overlay" id="cat-modal">
   <div class="modal">
-    <h3>Excluir lembrete?</h3>
-    <p id="confirm-msg">Essa ação não pode ser desfeita.</p>
-    <div class="modal-btns">
-      <button class="btn-cancel" style="flex:1" onclick="closeConfirm()">Cancelar</button>
-      <button id="confirm-ok-btn" class="btn-save" style="flex:1;background:var(--red);color:white" onclick="confirmDelete()">Excluir</button>
+    <div class="modal-hdr">
+      <div class="modal-title">Nova Categoria</div>
+      <button class="modal-close" onclick="closeCatModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
+    <div class="field"><label>Nome</label><input type="text" id="c-name" placeholder="Ex: Estudos"></div>
+    <div class="field">
+      <label>Cor</label>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button class="cat-dot" style="width:24px;height:24px;background:var(--blue);border:none;cursor:pointer" onclick="selColor('blue',this)"></button>
+        <button class="cat-dot" style="width:24px;height:24px;background:var(--purple);border:none;cursor:pointer" onclick="selColor('purple',this)"></button>
+        <button class="cat-dot" style="width:24px;height:24px;background:var(--amber);border:none;cursor:pointer" onclick="selColor('amber',this)"></button>
+        <button class="cat-dot" style="width:24px;height:24px;background:var(--red);border:none;cursor:pointer" onclick="selColor('red',this)"></button>
+        <button class="cat-dot" style="width:24px;height:24px;background:var(--accent);border:none;cursor:pointer" onclick="selColor('accent',this)"></button>
+      </div>
+      <input type="hidden" id="c-color" value="blue">
+    </div>
+    <button class="btn-main" style="margin-top:1rem" onclick="saveCat()">Criar</button>
   </div>
 </div>
 
-<!-- SHEET MODAL -->
-<div class="modal-wrap" id="sheet-modal">
-  <div class="modal">
-    <h3>Nova planilha</h3>
-    <p>Adicione um atalho para qualquer planilha do Google Sheets.</p>
-    <div class="field"><label>Nome</label><input id="sheet-name-inp" class="inp" type="text" placeholder="Ex: Contatos Médicos, Estudos..."></div>
-    <div style="margin-bottom:1rem">
-      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);margin-bottom:8px">Ícone</div>
-      <div class="emoji-grid" id="emoji-grid"></div>
-    </div>
-    <div class="field"><label>Link da planilha</label><input id="sheet-url-inp" class="inp" type="url" placeholder="https://docs.google.com/spreadsheets/..."></div>
-    <div class="modal-btns">
-      <button class="btn-cancel" style="flex:1" onclick="closeSheetModal()">Cancelar</button>
-      <button class="btn-save" style="flex:1" onclick="saveSheet()">Adicionar</button>
-    </div>
-  </div>
-</div>
-
-<!-- CAT MODAL -->
-<div class="modal-wrap" id="cat-modal">
-  <div class="modal">
-    <h3>Nova categoria</h3>
-    <p>Escolha um nome e cor para a sua categoria.</p>
-    <div class="field" style="margin-bottom:1rem"><label>Nome</label><input id="new-cat-name" class="inp" type="text" placeholder="Ex: Viagens, Estudos..."></div>
-    <div style="margin-bottom:1.5rem">
-      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);margin-bottom:10px">Cor</div>
-      <div id="color-picker" style="display:flex;gap:8px;flex-wrap:wrap"></div>
-    </div>
-    <div class="modal-btns">
-      <button class="btn-cancel" style="flex:1" onclick="closeCatModal()">Cancelar</button>
-      <button class="btn-save" style="flex:1" onclick="saveNewCat()">Criar</button>
-    </div>
-  </div>
-</div>
-
-<!-- EDIT REMINDER MODAL -->
-<div class="modal-wrap" id="edit-modal">
-  <div class="modal">
-    <h3>Editar lembrete</h3>
-    <div class="field"><label>Título</label><input id="e-title" class="inp" type="text"></div>
-    <div class="field"><label>Detalhes</label><textarea id="e-desc" class="inp" rows="3"></textarea></div>
-    <div class="form-row" style="margin-bottom:1rem">
-      <select id="e-cat" class="inp"></select>
-      <select id="e-prio" class="inp">
-        <option value="normal">Prioridade normal</option>
-        <option value="alta">🔴 Alta prioridade</option>
-        <option value="baixa">Baixa prioridade</option>
-      </select>
-    </div>
-    <div class="form-row" style="margin-bottom:1rem">
-      <input id="e-date" class="inp" type="date">
-      <input id="e-time" class="inp" type="time">
-    </div>
-    <div class="modal-btns">
-      <button class="btn-cancel" style="flex:1" onclick="closeEditModal()">Cancelar</button>
-      <button class="btn-save" style="flex:1" onclick="saveEdit()">Salvar</button>
-    </div>
-  </div>
-</div>
+<div class="notif-container" id="notifs"></div>
 
 <script>
-const USERS_KEY='lembra_users';
-const DATA_KEY=e=>'lembra_v4_'+e;
-const SESSION_KEY='lembra_session';
-const CATS_KEY=e=>'lembra_cats_'+e;
-const SHEETS_KEY=e=>'lembra_sheets_'+e;
-const INT_KEY=e=>'lembra_int_'+e;
+// ─── STATE & UTILS ───
+const USERS_KEY='lembra_users',SESSION_KEY='lembra_session';
+const DATA_KEY=e=>`lembra_data_${e}`,CATS_KEY=e=>`lembra_cats_${e}`,SHEETS_KEY=e=>`lembra_sheets_${e}`,INT_KEY=e=>`lembra_int_${e}`;
+let user=null,reminders=[],userCats=[],sheets=[],integrations={google:false,outlook:false};
+let view='hoje',notifTimers=[];
 
-let user=null,reminders=[],view='hoje',recur='nenhuma',recognition=null,isListening=false,notifTimers=[],digestTimer=null;
-let userCats=[],userSheets=[],integrations={};
-let pendingDeleteId=null,editingId=null,selectedEmoji='📊',selectedColor='#60A5FA';
-
-const defaultCats=[
-  {id:'trabalho',label:'Trabalho',color:'#60A5FA',bg:'rgba(96,165,250,0.12)'},
-  {id:'pessoal',label:'Pessoal',color:'#C084FC',bg:'rgba(192,132,252,0.12)'},
-  {id:'saude',label:'Saúde',color:'#F87171',bg:'rgba(248,113,113,0.12)'},
-  {id:'financeiro',label:'Financeiro',color:'#FBBF24',bg:'rgba(251,191,36,0.12)'},
-  {id:'outro',label:'Outro',color:'#9BA39D',bg:'rgba(155,163,157,0.12)'}
+const defCats=[
+  {id:'c1',name:'Trabalho',color:'blue'},
+  {id:'c2',name:'Pessoal',color:'purple'},
+  {id:'c3',name:'Saúde',color:'red'},
+  {id:'c4',name:'Financeiro',color:'amber'},
+  {id:'c5',name:'Outro',color:'text2'}
 ];
-const colorOptions=['#60A5FA','#C084FC','#F87171','#FBBF24','#4ADE80','#F97316','#E879F9','#34D399','#FB7185','#A78BFA'];
-const emojiOptions=['📊','🏥','💊','📚','💰','✈️','🏠','👥','📋','🎯','🛒','🏋️','📅','🎓','💼','🌱','🎵','📌','🔬','🏆'];
-const catColors={},catBg={},catLbl={};
-function syncCatMaps(){userCats.forEach(c=>{catColors[c.id]=c.color;catBg[c.id]=c.bg;catLbl[c.id]=c.label})}
+const colors={blue:'var(--blue)',purple:'var(--purple)',red:'var(--red)',amber:'var(--amber)',accent:'var(--accent)',text2:'var(--text2)'};
+let catMap={},catLbl={};
 
+const today=()=>{const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+const genId=()=>Math.random().toString(36).substr(2,9);
+const initials=n=>n.split(' ').map(w=>w[0]).join('').substr(0,2).toUpperCase();
+
+function sysNotif(title,body){
+  if('Notification' in window&&Notification.permission==='granted')new Notification(title,{body,icon:'/icon.svg'});
+  notify(title,body);
+}
+function notify(title,desc){
+  const c=document.getElementById('notifs'),n=document.createElement('div');
+  n.className='notif';
+  n.innerHTML=`<div class="notif-ico"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="notif-info"><div class="notif-title">${title}</div><div class="notif-desc">${desc}</div></div>`;
+  c.appendChild(n);
+  setTimeout(()=>{n.style.opacity='0';n.style.transform='translateX(100%)';setTimeout(()=>n.remove(),300)},4000);
+}
+
+// ─── AUTH ───
 function getUsers(){return JSON.parse(localStorage.getItem(USERS_KEY)||'{}')}
 function saveUsers(u){localStorage.setItem(USERS_KEY,JSON.stringify(u))}
-function loadReminders(){return JSON.parse(localStorage.getItem(DATA_KEY(user.email))||'[]')}
-function persist(){localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders))}
-function loadCats(){userCats=JSON.parse(localStorage.getItem(CATS_KEY(user.email))||'null')||[...defaultCats]}
-function saveCats(){localStorage.setItem(CATS_KEY(user.email),JSON.stringify(userCats))}
-function loadSheets(){userSheets=JSON.parse(localStorage.getItem(SHEETS_KEY(user.email))||'[]')}
-function saveSheets(){localStorage.setItem(SHEETS_KEY(user.email),JSON.stringify(userSheets))}
-function loadInt(){integrations=JSON.parse(localStorage.getItem(INT_KEY(user.email))||'{}')}
-function saveInt(){localStorage.setItem(INT_KEY(user.email),JSON.stringify(integrations))}
-function today(){return new Date().toISOString().split('T')[0]}
-function tomorrow(){const d=new Date();d.setDate(d.getDate()+1);return d.toISOString().split('T')[0]}
-function initials(n){return n.trim().split(/\s+/).map(x=>x[0]).join('').toUpperCase().slice(0,2)}
-function fmtDate(d){const p=d.split('-');return`${p[2]}/${p[1]}/${p[0]}`}
-
-// AUTH
-function switchTab(t){
-  document.querySelectorAll('.tab').forEach((x,i)=>x.classList.toggle('active',i===(t==='login'?0:1)));
+function switchAuth(t){
   document.getElementById('login-form').style.display=t==='login'?'block':'none';
   document.getElementById('signup-form').style.display=t==='signup'?'block':'none';
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tab')[t==='login'?0:1].classList.add('active');
   document.getElementById('auth-err').style.display='none';
 }
 function showErr(m){const e=document.getElementById('auth-err');e.textContent=m;e.style.display='block'}
-function doLogin(){
-  const email=document.getElementById('l-email').value.trim(),pass=document.getElementById('l-pass').value;
-  if(!email||!pass)return showErr('Preencha todos os campos');
-  const users=getUsers();
-  if(!users[email])return showErr('Email não encontrado');
-  if(users[email].pass!==btoa(pass))return showErr('Senha incorreta');
-  startSession(users[email]);
-}
 function doSignup(){
-  const name=document.getElementById('s-name').value.trim(),email=document.getElementById('s-email').value.trim(),pass=document.getElementById('s-pass').value;
-  if(!name||!email||!pass)return showErr('Preencha todos os campos');
-  if(pass.length<6)return showErr('Senha deve ter ao menos 6 caracteres');
-  if(!/\S+@\S+\.\S+/.test(email))return showErr('Email inválido');
+  const n=document.getElementById('s-name').value.trim(),e=document.getElementById('s-email').value.trim(),p=document.getElementById('s-pass').value;
+  if(!n||!e||p.length<6)return showErr('Preencha todos os campos (senha min 6 chars).');
   const users=getUsers();
-  if(users[email])return showErr('Este email já está cadastrado');
-  users[email]={name,email,pass:btoa(pass)};
+  if(users[e])return showErr('Email já cadastrado.');
+  users[e]={name:n,email:e,pass:btoa(p)};
   saveUsers(users);
-  startSession(users[email]);
+  startSession(users[e]);
+}
+function doLogin(){
+  const e=document.getElementById('l-email').value.trim(),p=document.getElementById('l-pass').value;
+  if(!e||!p)return showErr('Preencha email e senha.');
+  const users=getUsers();
+  if(!users[e]||users[e].pass!==btoa(p))return showErr('Credenciais inválidas.');
+  startSession(users[e]);
 }
 function startSession(u){
   user=u;
@@ -621,315 +522,37 @@ function startSession(u){
   loadFromSupabase().then(found=>{if(found){render();scheduleNotifs();notify('Sincronizado','✓ Lembretes sincronizados da nuvem!')}});
 }
 function doLogout(){
-  localStorage.removeItem(SESSION_KEY);user=null;reminders=[];
-  if(digestTimer)clearInterval(digestTimer);
-  document.getElementById('app-screen').style.display='none';
-  document.getElementById('auth-screen').style.display='flex';
-  notifTimers.forEach(clearTimeout);notifTimers=[];
+  localStorage.removeItem(SESSION_KEY);
+  if(typeof firebaseLogout === 'function') firebaseLogout();
+  if(supabaseClient) supabaseClient.auth.signOut();
+  window.location.reload();
 }
 
-// NOTIFICATIONS
-function notify(title,msg){
-  const bar=document.getElementById('notif-bar'),el=document.createElement('div');
-  el.className='notif';el.innerHTML=`<div class="notif-ttl">${title}</div>${msg}`;
-  bar.appendChild(el);
-  setTimeout(()=>{el.style.cssText='opacity:0;transform:translateX(20px);transition:all 0.3s';setTimeout(()=>el.remove(),300)},5000);
-}
-function sysNotif(title,body){
-  if('Notification' in window&&Notification.permission==='granted')new Notification(title,{body,icon:'/icon.svg'});
-  notify(title,body);
-}
+// ─── DATA ───
+function loadReminders(){return JSON.parse(localStorage.getItem(DATA_KEY(user.email))||'[]')}
+function persist(){localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders))}
+function loadCats(){userCats=JSON.parse(localStorage.getItem(CATS_KEY(user.email))||JSON.stringify(defCats))}
+function saveCats(){localStorage.setItem(CATS_KEY(user.email),JSON.stringify(userCats))}
+function syncCatMaps(){catMap={};catLbl={};userCats.forEach(c=>{catMap[c.id]=colors[c.color];catLbl[c.id]=c.name})}
+function loadSheets(){sheets=JSON.parse(localStorage.getItem(SHEETS_KEY(user.email))||'[]')}
+function saveSheets(){localStorage.setItem(SHEETS_KEY(user.email),JSON.stringify(sheets))}
+function loadInt(){integrations=JSON.parse(localStorage.getItem(INT_KEY(user.email))||'{"google":false,"outlook":false}')}
+function saveInt(){localStorage.setItem(INT_KEY(user.email),JSON.stringify(integrations))}
 
-// DIGEST
-function scheduleDigest(){
-  if(digestTimer)clearInterval(digestTimer);
-  if(!integrations.digest)return;
-  digestTimer=setInterval(()=>{
-    const h=new Date().getHours(),m=new Date().getMinutes();
-    if(h===6&&m===0)sendDigest('hoje');
-    if(h===20&&m===0)sendDigest('amanha');
-  },60000);
-}
-function sendDigest(tipo){
-  const d=tipo==='hoje'?today():tomorrow();
-  const evts=(integrations.calendarEvents||[]).filter(e=>(e.start?.dateTime||e.start?.date||'').startsWith(d));
-  const rems=reminders.filter(r=>!r.done&&r.date===d);
-  const all=[...evts.map(e=>({t:(e.start?.dateTime||'').slice(11,16),n:e.summary})),...rems.map(r=>({t:r.time,n:r.title}))];
-  if(!all.length){sysNotif(tipo==='hoje'?'☀️ Bom dia!':'🌙 Boa noite!',tipo==='hoje'?'Sua agenda de hoje está livre!':'Sua agenda de amanhã está livre!');return}
-  sysNotif(tipo==='hoje'?`☀️ Agenda de hoje (${all.length})`:`🌙 Agenda de amanhã (${all.length})`,all.map(e=>`${e.t?e.t+' — ':''}${e.n}`).join('\n'));
-}
-function toggleDigest(){
-  integrations.digest=!integrations.digest;saveInt();updateIntUI();scheduleDigest();
-  notify('Resumo diário',integrations.digest?'Ativado! Você receberá avisos às 6h e 20h.':'Desativado.');
-}
-
-// INTEGRATIONS
-function connectGoogle(){
-  const popup=window.open('https://accounts.google.com/AccountChooser?continue=https://calendar.google.com','_blank','width=500,height=600');
-  integrations.googleConnected=true;
-  integrations.googleEmail=user.email;
-  saveInt();updateIntUI();loadMockGoogleEvents();
-}
-function disconnectGoogle(){
-  integrations.googleConnected=false;delete integrations.calendarEvents;
-  saveInt();updateIntUI();renderAgenda();
-}
-function connectOutlook(){
-  window.open('https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=common&response_type=token&scope=Calendars.Read','_blank','width=500,height=600');
-  integrations.outlookConnected=true;
-  integrations.outlookEmail=user.email;
-  saveInt();updateIntUI();loadMockOutlookEvents();
-}
-function disconnectOutlook(){
-  integrations.outlookConnected=false;saveInt();updateIntUI();renderAgenda();
-}
-function loadMockGoogleEvents(){
-  const t=today(),tom=tomorrow();
-  integrations.calendarEvents=[
-    {summary:'Reunião de equipe',start:{dateTime:t+'T09:00:00'},source:'google'},
-    {summary:'Almoço com cliente',start:{dateTime:t+'T12:30:00'},source:'google'},
-    {summary:'Revisão de projeto',start:{dateTime:tom+'T10:00:00'},source:'google'},
-    {summary:'Apresentação final',start:{dateTime:tom+'T15:00:00'},source:'google'},
-  ];
-  saveInt();notify('Google Agenda','✓ Agenda sincronizada! Veja em "Minha Agenda".');renderAgenda();
-}
-function loadMockOutlookEvents(){
-  const t=today(),tom=tomorrow();
-  const ex=integrations.calendarEvents||[];
-  integrations.calendarEvents=[...ex,
-    {summary:'Call com parceiro',start:{dateTime:t+'T14:00:00'},source:'outlook'},
-    {summary:'Treinamento online',start:{dateTime:tom+'T08:00:00'},source:'outlook'},
-  ];
-  saveInt();notify('Outlook','✓ Agenda do Outlook sincronizada!');renderAgenda();
-}
-function refreshCalendar(){
-  if(integrations.googleConnected)loadMockGoogleEvents();
-  else if(integrations.outlookConnected)loadMockOutlookEvents();
-  else notify('Agenda','Conecte uma agenda em Integrações primeiro.');
-}
-function updateIntUI(){
-  const gc=integrations.googleConnected;
-  document.getElementById('google-badge').textContent=gc?'✓ Conectado':'Não conectado';
-  document.getElementById('google-badge').className='status-badge '+(gc?'on':'off');
-  document.getElementById('google-connect-area').style.display=gc?'none':'block';
-  document.getElementById('google-connected-area').style.display=gc?'block':'none';
-  if(gc)document.getElementById('google-email-lbl').textContent=integrations.googleEmail||'';
-  const oc=integrations.outlookConnected;
-  document.getElementById('outlook-badge').textContent=oc?'✓ Conectado':'Não conectado';
-  document.getElementById('outlook-badge').className='status-badge '+(oc?'on':'off');
-  document.getElementById('outlook-connect-area').style.display=oc?'none':'block';
-  document.getElementById('outlook-connected-area').style.display=oc?'block':'none';
-  if(oc)document.getElementById('outlook-email-lbl').textContent=integrations.outlookEmail||'';
-  const d=integrations.digest;
-  document.getElementById('digest-badge').textContent=d?'✓ Ativo':'Desativado';
-  document.getElementById('digest-badge').className='status-badge '+(d?'on':'off');
-  document.getElementById('digest-btn').textContent=d?'Desativar resumo diário':'Ativar resumo diário';
-}
-
-// AGENDA
-function renderAgenda(){
-  const c=document.getElementById('agenda-container');
-  const events=integrations.calendarEvents||[];
-  if(!events.length&&!integrations.googleConnected&&!integrations.outlookConnected){
-    c.innerHTML='<div class="empty-state"><div class="empty-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><p style="font-size:14px;line-height:1.7">Conecte sua agenda em <strong>Integrações</strong><br>para ver seus eventos aqui.</p></div>';
-    return;
-  }
-  const t=today(),tom=tomorrow();
-  const groups={};
-  events.forEach(e=>{const d=(e.start?.dateTime||e.start?.date||'').split('T')[0];if(!groups[d])groups[d]=[];groups[d].push(e)});
-  reminders.filter(r=>!r.done&&r.date).forEach(r=>{if(!groups[r.date])groups[r.date]=[];groups[r.date].push({summary:r.title,start:{dateTime:r.date+'T'+(r.time||'00:00')},source:'reminder'})});
-  const sorted=Object.keys(groups).sort();
-  const srcColor={google:'#60A5FA',outlook:'#0078d4',reminder:'#4ADE80'};
-  let html='';
-  sorted.forEach(d=>{
-    const lbl=d===t?'Hoje':d===tom?'Amanhã':fmtDate(d);
-    const evts=groups[d].sort((a,b)=>(a.start?.dateTime||'').slice(11,16).localeCompare((b.start?.dateTime||'').slice(11,16)));
-    html+=`<div class="agenda-preview"><div class="agenda-ttl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${lbl}</div>`;
-    evts.forEach(e=>{
-      const time=(e.start?.dateTime||'').slice(11,16)||'';
-      const src=e.source==='google'?'Google':e.source==='outlook'?'Outlook':'Lembrete';
-      html+=`<div class="agenda-event"><div class="agenda-event-time">${time}</div><div class="agenda-event-dot" style="background:${srcColor[e.source]||'#9BA39D'}"></div><div class="agenda-event-title">${e.summary}</div><div class="agenda-event-src">${src}</div></div>`;
-    });
-    html+='</div>';
-  });
-  c.innerHTML=html||'<div class="empty-state"><p style="font-size:14px">Nenhum evento encontrado.</p></div>';
-  document.getElementById('agenda-meta').textContent=`${events.length} evento${events.length!==1?'s':''} sincronizado${events.length!==1?'s':''}`;
-}
-
-// SHEETS
-function renderSheets(){
-  const g=document.getElementById('sheets-grid');
-  let html=userSheets.map((s,i)=>`<a href="${s.url}" target="_blank" class="sheet-card"><div class="sheet-ico">${s.emoji||'📊'}</div><div class="sheet-name">${s.name}</div></a>`).join('');
-  html+=`<div class="sheet-add" onclick="openSheetModal()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>Adicionar planilha</span></div>`;
-  g.innerHTML=html;
-}
-function openSheetModal(){
-  selectedEmoji='📊';
-  document.getElementById('sheet-modal').classList.add('open');
-  document.getElementById('sheet-name-inp').value='';
-  document.getElementById('sheet-url-inp').value='';
-  renderEmojiGrid();
-}
-function closeSheetModal(){document.getElementById('sheet-modal').classList.remove('open')}
-function renderEmojiGrid(){
-  document.getElementById('emoji-grid').innerHTML=emojiOptions.map(e=>`<div class="emoji-opt${e===selectedEmoji?' sel':''}" onclick="selectedEmoji='${e}';renderEmojiGrid()">${e}</div>`).join('');
-}
-function saveSheet(){
-  const name=document.getElementById('sheet-name-inp').value.trim();
-  const url=document.getElementById('sheet-url-inp').value.trim();
-  if(!name||!url)return;
-  userSheets.push({name,url,emoji:selectedEmoji});
-  saveSheets();renderSheets();closeSheetModal();
-}
-
-// CATEGORIES
+// ─── UI ───
+const viewLbl={hoje:'Hoje',todos:'Todos os lembretes',concluidos:'Concluídos'};
 function renderSidebar(){
-  const c=document.getElementById('sidebar-cats');
-  c.innerHTML=userCats.map(cat=>`<button class="nav-btn${view==='cat-'+cat.id?' active':''}" onclick="setView('cat-${cat.id}',this)"><span class="cat-dot" style="background:${cat.color}"></span>${cat.label}<span class="nbadge" id="b-${cat.id}">0</span></button>`).join('')+
-  `<button class="nav-btn" onclick="openCatModal()" style="color:var(--text3);font-size:12px"><svg class="nav-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova categoria</button>`;
+  const c=document.getElementById('cat-list');
+  c.innerHTML=userCats.map(cat=>`
+    <button class="nav-btn" onclick="setView('cat-${cat.id}',this)">
+      <div class="cat-dot" style="background:${colors[cat.color]}"></div>
+      ${cat.name} <span class="nbadge" id="b-${cat.id}">0</span>
+    </button>
+  `).join('');
+  updateBadges();
 }
 function renderCatSelect(){
-  const s=document.getElementById('f-cat'),cur=s.value;
-  s.innerHTML=userCats.map(c=>`<option value="${c.id}"${c.id===cur?' selected':''}>${c.label}</option>`).join('');
-  const e=document.getElementById('e-cat');
-  if(e)e.innerHTML=s.innerHTML;
-}
-function openCatModal(){document.getElementById('cat-modal').classList.add('open');document.getElementById('new-cat-name').value='';selectedColor=colorOptions[0];renderColorPicker()}
-function closeCatModal(){document.getElementById('cat-modal').classList.remove('open')}
-function renderColorPicker(){
-  document.getElementById('color-picker').innerHTML=colorOptions.map(c=>`<div onclick="selectedColor='${c}';renderColorPicker()" style="width:26px;height:26px;border-radius:50%;background:${c};cursor:pointer;border:3px solid ${c===selectedColor?'white':'transparent'};transition:border 0.15s"></div>`).join('');
-}
-function saveNewCat(){
-  const name=document.getElementById('new-cat-name').value.trim();if(!name)return;
-  const id='cat_'+Date.now(),hex=selectedColor;
-  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-  userCats.push({id,label:name,color:hex,bg:`rgba(${r},${g},${b},0.12)`});
-  saveCats();syncCatMaps();closeCatModal();renderSidebar();renderCatSelect();render();
-}
-
-// REMINDERS
-function toggleForm(){
-  const f=document.getElementById('input-form');f.classList.toggle('open');
-  if(f.classList.contains('open'))document.getElementById('f-title').focus();
-}
-function selRecur(btn,val){document.querySelectorAll('.rchip').forEach(x=>x.classList.remove('sel'));btn.classList.add('sel');recur=val}
-function saveReminder(){
-  const title=document.getElementById('f-title').value.trim();if(!title)return;
-  const r={id:Date.now(),title,desc:document.getElementById('f-desc').value.trim(),cat:document.getElementById('f-cat').value,prio:document.getElementById('f-prio').value,date:document.getElementById('f-date').value,time:document.getElementById('f-time').value,recur,done:false,created:Date.now()};
-  reminders.unshift(r);persist();
-  document.getElementById('f-title').value='';document.getElementById('f-desc').value='';document.getElementById('f-time').value='';document.getElementById('f-date').value=today();
-  document.querySelectorAll('.rchip').forEach(x=>x.classList.remove('sel'));document.querySelector('.rchip').classList.add('sel');recur='nenhuma';
-  toggleForm();render();scheduleNotifs();
-}
-function toggleDone(id,e){
-  e.stopPropagation();
-  const r=reminders.find(x=>x.id===id);
-  if(r){
-    r.done=!r.done;
-    persist();
-    if(r.done){
-      notify('✓ Tarefa concluída',`"${r.title}" marcada como concluída.`);
-    }
-    render();
-  }
-}
-function askDelete(id,e){
-  e.stopPropagation();
-  pendingDeleteId=id;
-  const r=reminders.find(x=>x.id===id);
-  document.getElementById('confirm-msg').textContent=`Excluir "${r?.title}"? Esta ação não pode ser desfeita.`;
-  document.getElementById('confirm-modal').classList.add('open');
-}
-function closeConfirm(){document.getElementById('confirm-modal').classList.remove('open');pendingDeleteId=null}
-function confirmDelete(){
-  if(pendingDeleteId){reminders=reminders.filter(x=>x.id!==pendingDeleteId);persist();render()}
-  closeConfirm();
-}
-function openEdit(id,e){
-  e.stopPropagation();
-  const r=reminders.find(x=>x.id===id);if(!r)return;
-  editingId=id;
-  document.getElementById('e-title').value=r.title;
-  document.getElementById('e-desc').value=r.desc||'';
-  document.getElementById('e-date').value=r.date||'';
-  document.getElementById('e-time').value=r.time||'';
-  document.getElementById('e-prio').value=r.prio||'normal';
-  renderCatSelect();
-  document.getElementById('e-cat').value=r.cat;
-  document.getElementById('edit-modal').classList.add('open');
-}
-function closeEditModal(){document.getElementById('edit-modal').classList.remove('open');editingId=null}
-function saveEdit(){
-  const r=reminders.find(x=>x.id===editingId);if(!r)return;
-  r.title=document.getElementById('e-title').value.trim()||r.title;
-  r.desc=document.getElementById('e-desc').value.trim();
-  r.cat=document.getElementById('e-cat').value;
-  r.prio=document.getElementById('e-prio').value;
-  r.date=document.getElementById('e-date').value;
-  r.time=document.getElementById('e-time').value;
-  persist();render();closeEditModal();
-}
-
-// VOICE
-function toggleVoice(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR)return notify('Voz','Use o Chrome para reconhecimento de voz');
-  if(isListening){recognition.stop();return}
-  recognition=new SR();recognition.lang='pt-BR';recognition.interimResults=true;
-  recognition.onstart=()=>{isListening=true;const b=document.getElementById('voice-btn');b.classList.add('on');b.innerHTML='<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Ouvindo...'};
-  recognition.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;document.getElementById('voice-tx').textContent=t;if(e.results[e.results.length-1].isFinal){document.getElementById('f-title').value=t;document.getElementById('voice-tx').textContent=''}};
-  recognition.onend=()=>{isListening=false;const b=document.getElementById('voice-btn');b.classList.remove('on');b.innerHTML='<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Usar voz'};
-  recognition.start();
-}
-
-// RENDER
-const viewLbl={hoje:'Hoje',todos:'Todos os lembretes',feitos:'Concluídos'};
-function getFiltered(){
-  const t=today();
-  if(view==='hoje')return reminders.filter(r=>!r.done&&r.date===t);
-  if(view==='todos')return reminders.filter(r=>!r.done);
-  if(view==='feitos')return reminders.filter(r=>r.done);
-  if(view.startsWith('cat-'))return reminders.filter(r=>!r.done&&r.cat===view.slice(4));
-  return reminders;
-}
-function render(){
-  updateBadges();
-  const list=getFiltered(),c=document.getElementById('list-container');
-  if(!list.length){c.innerHTML='<div class="empty-state"><div class="empty-ico"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><p style="font-size:14px;line-height:1.7">Nenhum lembrete aqui.<br>Clique em <strong>Novo lembrete</strong>.</p></div>';return}
-  const t=today();
-  const groups={};
-  list.forEach(r=>{const k=r.date||'z-sem-data';if(!groups[k])groups[k]=[];groups[k].push(r)});
-  const sorted=Object.keys(groups).sort();
-  let html='';
-  sorted.forEach(k=>{
-    const dk=k==='z-sem-data'?'sem-data':k;
-    let lbl=dk==='sem-data'?'Sem data':dk===t?'Hoje':fmtDate(dk);
-    if(dk>t&&dk!=='sem-data'){const d=new Date(dk+'T12:00');lbl=d.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'short'});lbl=lbl.charAt(0).toUpperCase()+lbl.slice(1)}
-    html+=`<div><div class="section-lbl">${lbl}</div><div class="reminders-list">`;
-    groups[k].forEach(r=>{
-      const pc=r.prio==='alta'?'#F87171':'transparent';
-      html+=`<div class="rcard${r.done?' done':''}" onclick="openEdit(${r.id},event)">
-        <div class="pbar" style="background:${pc}"></div>
-        <button class="chk" onclick="toggleDone(${r.id},event)"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button>
-        <div class="r-body">
-          <div class="r-title">${r.title}</div>
-          ${r.desc?`<div class="r-desc">${r.desc}</div>`:''}
-          <div class="r-meta">
-            <span class="r-tag" style="background:${catBg[r.cat]||'rgba(155,163,157,0.12)'};color:${catColors[r.cat]||'#9BA39D'}">${catLbl[r.cat]||r.cat}</span>
-            ${r.time?`<span class="r-time">${r.time}</span>`:''}
-            ${r.recur&&r.recur!=='nenhuma'?`<span class="r-recur">↻ ${r.recur}</span>`:''}
-            ${r.done?`<span style="font-size:11px;color:var(--accent);background:var(--accent-dim);padding:2px 7px;border-radius:var(--r-full)">✓ Concluído</span>`:''}
-          </div>
-        </div>
-        <div class="r-acts">
-          ${!r.done?`<button class="r-act" onclick="openEdit(${r.id},event)"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>`:''}
-          <button class="r-act del" onclick="askDelete(${r.id},event)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
-        </div>
-      </div>`;
-    });
-    html+='</div></div>';
-  });
-  c.innerHTML=html;
+  document.getElementById('f-cat').innerHTML=userCats.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
 }
 function updateBadges(){
   const t=today(),a=reminders.filter(r=>!r.done);
@@ -938,7 +561,7 @@ function updateBadges(){
   userCats.forEach(c=>{const el=document.getElementById('b-'+c.id);if(el)el.textContent=a.filter(r=>r.cat===c.id).length});
 }
 
-const allViews=['view-reminders','view-agenda','view-planilhas','view-integracoes'];
+const allViews=['view-reminders','view-agenda','view-planilhas'];
 function setView(v,btn){
   view=v;
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
@@ -946,7 +569,6 @@ function setView(v,btn){
   allViews.forEach(id=>document.getElementById(id).style.display='none');
   if(v==='agenda'){document.getElementById('view-agenda').style.display='flex';renderAgenda()}
   else if(v==='planilhas'){document.getElementById('view-planilhas').style.display='flex';renderSheets()}
-  else if(v==='integracoes'){document.getElementById('view-integracoes').style.display='flex'}
   else{document.getElementById('view-reminders').style.display='flex';document.getElementById('view-title').textContent=viewLbl[v]||catLbl[v.replace('cat-','')]||v;render()}
 }
 function mobActive(btn){document.querySelectorAll('.mob-btn').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}
@@ -960,8 +582,255 @@ function scheduleNotifs(){
   });
 }
 
+// ─── FORM ───
+function toggleForm(){
+  const f=document.getElementById('form-box');
+  if(f.classList.contains('open')){
+    f.classList.remove('open');
+    document.getElementById('f-id').value='';
+    document.getElementById('f-title').value='';
+    document.getElementById('f-desc').value='';
+    document.getElementById('f-time').value='';
+    setRecur('none',document.querySelector('.rchip'));
+  }else{
+    f.classList.add('open');
+    document.getElementById('f-title').focus();
+  }
+}
+function setRecur(v,btn){
+  document.getElementById('f-recur').value=v;
+  document.querySelectorAll('.rchip').forEach(x=>x.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+function saveReminder(){
+  const t=document.getElementById('f-title').value.trim();
+  if(!t)return;
+  const id=document.getElementById('f-id').value,
+        r={
+          id:id||genId(),
+          title:t,
+          desc:document.getElementById('f-desc').value.trim(),
+          cat:document.getElementById('f-cat').value,
+          prio:parseInt(document.getElementById('f-prio').value),
+          date:document.getElementById('f-date').value,
+          time:document.getElementById('f-time').value,
+          recur:document.getElementById('f-recur').value,
+          done:false,
+          created:new Date().toISOString()
+        };
+  if(id) reminders=reminders.map(x=>x.id===id?r:x);
+  else reminders.unshift(r);
+  persist();render();updateBadges();scheduleNotifs();toggleForm();
+  notify('Salvo','Lembrete salvo com sucesso!');
+}
+
+// ─── RENDER LIST ───
+const prioColors={1:'var(--blue)',2:'var(--text2)',3:'var(--red)'};
+const recurLbl={daily:'Diário',weekly:'Semanal',biweekly:'Quinzenal',monthly:'Mensal'};
+function render(){
+  const c=document.getElementById('list-container');
+  let list=reminders;
+  if(view==='hoje')list=list.filter(r=>r.date===today()&&!r.done);
+  else if(view==='concluidos')list=list.filter(r=>r.done);
+  else if(view.startsWith('cat-')){const cat=view.replace('cat-','');list=list.filter(r=>r.cat===cat&&!r.done)}
+  else list=list.filter(r=>!r.done);
+  
+  list.sort((a,b)=>{
+    if(a.date!==b.date)return (a.date||'9999')>(b.date||'9999')?1:-1;
+    if(a.time!==b.time)return (a.time||'9999')>(b.time||'9999')?1:-1;
+    return b.prio-a.prio;
+  });
+
+  if(list.length===0){
+    c.innerHTML=`<div class="empty-state"><div class="empty-ico"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div>Nenhum lembrete aqui.  
+Clique em <b>Novo lembrete</b>.</div></div>`;
+    return;
+  }
+
+  let html='',lastDate=null;
+  list.forEach(r=>{
+    if(view==='todos'||view.startsWith('cat-')){
+      const dStr=r.date?new Date(r.date+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}):'Sem data';
+      if(dStr!==lastDate){html+=`<div class="section-lbl" style="margin-top:${lastDate?15:0}px">${dStr}</div>`;lastDate=dStr}
+    }
+    html+=`
+      <div class="rcard ${r.done?'done':''}" onclick="editR('${r.id}')">
+        <div class="pbar" style="background:${prioColors[r.prio]}"></div>
+        <button class="chk" onclick="event.stopPropagation();toggleDone('${r.id}')"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button>
+        <div class="r-body">
+          <div class="r-title">${r.title}</div>
+          ${r.desc?`<div class="r-desc">${r.desc}</div>`:''}
+          <div class="r-meta">
+            <span class="r-tag" style="background:${catMap[r.cat]}20;color:${catMap[r.cat]}"><div class="cat-dot" style="background:${catMap[r.cat]}"></div>${catLbl[r.cat]}</span>
+            ${r.time?`<span class="r-time">🕒 ${r.time}</span>`:''}
+            ${r.recur!=='none'?`<span class="r-recur">↻ ${recurLbl[r.recur]}</span>`:''}
+          </div>
+        </div>
+        <div class="r-acts">
+          <button class="r-act del" onclick="event.stopPropagation();delR('${r.id}')"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+        </div>
+      </div>
+    `;
+  });
+  c.innerHTML=`<div class="reminders-list">${html}</div>`;
+}
+
+function toggleDone(id){
+  const r=reminders.find(x=>x.id===id);
+  if(r){
+    r.done=!r.done;
+    if(r.done&&r.recur!=='none'){
+      const nr={...r,id:genId(),done:false,created:new Date().toISOString()};
+      const d=new Date(r.date+'T12:00:00');
+      if(r.recur==='daily')d.setDate(d.getDate()+1);
+      if(r.recur==='weekly')d.setDate(d.getDate()+7);
+      if(r.recur==='biweekly')d.setDate(d.getDate()+14);
+      if(r.recur==='monthly')d.setMonth(d.getMonth()+1);
+      nr.date=d.toISOString().split('T')[0];
+      reminders.push(nr);
+      notify('Recorrência','Novo lembrete agendado para '+nr.date);
+    }
+    persist();render();updateBadges();
+  }
+}
+function delR(id){if(confirm('Excluir este lembrete?')){reminders=reminders.filter(x=>x.id!==id);persist();render();updateBadges();scheduleNotifs()}}
+function editR(id){
+  const r=reminders.find(x=>x.id===id);
+  if(!r)return;
+  document.getElementById('f-id').value=r.id;
+  document.getElementById('f-title').value=r.title;
+  document.getElementById('f-desc').value=r.desc;
+  document.getElementById('f-cat').value=r.cat;
+  document.getElementById('f-prio').value=r.prio;
+  document.getElementById('f-date').value=r.date;
+  document.getElementById('f-time').value=r.time;
+  const chips=document.querySelectorAll('.rchip');
+  chips.forEach(x=>x.classList.remove('sel'));
+  const idx={none:0,daily:1,weekly:2,biweekly:3,monthly:4}[r.recur];
+  chips[idx].classList.add('sel');
+  document.getElementById('f-recur').value=r.recur;
+  document.getElementById('form-box').classList.add('open');
+  window.scrollTo(0,0);
+}
+
+// ─── CATEGORIES ───
+function openCatModal(){document.getElementById('cat-modal').style.display='flex';document.getElementById('c-name').focus()}
+function closeCatModal(){document.getElementById('cat-modal').style.display='none';document.getElementById('c-name').value=''}
+function selColor(c,btn){
+  document.getElementById('c-color').value=c;
+  document.querySelectorAll('.cat-dot').forEach(x=>x.style.border='none');
+  btn.style.border='2px solid white';
+}
+function saveCat(){
+  const n=document.getElementById('c-name').value.trim();
+  if(!n)return;
+  userCats.push({id:'c'+genId(),name:n,color:document.getElementById('c-color').value});
+  saveCats();syncCatMaps();renderSidebar();renderCatSelect();closeCatModal();
+}
+
+// ─── VOICE ───
+let rec=null;
+function toggleVoice(){
+  const btn=document.getElementById('btn-voice'),st=document.getElementById('voice-st'),inp=document.getElementById('f-title');
+  if(btn.classList.contains('on')){
+    if(rec)rec.stop();
+    btn.classList.remove('on');st.textContent='';
+    return;
+  }
+  if(!('webkitSpeechRecognition' in window)){alert('Reconhecimento de voz não suportado neste navegador.');return}
+  rec=new webkitSpeechRecognition();
+  rec.lang='pt-BR';rec.continuous=false;rec.interimResults=false;
+  rec.onstart=()=>{btn.classList.add('on');st.textContent='Ouvindo...'}
+  rec.onresult=e=>{inp.value=e.results[0][0].transcript;btn.classList.remove('on');st.textContent=''}
+  rec.onerror=e=>{btn.classList.remove('on');st.textContent='Erro: '+e.error}
+  rec.onend=()=>{btn.classList.remove('on');st.textContent=''}
+  rec.start();
+}
+
+// ─── SHEETS ───
+function toggleSheetForm(){
+  const f=document.getElementById('sheet-form');
+  f.classList.toggle('open');
+  if(f.classList.contains('open'))document.getElementById('sh-name').focus();
+}
+function saveSheet(){
+  const n=document.getElementById('sh-name').value.trim(),u=document.getElementById('sh-url').value.trim();
+  if(!n||!u)return;
+  sheets.push({id:genId(),name:n,url:u});
+  saveSheets();renderSheets();
+  document.getElementById('sh-name').value='';document.getElementById('sh-url').value='';
+  toggleSheetForm();
+}
+function delSheet(id){if(confirm('Remover planilha?')){sheets=sheets.filter(x=>x.id!==id);saveSheets();renderSheets()}}
+function renderSheets(){
+  const c=document.getElementById('sheets-list');
+  if(sheets.length===0){c.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--text3);padding:2rem">Nenhuma planilha adicionada.</div>';return}
+  c.innerHTML=sheets.map(s=>`
+    <div class="int-card" onclick="window.open('${s.url}','_blank')">
+      <div class="int-ico" style="background:rgba(16,185,129,0.1);color:#10B981">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      </div>
+      <div class="int-info">
+        <div class="int-title">${s.name}</div>
+        <div class="int-sub">Planilha Google</div>
+      </div>
+      <button class="r-act del" onclick="event.stopPropagation();delSheet('${s.id}')" style="margin-left:auto"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+    </div>
+  `).join('');
+}
+
+// ─── AGENDA & INTEGRATIONS ───
+function updateIntUI(){
+  // UI updates for integrations removed as per simplified layout
+}
+function renderAgenda(){
+  const c=document.getElementById('agenda-content');
+  const t=today();
+  const todayRems=reminders.filter(r=>r.date===t).sort((a,b)=>(a.time||'9999')>(b.time||'9999')?1:-1);
+  
+  let html=`<div class="section-lbl">Seus compromissos hoje</div>`;
+  if(todayRems.length===0){
+    html+=`<div style="color:var(--text3);font-size:13px;padding:1rem 0">Nenhum lembrete para hoje.</div>`;
+  }else{
+    html+=`<div class="reminders-list">`+todayRems.map(r=>`
+      <div class="rcard ${r.done?'done':''}" style="cursor:default">
+        <div class="pbar" style="background:${prioColors[r.prio]}"></div>
+        <div class="r-body">
+          <div class="r-title">${r.title}</div>
+          <div class="r-meta">
+            <span class="r-tag" style="background:${catMap[r.cat]}20;color:${catMap[r.cat]}">${catLbl[r.cat]}</span>
+            ${r.time?`<span class="r-time">🕒 ${r.time}</span>`:''}
+          </div>
+        </div>
+      </div>
+    `).join('')+`</div>`;
+  }
+  
+  html+=`
+    <div style="margin-top:2rem;padding:1.5rem;background:var(--surface2);border-radius:var(--r);text-align:center">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="1.5" style="margin-bottom:10px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <div style="font-size:14px;font-weight:500;margin-bottom:4px">Resumo Diário</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:15px">Receba um email toda manhã com seus lembretes do dia.</div>
+      <button class="btn-sm" onclick="notify('Resumo Diário','O resumo diário será enviado para '+user.email+' às 08:00.')">Ativar Resumo</button>
+    </div>
+  `;
+  c.innerHTML=html;
+}
+
+function scheduleDigest(){
+  const now=new Date();
+  let target=new Date(now);
+  target.setHours(8,0,0,0);
+  if(now>target)target.setDate(target.getDate()+1);
+  setTimeout(()=>{
+    const t=today();
+    const count=reminders.filter(r=>r.date===t&&!r.done).length;
+    if(count>0) sysNotif('Bom dia! ☀️',`Você tem ${count} lembrete(s) para hoje.`);
+    scheduleDigest();
+  },target-now);
+}
+
 async function loginWithGoogle() {
-  // Verifica se o Supabase foi carregado corretamente
   if (!supabaseClient) {
     alert('Erro: Conexão com o banco de dados não estabelecida.');
     return;
@@ -972,7 +841,8 @@ async function loginWithGoogle() {
     options: {
       queryParams: {
         prompt: 'select_account'
-      }
+      },
+      redirectTo: window.location.origin 
     }
   });
 
@@ -981,6 +851,7 @@ async function loginWithGoogle() {
     alert('Erro ao entrar com Google: ' + error.message);
   }
 }
+
 window.onload=()=>{
   const s=localStorage.getItem(SESSION_KEY);
   if(s){const u=JSON.parse(s);if(getUsers()[u.email])startSession(u)}
@@ -993,7 +864,7 @@ window.onload=()=>{
 // ─── SUPABASE SYNC ───
 let supabaseClient = null;
 
-function initSupabase(){
+function initSupabase( ){
   try {
     if(typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL !== 'COLE_SEU_PROJECT_URL_AQUI'){
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1001,14 +872,14 @@ function initSupabase(){
       
       // Escutar mudanças de login do Supabase
       supabaseClient.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_IN' && session) {
+        if (session && session.user) {
           const u = session.user;
           const users = getUsers();
           
           // Se o usuário não existir no localStorage, cria
           if (!users[u.email]) {
             users[u.email] = {
-              name: u.user_metadata.full_name || u.email.split('@')[0],
+              name: u.user_metadata?.full_name || u.email.split('@')[0],
               email: u.email,
               googleAuth: true,
               pass: btoa('google_' + u.id)
@@ -1024,7 +895,6 @@ function initSupabase(){
     }
   } catch(e){ console.log('Supabase não configurado:', e) }
 }
-
 
 async function syncToSupabase(){
   if(!supabaseClient||!user)return;
@@ -1084,37 +954,5 @@ function persist(){
 // Init on load
 initSupabase();
 </script>
-<!-- Firebase -->
-<script src="firebase-config.js"></script>
-<script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-  import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
-
-  window.firebaseLoginWithGoogle = async function() {
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const u = result.user;
-      const users = getUsers();
-      if(!users[u.email]){
-        users[u.email] = {name: u.displayName, email: u.email, googleAuth: true, pass: btoa('google_'+u.uid)};
-        saveUsers(users);
-      }
-      startSession(users[u.email]);
-    } catch(e) {
-      console.error(e);
-      document.getElementById('auth-err').textContent = 'Erro ao entrar com Google. Tente novamente.';
-      document.getElementById('auth-err').style.display = 'block';
-    }
-  };
-
-  window.firebaseLogout = async function() {
-    await signOut(auth);
-  };
-</script>
-<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=4');</script>
 </body>
 </html>
