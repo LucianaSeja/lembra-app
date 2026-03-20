@@ -961,7 +961,13 @@ function scheduleNotifs(){
 }
 
 async function loginWithGoogle() {
-  const { data, error } = await supabase.auth.signInWithOAuth({
+  // Verifica se o Supabase foi carregado corretamente
+  if (!supabaseClient) {
+    alert('Erro: Conexão com o banco de dados não estabelecida.');
+    return;
+  }
+
+  const { data, error } = await supabaseClient.auth.signInWithOAuth({
     provider: 'google',
     options: {
       queryParams: {
@@ -975,8 +981,6 @@ async function loginWithGoogle() {
     alert('Erro ao entrar com Google: ' + error.message);
   }
 }
-
-
 window.onload=()=>{
   const s=localStorage.getItem(SESSION_KEY);
   if(s){const u=JSON.parse(s);if(getUsers()[u.email])startSession(u)}
