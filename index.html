@@ -858,8 +858,6 @@ window.onload=()=>{
 };
 </script>
 <!-- Supabase -->
-<!-- Supabase -->
-<!-- Supabase -->
 <script src="supabase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -885,7 +883,7 @@ function initSupabase(){
     if(typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL !== 'COLE_SEU_PROJECT_URL_AQUI'){
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         auth: {
-          flowType: 'pkce',
+          flowType: 'implicit',
           detectSessionInUrl: true,
           persistSession: true,
           autoRefreshToken: true
