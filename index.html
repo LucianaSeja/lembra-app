@@ -953,6 +953,27 @@ function persist(){
 
 // Init on load
 initSupabase();
+
+// Verifica sessão inicial do Supabase após inicializar
+setTimeout(async () => {
+  if (supabaseClient && !user) {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session && session.user) {
+      const u = session.user;
+      const users = getUsers();
+      if (!users[u.email]) {
+        users[u.email] = {
+          name: u.user_metadata?.full_name || u.email.split('@')[0],
+          email: u.email,
+          googleAuth: true,
+          pass: btoa('google_' + u.id)
+        };
+        saveUsers(users);
+      }
+      startSession(users[u.email]);
+    }
+  }
+}, 500);
 </script>
 </body>
 </html>
