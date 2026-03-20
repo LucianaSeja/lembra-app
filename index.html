@@ -998,9 +998,33 @@ function initSupabase(){
     if(typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL !== 'COLE_SEU_PROJECT_URL_AQUI'){
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       console.log('Supabase conectado!');
+      
+      // Escutar mudanças de login do Supabase
+      supabaseClient.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          const u = session.user;
+          const users = getUsers();
+          
+          // Se o usuário não existir no localStorage, cria
+          if (!users[u.email]) {
+            users[u.email] = {
+              name: u.user_metadata.full_name || u.email.split('@')[0],
+              email: u.email,
+              googleAuth: true,
+              pass: btoa('google_' + u.id)
+            };
+            saveUsers(users);
+          }
+          
+          // Inicia a sessão no app
+          startSession(users[u.email]);
+        }
+      });
+      
     }
   } catch(e){ console.log('Supabase não configurado:', e) }
 }
+
 
 async function syncToSupabase(){
   if(!supabaseClient||!user)return;
