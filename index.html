@@ -858,40 +858,45 @@ window.onload=()=>{
 };
 </script>
 <!-- Supabase -->
+<!-- Supabase -->
 <script src="supabase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ─── SUPABASE SYNC ───
 let supabaseClient = null;
 
-function initSupabase( ){
+function loginSupabaseUser(u ) {
+  const users = getUsers();
+  if (!users[u.email]) {
+    users[u.email] = {
+      name: u.user_metadata?.full_name || u.email.split('@')[0],
+      email: u.email,
+      googleAuth: true,
+      pass: btoa('google_' + u.id)
+    };
+    saveUsers(users);
+  }
+  if (!user) startSession(users[u.email]);
+}
+
+function initSupabase(){
   try {
     if(typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL !== 'COLE_SEU_PROJECT_URL_AQUI'){
-      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      console.log('Supabase conectado!');
-      
-      // Escutar mudanças de login do Supabase
-      supabaseClient.auth.onAuthStateChange((event, session) => {
-        if (session && session.user) {
-          const u = session.user;
-          const users = getUsers();
-          
-          // Se o usuário não existir no localStorage, cria
-          if (!users[u.email]) {
-            users[u.email] = {
-              name: u.user_metadata?.full_name || u.email.split('@')[0],
-              email: u.email,
-              googleAuth: true,
-              pass: btoa('google_' + u.id)
-            };
-            saveUsers(users);
-          }
-          
-          // Inicia a sessão no app
-          startSession(users[u.email]);
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+          detectSessionInUrl: true,
+          persistSession: true,
+          autoRefreshToken: true
         }
       });
+      console.log('Supabase conectado!');
       
+      supabaseClient.auth.onAuthStateChange((event, session) => {
+        console.log('Auth event:', event, session ? 'com sessão' : 'sem sessão');
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session && session.user) {
+          loginSupabaseUser(session.user);
+        }
+      });
     }
   } catch(e){ console.log('Supabase não configurado:', e) }
 }
@@ -901,18 +906,10 @@ async function syncToSupabase(){
   try {
     await supabaseClient.from('reminders').upsert(
       reminders.map(r=>({
-        id: r.id,
-        title: r.title,
-        descricao: r.desc,
-        cat: r.cat,
-        prio: r.prio,
-        date: r.date,
-        time: r.time,
-        recur: r.recur,
-        done: r.done,
-        user_email: user.email,
-        updated_at: new Date().toISOString(),
-        created: r.created
+        id: r.id, title: r.title, descricao: r.desc, cat: r.cat,
+        prio: r.prio, date: r.date, time: r.time, recur: r.recur,
+        done: r.done, user_email: user.email,
+        updated_at: new Date().toISOString(), created: r.created
       })),
       {onConflict: 'id'}
     );
@@ -926,16 +923,9 @@ async function loadFromSupabase(){
     if(error)throw error;
     if(data&&data.length>0){
       reminders=data.map(r=>({
-        id: r.id,
-        title: r.title,
-        desc: r.descricao,
-        cat: r.cat,
-        prio: r.prio,
-        date: r.date,
-        time: r.time,
-        recur: r.recur,
-        done: r.done,
-        created: r.created
+        id: r.id, title: r.title, desc: r.descricao, cat: r.cat,
+        prio: r.prio, date: r.date, time: r.time, recur: r.recur,
+        done: r.done, created: r.created
       }));
       localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders));
       return true;
@@ -944,36 +934,13 @@ async function loadFromSupabase(){
   return false;
 }
 
-// Override persist to also sync
 const _origPersist = persist;
 function persist(){
   localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders));
   syncToSupabase();
 }
 
-// Init on load
 initSupabase();
-
-// Verifica sessão inicial do Supabase após inicializar
-setTimeout(async () => {
-  if (supabaseClient && !user) {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (session && session.user) {
-      const u = session.user;
-      const users = getUsers();
-      if (!users[u.email]) {
-        users[u.email] = {
-          name: u.user_metadata?.full_name || u.email.split('@')[0],
-          email: u.email,
-          googleAuth: true,
-          pass: btoa('google_' + u.id)
-        };
-        saveUsers(users);
-      }
-      startSession(users[u.email]);
-    }
-  }
-}, 500);
 </script>
 </body>
 </html>
