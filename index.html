@@ -960,14 +960,22 @@ function scheduleNotifs(){
   });
 }
 
-function loginWithGoogle(){
-  if(typeof firebaseLoginWithGoogle === 'function'){
-    firebaseLoginWithGoogle();
-  } else {
-    document.getElementById('auth-err').textContent='Firebase ainda não configurado. Cole suas credenciais no arquivo firebase-config.js';
-    document.getElementById('auth-err').style.display='block';
+async function loginWithGoogle() {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      queryParams: {
+        prompt: 'select_account'
+      }
+    }
+  });
+
+  if (error) {
+    console.error('Erro ao entrar com Google:', error.message);
+    alert('Erro ao entrar com Google: ' + error.message);
   }
 }
+
 
 window.onload=()=>{
   const s=localStorage.getItem(SESSION_KEY);
