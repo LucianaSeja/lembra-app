@@ -11,6 +11,7 @@
 <title>Lembra</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -754,6 +755,21 @@ function toggleDigest(){
 const GCAL_CLIENT_ID='YOUR_GOOGLE_CLIENT_ID'; // substituir pelo Client ID real
 const GCAL_SCOPES='https://www.googleapis.com/auth/calendar.readonly';
 
+// Microsoft / Outlook Calendar via MSAL
+const OUTLOOK_CLIENT_ID='3cda6425-e947-4dec-9cdf-742a50ea8aec';
+const OUTLOOK_SCOPES=['Calendars.Read','User.Read'];
+let msalApp=null;
+let outlookToken=null;
+function getMsalApp(){
+  if(!msalApp&&typeof msal!=='undefined'){
+    msalApp=new msal.PublicClientApplication({
+      auth:{clientId:OUTLOOK_CLIENT_ID,authority:'https://login.microsoftonline.com/common',redirectUri:window.location.origin},
+      cache:{cacheLocation:'localStorage',storeAuthStateInCookie:false}
+    });
+  }
+  return msalApp;
+}
+
 function connectGoogle(){
   // Tenta usar Google Identity Services se disponível
   if(typeof google !== 'undefined' && google.accounts){
@@ -817,14 +833,59 @@ function disconnectGoogle(){
   integrations.googleConnected=false;delete integrations.calendarEvents;
   saveInt();updateIntUI();renderAgenda();
 }
-function connectOutlook(){
-  window.open('https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=common&response_type=token&scope=Calendars.Read','_blank','width=500,height=600');
-  integrations.outlookConnected=true;
-  integrations.outlookEmail=user.email;
-  saveInt();updateIntUI();loadMockOutlookEvents();
+async function connectOutlook(){
+  const app=getMsalApp();
+  if(!app){notify('Erro','Biblioteca Microsoft não carregada. Tente recarregar a página.');return;}
+  try{
+    const resp=await app.loginPopup({scopes:OUTLOOK_SCOPES});
+    outlookToken=resp.accessToken;
+    integrations.outlookConnected=true;
+    integrations.outlookEmail=resp.account.username||resp.account.name||user.email;
+    saveInt();updateIntUI();
+    await fetchOutlookCalendarEvents();
+  } catch(err){
+    if(err.errorCode==='user_cancelled')return;
+    console.error('Erro MSAL:',err);
+    notify('Erro Outlook','Não foi possível conectar. Verifique o domínio autorizado no Azure.');
+  }
+}
+async function fetchOutlookCalendarEvents(){
+  if(!outlookToken){return;}
+  try{
+    const t=today(),tom=tomorrow();
+    const tMin=new Date(t+'T00:00:00').toISOString();
+    const tMax=new Date(tom+'T23:59:59').toISOString();
+    const url=`https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=${tMin}&endDateTime=${tMax}&$select=subject,start,end&$orderby=start/dateTime&$top=50`;
+    const res=await fetch(url,{headers:{Authorization:'Bearer '+outlookToken,'Content-Type':'application/json'}});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    const outlookEvts=(data.value||[]).map(e=>({
+      id:e.id,
+      summary:e.subject||'(sem título)',
+      start:{dateTime:e.start.dateTime},
+      end:{dateTime:e.end.dateTime},
+      source:'outlook'
+    }));
+    // Mesclar com eventos do Google (manter Google, substituir Outlook)
+    const googleEvts=(integrations.calendarEvents||[]).filter(e=>e.source==='google');
+    integrations.calendarEvents=[...googleEvts,...outlookEvts];
+    saveInt();
+    const emailInfo=integrations.outlookEmail?` (${integrations.outlookEmail})`:''
+    notify('Outlook',`✓ ${outlookEvts.length} evento(s) carregado(s)${emailInfo}`);
+    renderAgenda();updateBadges();
+    if(view==='agenda-hoje')loadAgendaDia('hoje');
+    if(view==='agenda-amanha')loadAgendaDia('amanha');
+  } catch(err){
+    console.error('Erro Outlook Calendar:',err);
+    notify('Outlook','Erro ao buscar eventos. Tente reconectar.');
+  }
 }
 function disconnectOutlook(){
-  integrations.outlookConnected=false;saveInt();updateIntUI();renderAgenda();
+  integrations.outlookConnected=false;
+  outlookToken=null;
+  // Remover eventos do Outlook da lista
+  if(integrations.calendarEvents)integrations.calendarEvents=integrations.calendarEvents.filter(e=>e.source!=='outlook');
+  saveInt();updateIntUI();renderAgenda();updateBadges();
 }
 function loadMockGoogleEvents(){
   // Sem eventos de demonstração - lista vazia até buscar eventos reais
@@ -845,6 +906,7 @@ function loadMockOutlookEvents(){
   if(view==='agenda-amanha')loadAgendaDia('amanha');
 }
 function refreshCalendar(){
+  if(integrations.outlookConnected&&outlookToken)fetchOutlookCalendarEvents();
   if(integrations.googleConnected){
     if(gcalToken)fetchGoogleCalendarEvents();
     else loadMockGoogleEvents();
