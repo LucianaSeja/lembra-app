@@ -530,7 +530,8 @@ function doLogout(){
 
 // ─── DATA ───
 function loadReminders(){return JSON.parse(localStorage.getItem(DATA_KEY(user.email))||'[]')}
-function persist(){localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders))}
+function persist(){localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders));if(typeof syncToSupabase==='function')syncToSupabase();}
+function persist(){localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders));if(typeof syncToSupabase==='function')syncToSupabase();}
 function loadCats(){userCats=JSON.parse(localStorage.getItem(CATS_KEY(user.email))||JSON.stringify(defCats))}
 function saveCats(){localStorage.setItem(CATS_KEY(user.email),JSON.stringify(userCats))}
 function syncCatMaps(){catMap={};catLbl={};userCats.forEach(c=>{catMap[c.id]=colors[c.color];catLbl[c.id]=c.name})}
@@ -884,7 +885,6 @@ function initSupabase(){
       });
       console.log('Supabase conectado!');
       
-      // Escutar mudanças de login do Supabase
       supabaseClient.auth.onAuthStateChange((event, session) => {
         console.log('Auth event:', event, session ? 'com sessão' : 'sem sessão');
         if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') && session && session.user) {
@@ -892,7 +892,6 @@ function initSupabase(){
         }
       });
 
-      // Verificar sessão já presente (ex: após redirect OAuth)
       supabaseClient.auth.getSession().then(({ data: { session } }) => {
         console.log('getSession:', session ? 'sessão encontrada' : 'sem sessão');
         if (session && session.user && !user) {
@@ -936,21 +935,7 @@ async function loadFromSupabase(){
   return false;
 }
 
-const _origPersist = persist;
-function persist(){
-  localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders));
-  syncToSupabase();
-}
-
 initSupabase();
 </script>
 </body>
 </html>
-
-
-window.onload=()=>{
-  const s=localStorage.getItem(SESSION_KEY);
-  if(s){const u=JSON.parse(s);if(getUsers()[u.email])startSession(u)}
-};
-</script>
-<!-- Supabase -->
