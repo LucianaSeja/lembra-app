@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" contenf5t="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0D0F0E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -850,13 +850,6 @@ async function loginWithGoogle() {
     alert('Erro ao entrar com Google: ' + error.message);
   }
 }
-
-
-window.onload=()=>{
-  const s=localStorage.getItem(SESSION_KEY);
-  if(s){const u=JSON.parse(s);if(getUsers()[u.email])startSession(u)}
-};
-</script>
 <!-- Supabase -->
 <script src="supabase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -891,9 +884,18 @@ function initSupabase(){
       });
       console.log('Supabase conectado!');
       
+      // Escutar mudanças de login do Supabase
       supabaseClient.auth.onAuthStateChange((event, session) => {
         console.log('Auth event:', event, session ? 'com sessão' : 'sem sessão');
-        if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session && session.user) {
+        if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') && session && session.user) {
+          loginSupabaseUser(session.user);
+        }
+      });
+
+      // Verificar sessão já presente (ex: após redirect OAuth)
+      supabaseClient.auth.getSession().then(({ data: { session } }) => {
+        console.log('getSession:', session ? 'sessão encontrada' : 'sem sessão');
+        if (session && session.user && !user) {
           loginSupabaseUser(session.user);
         }
       });
@@ -944,3 +946,11 @@ initSupabase();
 </script>
 </body>
 </html>
+
+
+window.onload=()=>{
+  const s=localStorage.getItem(SESSION_KEY);
+  if(s){const u=JSON.parse(s);if(getUsers()[u.email])startSession(u)}
+};
+</script>
+<!-- Supabase -->
