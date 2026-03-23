@@ -11,7 +11,7 @@
 <title>Lembra</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js" crossorigin="anonymous"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -834,6 +834,12 @@ function disconnectGoogle(){
   saveInt();updateIntUI();renderAgenda();
 }
 async function connectOutlook(){
+  // Aguardar MSAL carregar (até 5 segundos)
+  let tentativas=0;
+  while(typeof msal==='undefined'&&tentativas<50){
+    await new Promise(r=>setTimeout(r,100));
+    tentativas++;
+  }
   const app=getMsalApp();
   if(!app){notify('Erro','Biblioteca Microsoft não carregada. Tente recarregar a página.');return;}
   try{
