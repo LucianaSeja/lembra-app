@@ -521,11 +521,13 @@ function startSession(u){
   // Load from Supabase and refresh if data found
   loadFromSupabase().then(found=>{if(found){render();scheduleNotifs();notify('Sincronizado','✓ Lembretes sincronizados da nuvem!')}});
 }
-function doLogout(){
+async function doLogout(){
   localStorage.removeItem(SESSION_KEY);
   if(typeof firebaseLogout === 'function') firebaseLogout();
-  if(supabaseClient) supabaseClient.auth.signOut();
-  window.location.reload();
+  if(supabaseClient) {
+    await supabaseClient.auth.signOut();
+  }
+  window.location.href = window.location.pathname;
 }
 
 // ─── DATA ───
