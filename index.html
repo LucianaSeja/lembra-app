@@ -751,7 +751,7 @@ function toggleDigest(){
 
 // INTEGRATIONS
 // Google Calendar API via Google Identity Services
-const GCAL_CLIENT_ID='YOUR_GOOGLE_CLIENT_ID'; // substituir pelo Client ID real
+const GCAL_CLIENT_ID='126747406308-eestcpeb8n5jhmt7t7vfpfnjq60jo5k3.apps.googleusercontent.com'; // substituir pelo Client ID real
 const GCAL_SCOPES='https://www.googleapis.com/auth/calendar.readonly';
 
 // Microsoft / Outlook Calendar via MSAL
@@ -762,7 +762,7 @@ let outlookToken=null;
 function getMsalApp(){
   if(!msalApp&&typeof msal!=='undefined'){
     msalApp=new msal.PublicClientApplication({
-      auth:{clientId:OUTLOOK_CLIENT_ID,authority:'https://login.microsoftonline.com/common',redirectUri:window.location.origin},
+      auth:{clientId:OUTLOOK_CLIENT_ID,authority:'https://login.microsoftonline.com/organizations',redirectUri:window.location.origin},
       cache:{cacheLocation:'localStorage',storeAuthStateInCookie:false}
     });
   }
@@ -836,7 +836,7 @@ async function loadMSAL(){
   if(typeof msal!=='undefined')return true;
   return new Promise((resolve)=>{
     const s=document.createElement('script');
-    s.src='https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js';
+    s.src='https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js';
     s.onload=()=>resolve(true);
     s.onerror=()=>resolve(false);
     document.head.appendChild(s);
