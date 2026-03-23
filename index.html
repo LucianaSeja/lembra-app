@@ -364,41 +364,46 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 
         <!-- QUICK ACCESS -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
-          <a href="https://calendar.google.com/calendar/u/2/r" target="_blank" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(240,237,230,0.2)'" onmouseout="this.style.borderColor='var(--border)'">
+          <!-- Card Google Agenda -->
+          <a href="https://calendar.google.com/calendar/r" target="_blank" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(96,165,250,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
             <div style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--blue-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             </div>
-            <div><div style="font-size:13px;font-weight:600;color:var(--text)">Google Agenda</div><div style="font-size:11px;color:var(--text3)">Abrir calendário</div></div>
+            <div><div style="font-size:13px;font-weight:600;color:var(--text)">Google Agenda</div><div style="font-size:11px;color:var(--text3)" id="minha-agenda-google-sub">Abrir calendário</div></div>
           </a>
-          <a href="https://mail.google.com/mail/u/2/#search/is:unread" target="_blank" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(240,237,230,0.2)'" onmouseout="this.style.borderColor='var(--border)'">
+          <!-- Card Gmail -->
+          <a href="https://mail.google.com/mail/#inbox" target="_blank" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(248,113,113,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
             <div style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--red-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F87171" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             </div>
-            <div><div style="font-size:13px;font-weight:600;color:var(--text)">Gmail</div><div style="font-size:11px;color:var(--text3)">Não lidos</div></div>
+            <div><div style="font-size:13px;font-weight:600;color:var(--text)">Gmail</div><div style="font-size:11px;color:var(--text3)" id="minha-agenda-gmail-sub">Abrir e-mails</div></div>
           </a>
-          <a href="https://mail.google.com/mail/u/2/#inbox" target="_blank" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(240,237,230,0.2)'" onmouseout="this.style.borderColor='var(--border)'">
-            <div style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--red-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F87171" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            </div>
-            <div><div style="font-size:13px;font-weight:600;color:var(--text)">Gmail</div><div style="font-size:11px;color:var(--text3)">Todos os e-mails</div></div>
-          </a>
-          <a href="https://outlook.live.com/mail/0/inbox" target="_blank" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(240,237,230,0.2)'" onmouseout="this.style.borderColor='var(--border)'">
+          <!-- Card Outlook -->
+          <a href="https://outlook.live.com/mail/0/inbox" target="_blank" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(0,120,212,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
             <div style="width:36px;height:36px;border-radius:var(--r-sm);background:rgba(0,120,212,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             </div>
-            <div><div style="font-size:13px;font-weight:600;color:var(--text)">Outlook</div><div style="font-size:11px;color:var(--text3)">Abrir caixa de entrada</div></div>
+            <div><div style="font-size:13px;font-weight:600;color:var(--text)">Outlook</div><div style="font-size:11px;color:var(--text3)" id="minha-agenda-outlook-sub">Abrir caixa de entrada</div></div>
           </a>
-          <div onclick="document.querySelector('[onclick*=agenda-hoje]').click()" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(74,222,128,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+          <!-- Card Agenda Hoje -->
+          <div onclick="setView('agenda-hoje',this)" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(74,222,128,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
             <div style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--accent-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             </div>
-            <div><div style="font-size:13px;font-weight:600;color:var(--accent)">Agenda hoje</div><div style="font-size:11px;color:var(--text3)">Ver compromissos do dia</div></div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--accent)">Agenda hoje</div>
+              <div style="font-size:11px;color:var(--text3)" id="minha-agenda-hoje-sub">Carregando...</div>
+            </div>
           </div>
-          <div onclick="document.querySelector('[onclick*=agenda-amanha]').click()" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(251,191,36,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+          <!-- Card Agenda Amanhã -->
+          <div onclick="setView('agenda-amanha',this)" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(251,191,36,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
             <div style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--amber-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             </div>
-            <div><div style="font-size:13px;font-weight:600;color:var(--amber)">Agenda amanhã</div><div style="font-size:11px;color:var(--text3)">Ver compromissos de amanhã</div></div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--amber)">Agenda amanhã</div>
+              <div style="font-size:11px;color:var(--text3)" id="minha-agenda-amanha-sub">Carregando...</div>
+            </div>
           </div>
         </div>
 
@@ -746,7 +751,7 @@ function toggleDigest(){
 
 // INTEGRATIONS
 // Google Calendar API via Google Identity Services
-const GCAL_CLIENT_ID='126747406308-eestcpeb8n5jhmt7t7vfpfnjq60jo5k3.apps.googleusercontent.com'; // substituir pelo Client ID real
+const GCAL_CLIENT_ID='YOUR_GOOGLE_CLIENT_ID'; // substituir pelo Client ID real
 const GCAL_SCOPES='https://www.googleapis.com/auth/calendar.readonly';
 
 function connectGoogle(){
@@ -775,6 +780,13 @@ function connectGoogle(){
 async function fetchGoogleCalendarEvents(){
   if(!gcalToken){loadMockGoogleEvents();return;}
   try{
+    // 1. Buscar e-mail real da conta Google conectada
+    const uRes=await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+gcalToken}});
+    if(uRes.ok){
+      const uData=await uRes.json();
+      if(uData.email)integrations.googleEmail=uData.email;
+    }
+    // 2. Buscar eventos do Google Calendar
     const t=today(),tom=tomorrow();
     const tMin=new Date(t+'T00:00:00').toISOString();
     const tMax=new Date(tom+'T23:59:59').toISOString();
@@ -790,10 +802,10 @@ async function fetchGoogleCalendarEvents(){
       source:'google'
     }));
     saveInt();
-    notify('Google Agenda',`✓ ${integrations.calendarEvents.length} evento(s) carregado(s)!`);
+    const emailInfo=integrations.googleEmail?` (${integrations.googleEmail})`:'';
+    notify('Google Agenda',`✓ ${integrations.calendarEvents.length} evento(s) carregado(s)${emailInfo}`);
     renderAgenda();
     updateBadges();
-    // Atualizar agenda se estiver visível
     if(view==='agenda-hoje')loadAgendaDia('hoje');
     if(view==='agenda-amanha')loadAgendaDia('amanha');
   } catch(err){
@@ -815,28 +827,19 @@ function disconnectOutlook(){
   integrations.outlookConnected=false;saveInt();updateIntUI();renderAgenda();
 }
 function loadMockGoogleEvents(){
-  const t=today(),tom=tomorrow();
-  integrations.calendarEvents=[
-    {id:'mock1',summary:'Reunião de equipe',start:{dateTime:t+'T09:00:00'},source:'google'},
-    {id:'mock2',summary:'Almoço com cliente',start:{dateTime:t+'T12:30:00'},source:'google'},
-    {id:'mock3',summary:'Revisão de projeto',start:{dateTime:tom+'T10:00:00'},source:'google'},
-    {id:'mock4',summary:'Apresentação final',start:{dateTime:tom+'T15:00:00'},source:'google'},
-  ];
+  // Sem eventos de demonstração - lista vazia até buscar eventos reais
+  if(!integrations.calendarEvents)integrations.calendarEvents=[];
   saveInt();
-  notify('Google Agenda','✓ Agenda sincronizada! Veja em "Minha Agenda".');
+  notify('Google Agenda','✓ Conectado! Buscando eventos da sua agenda...');
   renderAgenda();updateBadges();
   if(view==='agenda-hoje')loadAgendaDia('hoje');
   if(view==='agenda-amanha')loadAgendaDia('amanha');
 }
 function loadMockOutlookEvents(){
-  const t=today(),tom=tomorrow();
-  const ex=integrations.calendarEvents||[];
-  integrations.calendarEvents=[...ex,
-    {id:'out1',summary:'Call com parceiro',start:{dateTime:t+'T14:00:00'},source:'outlook'},
-    {id:'out2',summary:'Treinamento online',start:{dateTime:tom+'T08:00:00'},source:'outlook'},
-  ];
+  // Sem eventos de demonstração - lista vazia até buscar eventos reais
+  if(!integrations.calendarEvents)integrations.calendarEvents=[];
   saveInt();
-  notify('Outlook','✓ Agenda do Outlook sincronizada!');
+  notify('Outlook','✓ Conectado! Configure o Outlook para ver eventos reais.');
   renderAgenda();updateBadges();
   if(view==='agenda-hoje')loadAgendaDia('hoje');
   if(view==='agenda-amanha')loadAgendaDia('amanha');
@@ -1065,44 +1068,108 @@ function getFiltered(){
   if(view.startsWith('cat-'))return reminders.filter(r=>!r.done&&r.cat===view.slice(4));
   return reminders;
 }
+
 function render(){
   updateBadges();
   const list=getFiltered(),c=document.getElementById('list-container');
-  if(!list.length){c.innerHTML='<div class="empty-state"><div class="empty-ico"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><p style="font-size:14px;line-height:1.7">Nenhum lembrete aqui.<br>Clique em <strong>Novo lembrete</strong>.</p></div>';return}
   const t=today();
+
+  // Na tela "Hoje", incluir também eventos do calendário
+  const calEvts=integrations.calendarEvents||[];
+  const calHoje=view==='hoje'?calEvts.filter(e=>(e.start?.dateTime||e.start?.date||'').startsWith(t)):[];
+
+  if(!list.length&&!calHoje.length){
+    // Estado vazio: mostrar e-mail conectado se houver
+    const emailInfo=view==='hoje'&&integrations.googleEmail
+      ?`<div style="margin-top:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          Conta: <strong style="color:var(--text)">${integrations.googleEmail}</strong>
+        </div>`
+      :view==='hoje'&&!integrations.googleConnected
+        ?`<div style="margin-top:10px;font-size:12px;color:var(--text3)">Conecte sua <strong>Google Agenda</strong> em <strong>Integrações</strong> para ver eventos do calendário.</div>`
+        :'';
+    c.innerHTML=`<div class="empty-state"><div class="empty-ico"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><p style="font-size:14px;line-height:1.7">Nenhum lembrete aqui.<br>Clique em <strong>Novo lembrete</strong>.</p>${emailInfo}</div>`;
+    return;
+  }
+
+  // Banner de e-mail na tela Hoje
+  let emailBanner='';
+  if(view==='hoje'){
+    if(integrations.googleEmail){
+      emailBanner=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);margin-bottom:8px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Conta Google: <strong style="color:var(--text)">${integrations.googleEmail}</strong>
+      </div>`;
+    } else if(!integrations.googleConnected){
+      emailBanner=`<div style="background:var(--surface);border:1px dashed var(--border);border-radius:var(--r-sm);padding:10px 14px;font-size:12px;color:var(--text3);margin-bottom:8px">Conecte sua <strong style="color:var(--text)">Google Agenda</strong> em <strong style="color:var(--text)">Integrações</strong> para ver eventos do calendário aqui.</div>`;
+    }
+  }
+
   const groups={};
-  list.forEach(r=>{const k=r.date||'z-sem-data';if(!groups[k])groups[k]=[];groups[k].push(r)});
+  list.forEach(r=>{const k=r.date||'z-sem-data';if(!groups[k])groups[k]=[];groups[k].push({_type:'reminder',...r})});
+  // Adicionar eventos do calendário na tela Hoje
+  calHoje.forEach(e=>{
+    const d=(e.start?.dateTime||e.start?.date||'').split('T')[0]||t;
+    if(!groups[d])groups[d]=[];
+    groups[d].push({_type:'cal',id:'cal_'+e.id,title:e.summary||'(sem título)',time:(e.start?.dateTime||'').slice(11,16)||'',source:e.source||'google',cat:null});
+  });
+
   const sorted=Object.keys(groups).sort();
-  let html='';
+  let html=emailBanner;
+  const now=new Date();
   sorted.forEach(k=>{
     const dk=k==='z-sem-data'?'sem-data':k;
     let lbl=dk==='sem-data'?'Sem data':dk===t?'Hoje':fmtDate(dk);
     if(dk>t&&dk!=='sem-data'){const d=new Date(dk+'T12:00');lbl=d.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'short'});lbl=lbl.charAt(0).toUpperCase()+lbl.slice(1)}
     html+=`<div><div class="section-lbl">${lbl}</div><div class="reminders-list">`;
-    groups[k].forEach(r=>{
-      const pc=r.prio==='alta'?'#F87171':'transparent';
-      const st=r.done?'':getReminderStatus(r);
-      const stClass=st==='now'?' status-now':st==='overdue'?' status-overdue':'';
-      const stPill=st==='now'?'<span class="status-pill now">Agora</span>':st==='overdue'?'<span class="status-pill overdue">Atrasado</span>':'';
-      html+=`<div class="rcard${r.done?' done':''}${stClass}" onclick="openEdit(${r.id},event)">
-        <div class="pbar" style="background:${pc}"></div>
-        <button class="chk" onclick="toggleDone(${r.id},event)"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button>
-        <div class="r-body">
-          <div class="r-title">${r.title}</div>
-          ${r.desc?`<div class="r-desc">${r.desc}</div>`:''}
-          <div class="r-meta">
-            <span class="r-tag" style="background:${catBg[r.cat]||'rgba(155,163,157,0.12)'};color:${catColors[r.cat]||'#9BA39D'}">${catLbl[r.cat]||r.cat}</span>
-            ${r.time?`<span class="r-time">${r.time}</span>`:''}
-            ${stPill}
-            ${r.recur&&r.recur!=='nenhuma'?`<span class="r-recur">↻ ${r.recur}</span>`:''}
-            ${r.done?`<span style="font-size:11px;color:var(--accent);background:var(--accent-dim);padding:2px 7px;border-radius:var(--r-full)">✓ Concluído</span>`:''}
+    // Ordenar por horário
+    const sorted2=groups[k].slice().sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+    sorted2.forEach(item=>{
+      if(item._type==='cal'){
+        // Card de evento do calendário
+        const srcColor=item.source==='google'?'#60A5FA':'#0078d4';
+        const srcLabel=item.source==='google'?'Google Agenda':'Outlook';
+        html+=`<div class="rcard" style="opacity:0.92">
+          <div class="pbar" style="background:${srcColor}"></div>
+          <div style="width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin:0 4px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${srcColor}" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           </div>
-        </div>
-        <div class="r-acts">
-          ${!r.done?`<button class="r-act" onclick="openEdit(${r.id},event)"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>`:''}
-          <button class="r-act del" onclick="askDelete(${r.id},event)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
-        </div>
-      </div>`;
+          <div class="r-body">
+            <div class="r-title">${item.title}</div>
+            <div class="r-meta" style="gap:6px;flex-wrap:wrap">
+              ${item.time?`<span class="r-time">${item.time}</span>`:''}
+              <span style="font-size:10px;padding:2px 7px;border-radius:var(--r-full);background:rgba(0,0,0,0.2);color:${srcColor}">${srcLabel}</span>
+              ${integrations.googleEmail?`<span style="font-size:10px;color:var(--text3)">${integrations.googleEmail}</span>`:''}
+            </div>
+          </div>
+        </div>`;
+      } else {
+        // Card de lembrete normal
+        const r=item;
+        const pc=r.prio==='alta'?'#F87171':'transparent';
+        const st=r.done?'':getReminderStatus(r);
+        const stClass=st==='now'?' status-now':st==='overdue'?' status-overdue':'';
+        const stPill=st==='now'?'<span class="status-pill now">Agora</span>':st==='overdue'?'<span class="status-pill overdue">Atrasado</span>':'';
+        html+=`<div class="rcard${r.done?' done':''}${stClass}" onclick="openEdit(${r.id},event)">
+          <div class="pbar" style="background:${pc}"></div>
+          <button class="chk" onclick="toggleDone(${r.id},event)"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button>
+          <div class="r-body">
+            <div class="r-title">${r.title}</div>
+            ${r.desc?`<div class="r-desc">${r.desc}</div>`:''}
+            <div class="r-meta">
+              <span class="r-tag" style="background:${catBg[r.cat]||'rgba(155,163,157,0.12)'};color:${catColors[r.cat]||'#9BA39D'}">${catLbl[r.cat]||r.cat||''}</span>
+              ${r.time?`<span class="r-time">${r.time}</span>`:''}
+              ${stPill}
+              ${r.recur&&r.recur!=='nenhuma'?`<span class="r-recur">↻ ${r.recur}</span>`:''}
+              ${r.done?`<span style="font-size:11px;color:var(--accent);background:var(--accent-dim);padding:2px 7px;border-radius:var(--r-full)">✓ Concluído</span>`:''}
+            </div>
+          </div>
+          <div class="r-acts">
+            ${!r.done?`<button class="r-act" onclick="openEdit(${r.id},event)"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>`:''}
+            <button class="r-act del" onclick="askDelete(${r.id},event)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+          </div>
+        </div>`;
+      }
     });
     html+='</div></div>';
   });
@@ -1119,6 +1186,27 @@ function updateBadges(){
   const bAmanha=a.filter(r=>r.date===tom).length+calEvts.filter(e=>(e.start?.dateTime||e.start?.date||'').startsWith(tom)).length;
   const elH=document.getElementById('b-agenda-hoje');if(elH)elH.textContent=bHoje;
   const elA=document.getElementById('b-agenda-amanha');if(elA)elA.textContent=bAmanha;
+  // Atualizar subtítulos dos cards da Minha Agenda
+  // Agenda Hoje: nº de compromissos hoje
+  const subHoje=document.getElementById('minha-agenda-hoje-sub');
+  if(subHoje)subHoje.textContent=bHoje>0?bHoje+' compromisso'+(bHoje!==1?'s':'')+' hoje':'Ver compromissos do dia';
+  // Agenda Amanhã: nº de compromissos amanhã
+  const subAmanha=document.getElementById('minha-agenda-amanha-sub');
+  if(subAmanha)subAmanha.textContent=bAmanha>0?bAmanha+' compromisso'+(bAmanha!==1?'s':'')+' amanhã':'Ver compromissos de amanhã';
+  // Google Agenda: nº de eventos hoje (do calendário)
+  const evtsHoje=calEvts.filter(e=>(e.start?.dateTime||e.start?.date||'').startsWith(t)&&e.source==='google').length;
+  const subGoogle=document.getElementById('minha-agenda-google-sub');
+  if(subGoogle){
+    if(integrations.googleConnected&&evtsHoje>0)subGoogle.textContent=evtsHoje+' evento'+(evtsHoje!==1?'s':'')+' hoje'+(integrations.googleEmail?' · '+integrations.googleEmail:'');
+    else if(integrations.googleEmail)subGoogle.textContent=integrations.googleEmail;
+    else subGoogle.textContent='Abrir calendário';
+  }
+  // Gmail: mostrar e-mail conectado (nº de não lidos requer API separada)
+  const subGmail=document.getElementById('minha-agenda-gmail-sub');
+  if(subGmail)subGmail.textContent=integrations.googleEmail?integrations.googleEmail:'Não lidos';
+  // Outlook: mostrar e-mail conectado
+  const subOutlook=document.getElementById('minha-agenda-outlook-sub');
+  if(subOutlook)subOutlook.textContent=integrations.outlookEmail?integrations.outlookEmail:'Abrir caixa de entrada';
 }
 
 const allViews=['view-reminders','view-agenda','view-agenda-hoje','view-agenda-amanha','view-planilhas','view-integracoes'];
@@ -1183,9 +1271,24 @@ function loadAgendaDia(dia){
 
   if(!all.length){
     const nomeDia=isHoje?'hoje':'amanhã';
-    const emailInfo=integrations.googleEmail?`<div style="font-size:12px;color:var(--text3);margin-top:8px">Conta Google: <strong>${integrations.googleEmail}</strong></div>`:
-      '<div style="font-size:12px;color:var(--text3);margin-top:8px">Conecte sua conta Google em <strong>Integrações</strong> para ver eventos do calendário.</div>';
-    c.innerHTML=`<div class="empty-state"><div class="empty-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><p style="font-size:14px;line-height:1.7">Nenhum compromisso ${nomeDia}! 🎉</p>${emailInfo}</div>`;
+    // Sempre mostrar e-mail(s) conectado(s)
+    let emailInfoHtml='';
+    if(integrations.googleEmail){
+      emailInfoHtml+=`<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);margin-top:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 12px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Google: <strong style="color:var(--text)">${integrations.googleEmail}</strong>
+      </div>`;
+    }
+    if(integrations.outlookEmail){
+      emailInfoHtml+=`<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);margin-top:6px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 12px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        Outlook: <strong style="color:var(--text)">${integrations.outlookEmail}</strong>
+      </div>`;
+    }
+    if(!integrations.googleConnected&&!integrations.outlookConnected){
+      emailInfoHtml=`<div style="font-size:12px;color:var(--text3);margin-top:10px">Conecte sua <strong>Google Agenda</strong> em <strong>Integrações</strong> para ver eventos do calendário.</div>`;
+    }
+    c.innerHTML=`<div class="empty-state"><div class="empty-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><p style="font-size:14px;line-height:1.7">Nenhum compromisso ${nomeDia}! 🎉</p>${emailInfoHtml}</div>`;
     meta.textContent='Agenda livre';
     return;
   }
@@ -1194,12 +1297,20 @@ function loadAgendaDia(dia){
     'Amanhã, '+new Date(targetDate+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
   meta.textContent=nomeDia+' · '+all.length+' compromisso'+(all.length!==1?'s':'');
 
-  // Mostrar email logado se disponível
-  const emailBanner=integrations.googleEmail?
-    `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);margin-bottom:4px">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-      Conta Google: <strong style="color:var(--text)">${integrations.googleEmail}</strong>
-    </div>`:'';
+  // Sempre mostrar e-mail(s) conectado(s) no topo
+  let emailBanner='';
+  if(integrations.googleEmail){
+    emailBanner+=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 14px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);margin-bottom:6px">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      Google: <strong style="color:var(--text)">${integrations.googleEmail}</strong>
+    </div>`;
+  }
+  if(integrations.outlookEmail){
+    emailBanner+=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 14px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);margin-bottom:6px">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      Outlook: <strong style="color:var(--text)">${integrations.outlookEmail}</strong>
+    </div>`;
+  }
 
   let html=emailBanner;
   const now=new Date();
@@ -1234,14 +1345,20 @@ function loadAgendaDia(dia){
       </div>`;
     } else {
       // Card de evento do Google Calendar
-      html+=`<div class="agenda-preview" style="margin-bottom:8px;padding:1rem 1.125rem">
+      const emailRight=item.gcalEmail
+        ?`<span style="font-size:10px;color:var(--text3);margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px">${item.gcalEmail}</span>`
+        :'';
+      html+=`<div class="agenda-preview" style="margin-bottom:8px;padding:0.75rem 1.125rem">
         <div style="display:flex;align-items:center;gap:10px">
           <div style="width:8px;height:8px;border-radius:50%;background:${item.sourceColor};flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-size:14px;font-weight:500;color:var(--text)">${item.title}</div>
-            <div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap">
-              ${timeStr}${srcBadge}
-              ${item.gcalEmail?`<span style="font-size:10px;color:var(--text3)">${item.gcalEmail}</span>`:''}
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px">
+              ${timeStr}
+              <span style="font-size:14px;font-weight:500;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.title}</span>
+              ${emailRight}
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+              ${srcBadge}
             </div>
           </div>
         </div>
