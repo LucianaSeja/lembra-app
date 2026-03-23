@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" contenf5t="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0D0F0E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lembra">
+<link rel="manifest" href="manifest.json">
+<title>Lembra</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0D0F0E;--surface:#161917;--surface2:#1E2220;--surface3:#262C29;
+  --text:#F0EDE6;--text2:#9BA39D;--text3:#5C6660;
+  --accent:#4ADE80;--accent-dim:rgba(74,222,128,0.12 );--accent-text:#071a0f;
+  --border:rgba(240,237,230,0.08);
+  --red:#F87171;--red-dim:rgba(248,113,113,0.12);
+  --amber:#FBBF24;--amber-dim:rgba(251,191,36,0.12);
+  --blue:#60A5FA;--blue-dim:rgba(96,165,250,0.12);
+  --purple:#C084FC;--purple-dim:rgba(192,132,252,0.12);
+  --r:14px;--r-sm:9px;--r-xs:6px;--r-full:999px;
+}
+body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+/* AUTH */
+#auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;position:relative;overflow:hidden}
+.auth-glow{position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:500px;height:300px;background:radial-gradient(ellipse,rgba(74,222,128,0.08) 0%,transparent 70%);pointer-events:none}
+.auth-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:390px;position:relative;z-index:1;animation:fadeUp 0.4s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.auth-logo{font-family:'Fraunces',serif;font-size:34px;font-weight:300;text-align:center;letter-spacing:-1px;margin-bottom:4px}
+.auth-logo em{color:var(--accent);font-style:normal}
+.auth-sub{text-align:center;font-size:13px;color:var(--text3);margin-bottom:2rem}
+.tabs{display:flex;background:var(--surface2);border-radius:var(--r-sm);padding:3px;gap:3px;margin-bottom:1.75rem}
+.tab{flex:1;padding:8px;text-align:center;font-size:13px;font-weight:500;cursor:pointer;border-radius:var(--r-xs);color:var(--text2);border:none;background:none;font-family:inherit;transition:all 0.18s}
+.tab.active{background:var(--surface3);color:var(--text)}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);margin-bottom:5px}
+.field input,.field textarea{width:100%;padding:11px 13px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);font-family:inherit;font-size:14px;color:var(--text);outline:none;transition:border-color 0.2s;resize:none}
+.field input:focus,.field textarea:focus{border-color:rgba(74,222,128,0.5)}
+.field input::placeholder,.field textarea::placeholder{color:var(--text3)}
+.btn-main{width:100%;padding:12px;background:var(--accent);color:var(--accent-text);border:none;border-radius:var(--r-sm);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;margin-top:0.25rem}
+.btn-main:hover{opacity:0.88;transform:translateY(-1px)}
+.err{background:var(--red-dim);border:1px solid rgba(248,113,113,0.2);color:var(--red);font-size:13px;padding:10px 13px;border-radius:var(--r-sm);margin-bottom:1rem;display:none}
+/* APP */
+#app-screen{display:none;min-height:100vh;flex-direction:column}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.25rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.hdr-logo{font-family:'Fraunces',serif;font-size:20px;font-weight:300;letter-spacing:-0.5px}
+.hdr-logo em{color:var(--accent);font-style:normal}
+.hdr-right{display:flex;align-items:center;gap:8px}
+.user-chip{display:flex;align-items:center;gap:7px;padding:4px 11px 4px 5px;background:var(--surface2);border-radius:var(--r-full);font-size:12px;color:var(--text2)}
+.avatar{width:24px;height:24px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--accent)}
+.btn-sm{padding:6px 12px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:12px;cursor:pointer;transition:all 0.15s}
+.btn-sm:hover{background:var(--surface2);color:var(--text)}
+.layout{display:grid;grid-template-columns:220px 1fr;height:calc(100vh - 56px)}
+@media(max-width:640px){.layout{grid-template-columns:1fr}.sidebar{display:none}.mob-bar{display:flex!important}}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:0.875rem 0.625rem;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.sec-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);padding:10px 8px 3px}
+.nav-btn{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r-sm);font-size:13px;color:var(--text2);cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:inherit;transition:all 0.15s}
+.nav-btn:hover{background:var(--surface2);color:var(--text)}
+.nav-btn.active{background:var(--accent-dim);color:var(--accent)}
+.nav-icon{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.8}
+.nbadge{margin-left:auto;font-size:10px;padding:2px 6px;border-radius:var(--r-full);background:var(--surface3);color:var(--text3)}
+.nav-btn.active .nbadge{background:var(--accent);color:var(--accent-text)}
+.cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+main{overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;gap:1.25rem}
+.main-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.main-title{font-family:'Fraunces',serif;font-size:26px;font-weight:300;letter-spacing:-0.8px}
+.main-meta{font-size:12px;color:var(--text3);margin-top:2px}
+.add-btn{display:flex;align-items:center;gap:7px;padding:9px 16px;background:var(--accent);color:var(--accent-text);border:none;border-radius:var(--r-sm);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;flex-shrink:0}
+.add-btn:hover{opacity:0.88;transform:translateY(-1px)}
+.add-btn svg{width:14px;height:14px;stroke:var(--accent-text);fill:none;stroke-width:2.5}
+/* FORM */
+.input-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;display:none;flex-direction:column;gap:0.875rem;animation:fadeUp 0.2s ease}
+.input-form.open{display:flex}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:500px){.form-row{grid-template-columns:1fr}}
+.inp{width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);font-family:inherit;font-size:13px;color:var(--text);outline:none;transition:border-color 0.2s}
+.inp:focus{border-color:rgba(74,222,128,0.4)}
+.inp::placeholder{color:var(--text3)}
+select.inp option{background:#1E2220}
+textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
+.recur-row{display:flex;gap:6px;flex-wrap:wrap}
+.rchip{padding:6px 12px;border-radius:var(--r-full);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:12px;cursor:pointer;transition:all 0.15s}
+.rchip:hover{border-color:var(--accent);color:var(--accent)}
+.rchip.sel{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+.form-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.voice-btn{display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:13px;cursor:pointer;transition:all 0.2s}
+.voice-btn:hover{background:var(--surface2);color:var(--text)}
+.voice-btn.on{background:var(--red-dim);border-color:rgba(248,113,113,0.3);color:var(--red)}
+.voice-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+@keyframes mic{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.voice-btn.on svg{animation:mic 0.8s infinite}
+.voice-tx{font-size:12px;color:var(--text3);font-style:italic}
+.form-btns{display:flex;gap:8px}
+.btn-cancel{padding:8px 15px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:13px;cursor:pointer}
+.btn-cancel:hover{background:var(--surface2)}
+.btn-save{padding:8px 18px;border-radius:var(--r-sm);border:none;background:var(--accent);color:var(--accent-text);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.btn-save:hover{opacity:0.88}
+/* CARDS */
+.section-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:10px}
+.reminders-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1.5rem}
+.rcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.125rem;display:flex;align-items:flex-start;gap:12px;transition:border-color 0.2s;position:relative;overflow:hidden;cursor:pointer}
+.rcard:hover{border-color:rgba(240,237,230,0.16)}
+.rcard.done{opacity:0.4}
+.rcard.done .r-title{text-decoration:line-through;color:var(--text3)}
+.chk{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--text3);background:none;cursor:pointer;flex-shrink:0;margin-top:1px;transition:all 0.2s;display:flex;align-items:center;justify-content:center}
+.chk:hover{border-color:var(--accent)}
+.rcard.done .chk{background:var(--accent);border-color:var(--accent)}
+.chk svg{width:10px;height:10px;stroke:var(--accent-text);fill:none;stroke-width:2.5;display:none}
+.rcard.done .chk svg{display:block}
+.r-body{flex:1;min-width:0}
+.r-title{font-size:14px;font-weight:500;margin-bottom:4px;line-height:1.3}
+.r-desc{font-size:12px;color:var(--text2);margin-bottom:5px;line-height:1.5}
+.r-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.r-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:var(--r-full);font-size:11px;font-weight:500}
+.r-time{font-size:11px;color:var(--text3)}
+.r-recur{font-size:11px;color:var(--blue);background:var(--blue-dim);padding:2px 7px;border-radius:var(--r-full)}
+.r-acts{display:flex;gap:4px;opacity:0;transition:opacity 0.15s}
+.rcard:hover .r-acts{opacity:1}
+.r-act{width:28px;height:28px;border-radius:var(--r-xs);border:1px solid var(--border);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.r-act:hover{background:var(--surface2)}
+.r-act svg{width:13px;height:13px;stroke:var(--text2);fill:none;stroke-width:1.8}
+.r-act.del:hover{background:var(--red-dim)}
+.r-act.del:hover svg{stroke:var(--red)}
+.pbar{position:absolute;left:0;top:0;bottom:0;width:3px}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem 2rem;gap:1rem;color:var(--text3);text-align:center}
+.empty-ico{width:48px;height:48px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center}
+.empty-ico svg{width:20px;height:20px;stroke:var(--text2);fill:none;stroke-width:1.5}
+/* AGENDA & SHEETS */
+.grid-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.int-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.2s}
+.int-card:hover{border-color:rgba(240,237,230,0.16);transform:translateY(-2px)}
+.int-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.int-ico svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8}
+.int-info{flex:1;min-width:0}
+.int-title{font-size:14px;font-weight:500;margin-bottom:2px}
+.int-sub{font-size:12px;color:var(--text3)}
+.sheet-form{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:1rem;margin-bottom:1rem;display:none;flex-direction:column;gap:10px}
+.sheet-form.open{display:flex}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(13,15,14,0.8);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000;padding:1rem}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:400px;padding:1.5rem;animation:fadeUp 0.2s ease}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.modal-title{font-size:16px;font-weight:500}
+.modal-close{background:none;border:none;color:var(--text2);cursor:pointer;padding:4px}
+.modal-close:hover{color:var(--text)}
+/* NOTIF */
+.notif-container{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:10px;z-index:2000}
+.notif{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 10px 30px rgba(0,0,0,0.5);animation:slideIn 0.3s ease;max-width:320px}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+.notif-ico{width:32px;height:32px;border-radius:50%;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.notif-ico svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.notif-info{flex:1}
+.notif-title{font-size:13px;font-weight:600;margin-bottom:2px}
+.notif-desc{font-size:12px;color:var(--text2)}
+/* MOBILE BAR */
+.mob-bar{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:8px 16px 24px;justify-content:space-between;z-index:100}
+.mob-btn{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--text3);background:none;border:none;font-size:10px;font-family:inherit;cursor:pointer}
+.mob-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8}
+.mob-btn.active{color:var(--accent)}
+.mob-add{width:44px;height:44px;border-radius:50%;background:var(--accent);color:var(--accent-text);display:flex;align-items:center;justify-content:center;border:none;transform:translateY(-12px);box-shadow:0 4px 12px rgba(74,222,128,0.2)}
+.mob-add svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-glow"></div>
+  <div class="auth-box">
+    <div class="auth-logo">Lemb<em>ra</em></div>
+    <div class="auth-sub">Seus lembretes, do seu jeito</div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchAuth('login')">Entrar</button>
+      <button class="tab" onclick="switchAuth('signup')">Criar conta</button>
+    </div>
+    <div id="auth-err" class="err"></div>
+    <div id="login-form">
+      <div class="field"><label>Email</label><input type="email" id="l-email" placeholder="seu@email.com"></div>
+      <div class="field"><label>Senha</label><input type="password" id="l-pass" placeholder="••••••••"></div>
+      <button class="btn-main" onclick="doLogin()">Entrar</button>
+      <div style="display:flex;align-items:center;gap:12px;margin:1.25rem 0 1rem"><div style="flex:1;height:1px;background:var(--border)"></div><span style="font-size:12px;color:var(--text3)">ou</span><div style="flex:1;height:1px;background:var(--border)"></div></div>
+      <button onclick="loginWithGoogle()" style="width:100%;padding:11px;background:white;border:none;border-radius:var(--r-sm);font-family:inherit;font-size:14px;font-weight:500;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:opacity 0.2s" onmouseover="this.style.opacity='.9'" onmouseout="this.style.opacity='1'">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Entrar com Google
+      </button>
+    </div>
+    <div id="signup-form" style="display:none">
+      <div class="field"><label>Nome</label><input type="text" id="s-name" placeholder="Seu nome completo"></div>
+      <div class="field"><label>Email</label><input type="email" id="s-email" placeholder="seu@email.com"></div>
+      <div class="field"><label>Senha</label><input type="password" id="s-pass" placeholder="Mínimo 6 caracteres"></div>
+      <button class="btn-main" onclick="doSignup()">Criar conta</button>
+      <div style="display:flex;align-items:center;gap:12px;margin:1.25rem 0 1rem"><div style="flex:1;height:1px;background:var(--border)"></div><span style="font-size:12px;color:var(--text3)">ou</span><div style="flex:1;height:1px;background:var(--border)"></div></div>
+      <button onclick="loginWithGoogle()" style="width:100%;padding:11px;background:white;border:none;border-radius:var(--r-sm);font-family:inherit;font-size:14px;font-weight:500;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:opacity 0.2s" onmouseover="this.style.opacity='.9'" onmouseout="this.style.opacity='1'">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Criar conta com Google
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+  <header>
+    <div class="hdr-logo">Lemb<em>ra</em></div>
+    <div class="hdr-right">
+      <div class="user-chip">
+        <div class="avatar" id="hdr-av">?</div>
+        <span id="hdr-nm">—</span>
+      </div>
+      <button class="btn-sm" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sec-label">Lembretes</div>
+      <button class="nav-btn active" onclick="setView('hoje',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Hoje <span class="nbadge" id="b-hoje">0</span>
+      </button>
+      <button class="nav-btn" onclick="setView('todos',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><polyline points="3 6 4 7 6 5"/><polyline points="3 12 4 13 6 11"/><polyline points="3 18 4 19 6 17"/></svg>
+        Todos <span class="nbadge" id="b-todos">0</span>
+      </button>
+      <button class="nav-btn" onclick="setView('concluidos',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Concluídos
+      </button>
+      
+      <div class="sec-label" style="margin-top:10px">Agenda</div>
+      <button class="nav-btn" onclick="setView('agenda',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Minha Agenda
+      </button>
+      
+      <div class="sec-label" style="margin-top:10px">Planilhas</div>
+      <button class="nav-btn" onclick="setView('planilhas',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        Planilhas
+      </button>
+
+      <div class="sec-label" style="margin-top:10px">Categorias</div>
+      <div id="cat-list"></div>
+      <button class="nav-btn" onclick="openCatModal()" style="color:var(--text3)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nova categoria
+      </button>
+    </div>
+
+    <main>
+      <!-- VIEW: REMINDERS -->
+      <div id="view-reminders">
+        <div class="main-hdr">
+          <div>
+            <h1 class="main-title" id="view-title">Hoje</h1>
+            <div class="main-meta" id="view-meta"></div>
+          </div>
+          <button class="add-btn" onclick="toggleForm()">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Novo lembrete
+          </button>
+        </div>
+
+        <div class="input-form" id="form-box">
+          <input type="hidden" id="f-id">
+          <input type="text" class="inp" id="f-title" placeholder="O que você precisa lembrar?" style="font-size:15px;font-weight:500">
+          <textarea class="inp" id="f-desc" placeholder="Detalhes, observações... (opcional)"></textarea>
+          <div class="form-row">
+            <select class="inp" id="f-cat"></select>
+            <select class="inp" id="f-prio">
+              <option value="1">Prioridade baixa</option>
+              <option value="2" selected>Prioridade normal</option>
+              <option value="3">Prioridade alta</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <input type="date" class="inp" id="f-date">
+            <input type="time" class="inp" id="f-time">
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase">Recorrência</label>
+            <div class="recur-row">
+              <button class="rchip sel" onclick="setRecur('none',this)">Nenhuma</button>
+              <button class="rchip" onclick="setRecur('daily',this)">Diário</button>
+              <button class="rchip" onclick="setRecur('weekly',this)">Semanal</button>
+              <button class="rchip" onclick="setRecur('biweekly',this)">Quinzenal</button>
+              <button class="rchip" onclick="setRecur('monthly',this)">Mensal</button>
+            </div>
+            <input type="hidden" id="f-recur" value="none">
+          </div>
+          <div class="form-footer">
+            <div style="display:flex;align-items:center;gap:10px">
+              <button class="voice-btn" id="btn-voice" onclick="toggleVoice()">
+                <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+                Usar voz
+              </button>
+              <span class="voice-tx" id="voice-st"></span>
+            </div>
+            <div class="form-btns">
+              <button class="btn-cancel" onclick="toggleForm()">Cancelar</button>
+              <button class="btn-save" onclick="saveReminder()">Salvar</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="list-container"></div>
+      </div>
+
+      <!-- VIEW: AGENDA -->
+      <div id="view-agenda" style="display:none;flex-direction:column;gap:1.5rem">
+        <div class="main-hdr">
+          <div>
+            <h1 class="main-title">Minha Agenda</h1>
+            <div class="main-meta">Integrações com calendários e emails</div>
+          </div>
+          <button class="btn-sm" onclick="renderAgenda()" style="display:flex;align-items:center;gap:6px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 1 0-9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/></svg>
+            Atualizar
+          </button>
+        </div>
+        <div class="grid-cards">
+          <div class="int-card" onclick="window.open('https://calendar.google.com','_blank' )">
+            <div class="int-ico" style="background:rgba(66,133,244,0.1);color:#4285F4">
+              <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div class="int-info">
+              <div class="int-title">Google Agenda</div>
+              <div class="int-sub">Abrir calendário</div>
+            </div>
+          </div>
+          <div class="int-card" onclick="window.open('https://mail.google.com/mail/u/0/#search/is%3Aunread','_blank' )">
+            <div class="int-ico" style="background:rgba(234,67,53,0.1);color:#EA4335">
+              <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div class="int-info">
+              <div class="int-title">Gmail</div>
+              <div class="int-sub">Não lidos</div>
+            </div>
+          </div>
+          <div class="int-card" onclick="window.open('https://mail.google.com','_blank' )">
+            <div class="int-ico" style="background:rgba(234,67,53,0.1);color:#EA4335">
+              <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div class="int-info">
+              <div class="int-title">Gmail</div>
+              <div class="int-sub">Todos os e-mails</div>
+            </div>
+          </div>
+          <div class="int-card" onclick="window.open('https://outlook.live.com/mail/0/inbox','_blank' )">
+            <div class="int-ico" style="background:rgba(0,114,198,0.1);color:#0072C6">
+              <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div class="int-info">
+              <div class="int-title">Outlook</div>
+              <div class="int-sub">Abrir caixa de entrada</div>
+            </div>
+          </div>
+          <div class="int-card" onclick="setView('hoje',document.querySelector('.nav-btn'))">
+            <div class="int-ico" style="background:var(--accent-dim);color:var(--accent)">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="int-info">
+              <div class="int-title">Agenda hoje</div>
+              <div class="int-sub">Ver dia atual</div>
+            </div>
+          </div>
+        </div>
+        <div id="agenda-content" style="margin-top:1rem"></div>
+      </div>
+
+      <!-- VIEW: PLANILHAS -->
+      <div id="view-planilhas" style="display:none;flex-direction:column;gap:1.5rem">
+        <div class="main-hdr">
+          <div>
+            <h1 class="main-title">Planilhas</h1>
+            <div class="main-meta">Links rápidos para suas planilhas</div>
+          </div>
+          <button class="add-btn" onclick="toggleSheetForm()">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nova planilha
+          </button>
+        </div>
+        <div class="sheet-form" id="sheet-form">
+          <input type="text" class="inp" id="sh-name" placeholder="Nome da planilha (ex: Controle Financeiro)">
+          <input type="url" class="inp" id="sh-url" placeholder="Link (https://docs.google.com/spreadsheets/... )">
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
+            <button class="btn-cancel" onclick="toggleSheetForm()">Cancelar</button>
+            <button class="btn-save" onclick="saveSheet()">Salvar</button>
+          </div>
+        </div>
+        <div class="grid-cards" id="sheets-list"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- MOB BAR -->
+<div class="mob-bar">
+  <button class="mob-btn active" onclick="setView('hoje');mobActive(this)">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Hoje
+  </button>
+  <button class="mob-btn" onclick="setView('todos');mobActive(this)">
+    <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><polyline points="3 6 4 7 6 5"/><polyline points="3 12 4 13 6 11"/><polyline points="3 18 4 19 6 17"/></svg>
+    Todos
+  </button>
+  <button class="mob-add" onclick="toggleForm();window.scrollTo(0,0)">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+  <button class="mob-btn" onclick="setView('agenda');mobActive(this)">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Agenda
+  </button>
+  <button class="mob-btn" onclick="setView('planilhas');mobActive(this)">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+    Planilhas
+  </button>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="cat-modal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Nova Categoria</div>
+      <button class="modal-close" onclick="closeCatModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="field"><label>Nome</label><input type="text" id="c-name" placeholder="Ex: Estudos"></div>
+    <div class="field">
+      <label>Cor</label>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button class="cat-dot" style="width:24px;height:24px;background:var(--blue);border:none;cursor:pointer" onclick="selColor('blue',this)"></button>
+        <button class="cat-dot" style="width:24px;height:24px;background:var(--purple);border:none;cursor:pointer" onclick="selColor('purple',this)"></button>
+        <button class="cat-dot" style="width:24px;height:24px;background:var(--amber);border:none;cursor:pointer" onclick="selColor('amber',this)"></button>
+        <button class="cat-dot" style="width:24px;height:24px;background:var(--red);border:none;cursor:pointer" onclick="selColor('red',this)"></button>
+        <button class="cat-dot" style="width:24px;height:24px;background:var(--accent);border:none;cursor:pointer" onclick="selColor('accent',this)"></button>
+      </div>
+      <input type="hidden" id="c-color" value="blue">
+    </div>
+    <button class="btn-main" style="margin-top:1rem" onclick="saveCat()">Criar</button>
+  </div>
+</div>
+
+<div class="notif-container" id="notifs"></div>
+
+<script>
+// ─── STATE & UTILS ───
+const USERS_KEY='lembra_users',SESSION_KEY='lembra_session';
+const DATA_KEY=e=>`lembra_data_${e}`,CATS_KEY=e=>`lembra_cats_${e}`,SHEETS_KEY=e=>`lembra_sheets_${e}`,INT_KEY=e=>`lembra_int_${e}`;
+let user=null,reminders=[],userCats=[],sheets=[],integrations={google:false,outlook:false};
+let view='hoje',notifTimers=[];
+
+const defCats=[
+  {id:'c1',name:'Trabalho',color:'blue'},
+  {id:'c2',name:'Pessoal',color:'purple'},
+  {id:'c3',name:'Saúde',color:'red'},
+  {id:'c4',name:'Financeiro',color:'amber'},
+  {id:'c5',name:'Outro',color:'text2'}
+];
+const colors={blue:'var(--blue)',purple:'var(--purple)',red:'var(--red)',amber:'var(--amber)',accent:'var(--accent)',text2:'var(--text2)'};
+let catMap={},catLbl={};
+
+const today=()=>{const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+const genId=()=>Math.random().toString(36).substr(2,9);
+const initials=n=>n.split(' ').map(w=>w[0]).join('').substr(0,2).toUpperCase();
+
+function sysNotif(title,body){
+  if('Notification' in window&&Notification.permission==='granted')new Notification(title,{body,icon:'/icon.svg'});
+  notify(title,body);
+}
+function notify(title,desc){
+  const c=document.getElementById('notifs'),n=document.createElement('div');
+  n.className='notif';
+  n.innerHTML=`<div class="notif-ico"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="notif-info"><div class="notif-title">${title}</div><div class="notif-desc">${desc}</div></div>`;
+  c.appendChild(n);
+  setTimeout(()=>{n.style.opacity='0';n.style.transform='translateX(100%)';setTimeout(()=>n.remove(),300)},4000);
+}
+
+// ─── AUTH ───
+function getUsers(){return JSON.parse(localStorage.getItem(USERS_KEY)||'{}')}
+function saveUsers(u){localStorage.setItem(USERS_KEY,JSON.stringify(u))}
+function switchAuth(t){
+  document.getElementById('login-form').style.display=t==='login'?'block':'none';
+  document.getElementById('signup-form').style.display=t==='signup'?'block':'none';
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tab')[t==='login'?0:1].classList.add('active');
+  document.getElementById('auth-err').style.display='none';
+}
+function showErr(m){const e=document.getElementById('auth-err');e.textContent=m;e.style.display='block'}
+function doSignup(){
+  const n=document.getElementById('s-name').value.trim(),e=document.getElementById('s-email').value.trim(),p=document.getElementById('s-pass').value;
+  if(!n||!e||p.length<6)return showErr('Preencha todos os campos (senha min 6 chars).');
+  const users=getUsers();
+  if(users[e])return showErr('Email já cadastrado.');
+  users[e]={name:n,email:e,pass:btoa(p)};
+  saveUsers(users);
+  startSession(users[e]);
+}
+function doLogin(){
+  const e=document.getElementById('l-email').value.trim(),p=document.getElementById('l-pass').value;
+  if(!e||!p)return showErr('Preencha email e senha.');
+  const users=getUsers();
+  if(!users[e]||users[e].pass!==btoa(p))return showErr('Credenciais inválidas.');
+  startSession(users[e]);
+}
+function startSession(u){
+  user=u;
+  localStorage.setItem(SESSION_KEY,JSON.stringify(u));
+  reminders=loadReminders();
+  loadCats();syncCatMaps();loadSheets();loadInt();
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app-screen').style.display='flex';
+  document.getElementById('hdr-nm').textContent=u.name.split(' ')[0];
+  document.getElementById('hdr-av').textContent=initials(u.name);
+  const d=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('view-meta').textContent=d.charAt(0).toUpperCase()+d.slice(1);
+  document.getElementById('f-date').value=today();
+  renderSidebar();renderCatSelect();renderSheets();updateIntUI();render();scheduleNotifs();scheduleDigest();
+  if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();
+  // Load from Supabase and refresh if data found
+  loadFromSupabase().then(found=>{if(found){render();scheduleNotifs();notify('Sincronizado','✓ Lembretes sincronizados da nuvem!')}});
+}
+async function doLogout(){
+  localStorage.removeItem(SESSION_KEY);
+  if(typeof firebaseLogout === 'function') firebaseLogout();
+  if(supabaseClient) {
+    await supabaseClient.auth.signOut();
+  }
+  window.location.href = window.location.pathname;
+}
+
+// ─── DATA ───
+function loadReminders(){return JSON.parse(localStorage.getItem(DATA_KEY(user.email))||'[]')}
+function persist(){localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders));if(typeof syncToSupabase==='function')syncToSupabase();}
+function loadCats(){userCats=JSON.parse(localStorage.getItem(CATS_KEY(user.email))||JSON.stringify(defCats))}
+function saveCats(){localStorage.setItem(CATS_KEY(user.email),JSON.stringify(userCats))}
+function syncCatMaps(){catMap={};catLbl={};userCats.forEach(c=>{catMap[c.id]=colors[c.color];catLbl[c.id]=c.name})}
+function loadSheets(){sheets=JSON.parse(localStorage.getItem(SHEETS_KEY(user.email))||'[]')}
+function saveSheets(){localStorage.setItem(SHEETS_KEY(user.email),JSON.stringify(sheets))}
+function loadInt(){integrations=JSON.parse(localStorage.getItem(INT_KEY(user.email))||'{"google":false,"outlook":false}')}
+function saveInt(){localStorage.setItem(INT_KEY(user.email),JSON.stringify(integrations))}
+
+// ─── UI ───
+const viewLbl={hoje:'Hoje',todos:'Todos os lembretes',concluidos:'Concluídos'};
+function renderSidebar(){
+  const c=document.getElementById('cat-list');
+  c.innerHTML=userCats.map(cat=>`
+    <button class="nav-btn" onclick="setView('cat-${cat.id}',this)">
+      <div class="cat-dot" style="background:${colors[cat.color]}"></div>
+      ${cat.name} <span class="nbadge" id="b-${cat.id}">0</span>
+    </button>
+  `).join('');
+  updateBadges();
+}
+function renderCatSelect(){
+  document.getElementById('f-cat').innerHTML=userCats.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+}
+function updateBadges(){
+  const t=today(),a=reminders.filter(r=>!r.done);
+  document.getElementById('b-hoje').textContent=a.filter(r=>r.date===t).length;
+  document.getElementById('b-todos').textContent=a.length;
+  userCats.forEach(c=>{const el=document.getElementById('b-'+c.id);if(el)el.textContent=a.filter(r=>r.cat===c.id).length});
+}
+
+const allViews=['view-reminders','view-agenda','view-planilhas'];
+function setView(v,btn){
+  view=v;
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  allViews.forEach(id=>document.getElementById(id).style.display='none');
+  if(v==='agenda'){document.getElementById('view-agenda').style.display='flex';renderAgenda()}
+  else if(v==='planilhas'){document.getElementById('view-planilhas').style.display='flex';renderSheets()}
+  else{document.getElementById('view-reminders').style.display='flex';document.getElementById('view-title').textContent=viewLbl[v]||catLbl[v.replace('cat-','')]||v;render()}
+}
+function mobActive(btn){document.querySelectorAll('.mob-btn').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}
+
+function scheduleNotifs(){
+  notifTimers.forEach(clearTimeout);notifTimers=[];
+  const now=new Date();
+  reminders.filter(r=>!r.done&&r.date&&r.time).forEach(r=>{
+    const dt=new Date(`${r.date}T${r.time}`),diff=dt-now;
+    if(diff>0&&diff<86400000)notifTimers.push(setTimeout(()=>sysNotif('Lembrete',r.title),diff));
+  });
+}
+
+// ─── FORM ───
+function toggleForm(){
+  const f=document.getElementById('form-box');
+  if(f.classList.contains('open')){
+    f.classList.remove('open');
+    document.getElementById('f-id').value='';
+    document.getElementById('f-title').value='';
+    document.getElementById('f-desc').value='';
+    document.getElementById('f-time').value='';
+    setRecur('none',document.querySelector('.rchip'));
+  }else{
+    f.classList.add('open');
+    document.getElementById('f-title').focus();
+  }
+}
+function setRecur(v,btn){
+  document.getElementById('f-recur').value=v;
+  document.querySelectorAll('.rchip').forEach(x=>x.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+function saveReminder(){
+  const t=document.getElementById('f-title').value.trim();
+  if(!t)return;
+  const id=document.getElementById('f-id').value,
+        r={
+          id:id||genId(),
+          title:t,
+          desc:document.getElementById('f-desc').value.trim(),
+          cat:document.getElementById('f-cat').value,
+          prio:parseInt(document.getElementById('f-prio').value),
+          date:document.getElementById('f-date').value,
+          time:document.getElementById('f-time').value,
+          recur:document.getElementById('f-recur').value,
+          done:false,
+          created:new Date().toISOString()
+        };
+  if(id) reminders=reminders.map(x=>x.id===id?r:x);
+  else reminders.unshift(r);
+  persist();render();updateBadges();scheduleNotifs();toggleForm();
+  notify('Salvo','Lembrete salvo com sucesso!');
+}
+
+// ─── RENDER LIST ───
+const prioColors={1:'var(--blue)',2:'var(--text2)',3:'var(--red)'};
+const recurLbl={daily:'Diário',weekly:'Semanal',biweekly:'Quinzenal',monthly:'Mensal'};
+function render(){
+  const c=document.getElementById('list-container');
+  let list=reminders;
+  if(view==='hoje')list=list.filter(r=>r.date===today()&&!r.done);
+  else if(view==='concluidos')list=list.filter(r=>r.done);
+  else if(view.startsWith('cat-')){const cat=view.replace('cat-','');list=list.filter(r=>r.cat===cat&&!r.done)}
+  else list=list.filter(r=>!r.done);
+  
+  list.sort((a,b)=>{
+    if(a.date!==b.date)return (a.date||'9999')>(b.date||'9999')?1:-1;
+    if(a.time!==b.time)return (a.time||'9999')>(b.time||'9999')?1:-1;
+    return b.prio-a.prio;
+  });
+
+  if(list.length===0){
+    c.innerHTML=`<div class="empty-state"><div class="empty-ico"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div>Nenhum lembrete aqui.  
+Clique em <b>Novo lembrete</b>.</div></div>`;
+    return;
+  }
+
+  let html='',lastDate=null;
+  list.forEach(r=>{
+    if(view==='todos'||view.startsWith('cat-')){
+      const dStr=r.date?new Date(r.date+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}):'Sem data';
+      if(dStr!==lastDate){html+=`<div class="section-lbl" style="margin-top:${lastDate?15:0}px">${dStr}</div>`;lastDate=dStr}
+    }
+    html+=`
+      <div class="rcard ${r.done?'done':''}" onclick="editR('${r.id}')">
+        <div class="pbar" style="background:${prioColors[r.prio]}"></div>
+        <button class="chk" onclick="event.stopPropagation();toggleDone('${r.id}')"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button>
+        <div class="r-body">
+          <div class="r-title">${r.title}</div>
+          ${r.desc?`<div class="r-desc">${r.desc}</div>`:''}
+          <div class="r-meta">
+            <span class="r-tag" style="background:${catMap[r.cat]}20;color:${catMap[r.cat]}"><div class="cat-dot" style="background:${catMap[r.cat]}"></div>${catLbl[r.cat]}</span>
+            ${r.time?`<span class="r-time">🕒 ${r.time}</span>`:''}
+            ${r.recur!=='none'?`<span class="r-recur">↻ ${recurLbl[r.recur]}</span>`:''}
+          </div>
+        </div>
+        <div class="r-acts">
+          <button class="r-act del" onclick="event.stopPropagation();delR('${r.id}')"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+        </div>
+      </div>
+    `;
+  });
+  c.innerHTML=`<div class="reminders-list">${html}</div>`;
+}
+
+function toggleDone(id){
+  const r=reminders.find(x=>x.id===id);
+  if(r){
+    r.done=!r.done;
+    if(r.done&&r.recur!=='none'){
+      const nr={...r,id:genId(),done:false,created:new Date().toISOString()};
+      const d=new Date(r.date+'T12:00:00');
+      if(r.recur==='daily')d.setDate(d.getDate()+1);
+      if(r.recur==='weekly')d.setDate(d.getDate()+7);
+      if(r.recur==='biweekly')d.setDate(d.getDate()+14);
+      if(r.recur==='monthly')d.setMonth(d.getMonth()+1);
+      nr.date=d.toISOString().split('T')[0];
+      reminders.push(nr);
+      notify('Recorrência','Novo lembrete agendado para '+nr.date);
+    }
+    persist();render();updateBadges();
+  }
+}
+function delR(id){if(confirm('Excluir este lembrete?')){reminders=reminders.filter(x=>x.id!==id);persist();render();updateBadges();scheduleNotifs()}}
+function editR(id){
+  const r=reminders.find(x=>x.id===id);
+  if(!r)return;
+  document.getElementById('f-id').value=r.id;
+  document.getElementById('f-title').value=r.title;
+  document.getElementById('f-desc').value=r.desc;
+  document.getElementById('f-cat').value=r.cat;
+  document.getElementById('f-prio').value=r.prio;
+  document.getElementById('f-date').value=r.date;
+  document.getElementById('f-time').value=r.time;
+  const chips=document.querySelectorAll('.rchip');
+  chips.forEach(x=>x.classList.remove('sel'));
+  const idx={none:0,daily:1,weekly:2,biweekly:3,monthly:4}[r.recur];
+  chips[idx].classList.add('sel');
+  document.getElementById('f-recur').value=r.recur;
+  document.getElementById('form-box').classList.add('open');
+  window.scrollTo(0,0);
+}
+
+// ─── CATEGORIES ───
+function openCatModal(){document.getElementById('cat-modal').style.display='flex';document.getElementById('c-name').focus()}
+function closeCatModal(){document.getElementById('cat-modal').style.display='none';document.getElementById('c-name').value=''}
+function selColor(c,btn){
+  document.getElementById('c-color').value=c;
+  document.querySelectorAll('.cat-dot').forEach(x=>x.style.border='none');
+  btn.style.border='2px solid white';
+}
+function saveCat(){
+  const n=document.getElementById('c-name').value.trim();
+  if(!n)return;
+  userCats.push({id:'c'+genId(),name:n,color:document.getElementById('c-color').value});
+  saveCats();syncCatMaps();renderSidebar();renderCatSelect();closeCatModal();
+}
+
+// ─── VOICE ───
+let rec=null;
+function toggleVoice(){
+  const btn=document.getElementById('btn-voice'),st=document.getElementById('voice-st'),inp=document.getElementById('f-title');
+  if(btn.classList.contains('on')){
+    if(rec)rec.stop();
+    btn.classList.remove('on');st.textContent='';
+    return;
+  }
+  if(!('webkitSpeechRecognition' in window)){alert('Reconhecimento de voz não suportado neste navegador.');return}
+  rec=new webkitSpeechRecognition();
+  rec.lang='pt-BR';rec.continuous=false;rec.interimResults=false;
+  rec.onstart=()=>{btn.classList.add('on');st.textContent='Ouvindo...'}
+  rec.onresult=e=>{inp.value=e.results[0][0].transcript;btn.classList.remove('on');st.textContent=''}
+  rec.onerror=e=>{btn.classList.remove('on');st.textContent='Erro: '+e.error}
+  rec.onend=()=>{btn.classList.remove('on');st.textContent=''}
+  rec.start();
+}
+
+// ─── SHEETS ───
+function toggleSheetForm(){
+  const f=document.getElementById('sheet-form');
+  f.classList.toggle('open');
+  if(f.classList.contains('open'))document.getElementById('sh-name').focus();
+}
+function saveSheet(){
+  const n=document.getElementById('sh-name').value.trim(),u=document.getElementById('sh-url').value.trim();
+  if(!n||!u)return;
+  sheets.push({id:genId(),name:n,url:u});
+  saveSheets();renderSheets();
+  document.getElementById('sh-name').value='';document.getElementById('sh-url').value='';
+  toggleSheetForm();
+}
+function delSheet(id){if(confirm('Remover planilha?')){sheets=sheets.filter(x=>x.id!==id);saveSheets();renderSheets()}}
+function renderSheets(){
+  const c=document.getElementById('sheets-list');
+  if(sheets.length===0){c.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--text3);padding:2rem">Nenhuma planilha adicionada.</div>';return}
+  c.innerHTML=sheets.map(s=>`
+    <div class="int-card" onclick="window.open('${s.url}','_blank')">
+      <div class="int-ico" style="background:rgba(16,185,129,0.1);color:#10B981">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      </div>
+      <div class="int-info">
+        <div class="int-title">${s.name}</div>
+        <div class="int-sub">Planilha Google</div>
+      </div>
+      <button class="r-act del" onclick="event.stopPropagation();delSheet('${s.id}')" style="margin-left:auto"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+    </div>
+  `).join('');
+}
+
+// ─── AGENDA & INTEGRATIONS ───
+function updateIntUI(){
+  // UI updates for integrations removed as per simplified layout
+}
+function renderAgenda(){
+  const c=document.getElementById('agenda-content');
+  const t=today();
+  const todayRems=reminders.filter(r=>r.date===t).sort((a,b)=>(a.time||'9999')>(b.time||'9999')?1:-1);
+  
+  let html=`<div class="section-lbl">Seus compromissos hoje</div>`;
+  if(todayRems.length===0){
+    html+=`<div style="color:var(--text3);font-size:13px;padding:1rem 0">Nenhum lembrete para hoje.</div>`;
+  }else{
+    html+=`<div class="reminders-list">`+todayRems.map(r=>`
+      <div class="rcard ${r.done?'done':''}" style="cursor:default">
+        <div class="pbar" style="background:${prioColors[r.prio]}"></div>
+        <div class="r-body">
+          <div class="r-title">${r.title}</div>
+          <div class="r-meta">
+            <span class="r-tag" style="background:${catMap[r.cat]}20;color:${catMap[r.cat]}">${catLbl[r.cat]}</span>
+            ${r.time?`<span class="r-time">🕒 ${r.time}</span>`:''}
+          </div>
+        </div>
+      </div>
+    `).join('')+`</div>`;
+  }
+  
+  html+=`
+    <div style="margin-top:2rem;padding:1.5rem;background:var(--surface2);border-radius:var(--r);text-align:center">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="1.5" style="margin-bottom:10px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <div style="font-size:14px;font-weight:500;margin-bottom:4px">Resumo Diário</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:15px">Receba um email toda manhã com seus lembretes do dia.</div>
+      <button class="btn-sm" onclick="notify('Resumo Diário','O resumo diário será enviado para '+user.email+' às 08:00.')">Ativar Resumo</button>
+    </div>
+  `;
+  c.innerHTML=html;
+}
+
+function scheduleDigest(){
+  const now=new Date();
+  let target=new Date(now);
+  target.setHours(8,0,0,0);
+  if(now>target)target.setDate(target.getDate()+1);
+  setTimeout(()=>{
+    const t=today();
+    const count=reminders.filter(r=>r.date===t&&!r.done).length;
+    if(count>0) sysNotif('Bom dia! ☀️',`Você tem ${count} lembrete(s) para hoje.`);
+    scheduleDigest();
+  },target-now);
+}
+async function loginWithGoogle() {
+  if (!supabaseClient) {
+    alert('Erro: Conexão com o banco de dados não estabelecida.');
+    return;
+  }
+
+  const { data, error } = await supabaseClient.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      queryParams: {
+        prompt: 'select_account'
+      },
+      redirectTo: 'https://lembra-app.vercel.app'
+    }
+  } );
+
+  if (error) {
+    console.error('Erro ao entrar com Google:', error.message);
+    alert('Erro ao entrar com Google: ' + error.message);
+  }
+}
+
+window.onload=()=>{
+  const s=localStorage.getItem(SESSION_KEY);
+  if(s){const u=JSON.parse(s);if(getUsers()[u.email])startSession(u)}
+};
+</script>
+<!-- Supabase -->
+<script src="supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ─── SUPABASE SYNC ───
+let supabaseClient = null;
+
+function loginSupabaseUser(u ) {
+  const users = getUsers();
+  if (!users[u.email]) {
+    users[u.email] = {
+      name: u.user_metadata?.full_name || u.email.split('@')[0],
+      email: u.email,
+      googleAuth: true,
+      pass: btoa('google_' + u.id)
+    };
+    saveUsers(users);
+  }
+  if (!user) startSession(users[u.email]);
+}
+
+function initSupabase(){
+  try {
+    if(typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL !== 'COLE_SEU_PROJECT_URL_AQUI'){
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+          flowType: 'implicit',
+          detectSessionInUrl: true,
+          persistSession: true,
+          autoRefreshToken: true
+        }
+      });
+      console.log('Supabase conectado!');
+
+      // Escutar mudanças de autenticação
+      supabaseClient.auth.onAuthStateChange((event, session) => {
+        console.log('Auth event:', event, session ? 'com sessão' : 'sem sessão');
+        if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session && session.user) {
+          loginSupabaseUser(session.user);
+        }
+      });
+
+      // Verificar se há token OAuth no hash da URL (após redirect do Google)
+      const hash = window.location.hash;
+      if (hash && hash.includes('access_token=')) {
+        console.log('Token OAuth detectado na URL, processando...');
+        const params = new URLSearchParams(hash.substring(1));
+        const access_token = params.get('access_token');
+        const refresh_token = params.get('refresh_token');
+        if (access_token && refresh_token) {
+          supabaseClient.auth.setSession({ access_token, refresh_token }).then(({ data, error }) => {
+            console.log('setSession resultado:', error ? 'erro: ' + error.message : 'sucesso');
+            if (!error && data && data.user) {
+              // Limpar o hash da URL
+              history.replaceState(null, '', window.location.pathname);
+              loginSupabaseUser(data.user);
+            }
+          });
+        }
+      } else {
+        // Verificar sessão existente no localStorage
+        supabaseClient.auth.getSession().then(({ data: { session } }) => {
+          console.log('getSession:', session ? 'sessão encontrada' : 'sem sessão');
+          if (session && session.user && !user) {
+            loginSupabaseUser(session.user);
+          }
+        });
+      }
+    }
+  } catch(e){ console.log('Supabase não configurado:', e) }
+}
+
+async function syncToSupabase(){
+  if(!supabaseClient||!user)return;
+  try {
+    await supabaseClient.from('reminders').upsert(
+      reminders.map(r=>({
+        id: r.id, title: r.title, descricao: r.desc, cat: r.cat,
+        prio: r.prio, date: r.date, time: r.time, recur: r.recur,
+        done: r.done, user_email: user.email,
+        updated_at: new Date().toISOString(), created: r.created
+      })),
+      {onConflict: 'id'}
+    );
+  } catch(e){ console.log('Erro ao sincronizar:', e) }
+}
+
+async function loadFromSupabase(){
+  if(!supabaseClient||!user)return false;
+  try {
+    const {data,error}=await supabaseClient.from('reminders').select('*').eq('user_email',user.email).order('created',{ascending:false});
+    if(error)throw error;
+    if(data&&data.length>0){
+      reminders=data.map(r=>({
+        id: r.id, title: r.title, desc: r.descricao, cat: r.cat,
+        prio: r.prio, date: r.date, time: r.time, recur: r.recur,
+        done: r.done, created: r.created
+      }));
+      localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders));
+      return true;
+    }
+  } catch(e){ console.log('Erro ao carregar do Supabase:', e) }
+  return false;
+}
+
+initSupabase();
+</script>
+</body>
+</html>
