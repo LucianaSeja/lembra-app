@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" contenf5t="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0D0F0E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -15,7 +15,7 @@
 :root{
   --bg:#0D0F0E;--surface:#161917;--surface2:#1E2220;--surface3:#262C29;
   --text:#F0EDE6;--text2:#9BA39D;--text3:#5C6660;
-  --accent:#4ADE80;--accent-dim:rgba(74,222,128,0.12 );--accent-text:#071a0f;
+  --accent:#4ADE80;--accent-dim:rgba(74,222,128,0.12);--accent-text:#071a0f;
   --border:rgba(240,237,230,0.08);
   --red:#F87171;--red-dim:rgba(248,113,113,0.12);
   --amber:#FBBF24;--amber-dim:rgba(251,191,36,0.12);
@@ -321,7 +321,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
           </button>
         </div>
         <div class="grid-cards">
-          <div class="int-card" onclick="window.open('https://calendar.google.com','_blank' )">
+          <div class="int-card" onclick="window.open('https://calendar.google.com','_blank')">
             <div class="int-ico" style="background:rgba(66,133,244,0.1);color:#4285F4">
               <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             </div>
@@ -330,7 +330,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
               <div class="int-sub">Abrir calendário</div>
             </div>
           </div>
-          <div class="int-card" onclick="window.open('https://mail.google.com/mail/u/0/#search/is%3Aunread','_blank' )">
+          <div class="int-card" onclick="window.open('https://mail.google.com/mail/u/0/#search/is%3Aunread','_blank')">
             <div class="int-ico" style="background:rgba(234,67,53,0.1);color:#EA4335">
               <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             </div>
@@ -339,7 +339,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
               <div class="int-sub">Não lidos</div>
             </div>
           </div>
-          <div class="int-card" onclick="window.open('https://mail.google.com','_blank' )">
+          <div class="int-card" onclick="window.open('https://mail.google.com','_blank')">
             <div class="int-ico" style="background:rgba(234,67,53,0.1);color:#EA4335">
               <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             </div>
@@ -348,7 +348,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
               <div class="int-sub">Todos os e-mails</div>
             </div>
           </div>
-          <div class="int-card" onclick="window.open('https://outlook.live.com/mail/0/inbox','_blank' )">
+          <div class="int-card" onclick="window.open('https://outlook.live.com/mail/0/inbox','_blank')">
             <div class="int-ico" style="background:rgba(0,114,198,0.1);color:#0072C6">
               <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             </div>
@@ -384,7 +384,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
         </div>
         <div class="sheet-form" id="sheet-form">
           <input type="text" class="inp" id="sh-name" placeholder="Nome da planilha (ex: Controle Financeiro)">
-          <input type="url" class="inp" id="sh-url" placeholder="Link (https://docs.google.com/spreadsheets/... )">
+          <input type="url" class="inp" id="sh-url" placeholder="Link (https://docs.google.com/spreadsheets/...)">
           <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
             <button class="btn-cancel" onclick="toggleSheetForm()">Cancelar</button>
             <button class="btn-save" onclick="saveSheet()">Salvar</button>
@@ -531,7 +531,6 @@ function doLogout(){
 // ─── DATA ───
 function loadReminders(){return JSON.parse(localStorage.getItem(DATA_KEY(user.email))||'[]')}
 function persist(){localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders));if(typeof syncToSupabase==='function')syncToSupabase();}
-function persist(){localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders));if(typeof syncToSupabase==='function')syncToSupabase();}
 function loadCats(){userCats=JSON.parse(localStorage.getItem(CATS_KEY(user.email))||JSON.stringify(defCats))}
 function saveCats(){localStorage.setItem(CATS_KEY(user.email),JSON.stringify(userCats))}
 function syncCatMaps(){catMap={};catLbl={};userCats.forEach(c=>{catMap[c.id]=colors[c.color];catLbl[c.id]=c.name})}
@@ -643,8 +642,7 @@ function render(){
   });
 
   if(list.length===0){
-    c.innerHTML=`<div class="empty-state"><div class="empty-ico"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div>Nenhum lembrete aqui.  
-Clique em <b>Novo lembrete</b>.</div></div>`;
+    c.innerHTML=`<div class="empty-state"><div class="empty-ico"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div>Nenhum lembrete aqui.<br>Clique em <b>Novo lembrete</b>.</div></div>`;
     return;
   }
 
@@ -830,6 +828,7 @@ function scheduleDigest(){
     scheduleDigest();
   },target-now);
 }
+
 async function loginWithGoogle() {
   if (!supabaseClient) {
     alert('Erro: Conexão com o banco de dados não estabelecida.');
@@ -844,13 +843,19 @@ async function loginWithGoogle() {
       },
       redirectTo: 'https://lembra-app.vercel.app'
     }
-  } );
+  });
 
   if (error) {
     console.error('Erro ao entrar com Google:', error.message);
     alert('Erro ao entrar com Google: ' + error.message);
   }
 }
+
+window.onload=()=>{
+  const s=localStorage.getItem(SESSION_KEY);
+  if(s){const u=JSON.parse(s);if(getUsers()[u.email])startSession(u)}
+};
+</script>
 <!-- Supabase -->
 <script src="supabase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -858,7 +863,7 @@ async function loginWithGoogle() {
 // ─── SUPABASE SYNC ───
 let supabaseClient = null;
 
-function loginSupabaseUser(u ) {
+function loginSupabaseUser(u) {
   const users = getUsers();
   if (!users[u.email]) {
     users[u.email] = {
@@ -885,6 +890,7 @@ function initSupabase(){
       });
       console.log('Supabase conectado!');
       
+      // Escutar mudanças de login do Supabase
       supabaseClient.auth.onAuthStateChange((event, session) => {
         console.log('Auth event:', event, session ? 'com sessão' : 'sem sessão');
         if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') && session && session.user) {
@@ -892,12 +898,14 @@ function initSupabase(){
         }
       });
 
+      // Verificar sessão já presente (ex: após redirect OAuth)
       supabaseClient.auth.getSession().then(({ data: { session } }) => {
         console.log('getSession:', session ? 'sessão encontrada' : 'sem sessão');
         if (session && session.user && !user) {
           loginSupabaseUser(session.user);
         }
       });
+      
     }
   } catch(e){ console.log('Supabase não configurado:', e) }
 }
@@ -907,10 +915,18 @@ async function syncToSupabase(){
   try {
     await supabaseClient.from('reminders').upsert(
       reminders.map(r=>({
-        id: r.id, title: r.title, descricao: r.desc, cat: r.cat,
-        prio: r.prio, date: r.date, time: r.time, recur: r.recur,
-        done: r.done, user_email: user.email,
-        updated_at: new Date().toISOString(), created: r.created
+        id: r.id,
+        title: r.title,
+        descricao: r.desc,
+        cat: r.cat,
+        prio: r.prio,
+        date: r.date,
+        time: r.time,
+        recur: r.recur,
+        done: r.done,
+        user_email: user.email,
+        updated_at: new Date().toISOString(),
+        created: r.created
       })),
       {onConflict: 'id'}
     );
@@ -924,9 +940,16 @@ async function loadFromSupabase(){
     if(error)throw error;
     if(data&&data.length>0){
       reminders=data.map(r=>({
-        id: r.id, title: r.title, desc: r.descricao, cat: r.cat,
-        prio: r.prio, date: r.date, time: r.time, recur: r.recur,
-        done: r.done, created: r.created
+        id: r.id,
+        title: r.title,
+        desc: r.descricao,
+        cat: r.cat,
+        prio: r.prio,
+        date: r.date,
+        time: r.time,
+        recur: r.recur,
+        done: r.done,
+        created: r.created
       }));
       localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders));
       return true;
@@ -935,6 +958,11 @@ async function loadFromSupabase(){
   return false;
 }
 
+// Sobrescrever persist para sincronizar com Supabase
+const _origPersistFn = window.persist || null;
+window._supabasePersistActive = true;
+
+// Init on load
 initSupabase();
 </script>
 </body>
