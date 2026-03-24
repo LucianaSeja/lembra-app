@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -67,7 +67,18 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:0
 .theme-btn:hover{background:var(--surface2);color:var(--text)}
 .theme-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8}
 .layout{display:grid;grid-template-columns:220px 1fr;height:calc(100vh - 56px)}
-@media(max-width:640px){.layout{grid-template-columns:1fr}.sidebar{display:none}.mob-bar{display:flex!important}}
+@media(max-width:640px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .mob-bar{display:flex!important}
+  /* Mobile: quando uma view está ativa, ocultar sidebar e mostrar apenas o conteúdo */
+  .layout.mob-view-active .sidebar{display:none!important}
+  .layout.mob-view-active main{display:flex!important}
+  /* Botão voltar mobile */
+  .mob-back-btn{display:flex!important}
+}
+.mob-back-btn{display:none;align-items:center;gap:8px;padding:8px 0 4px;background:none;border:none;color:var(--text2);font-family:inherit;font-size:13px;cursor:pointer;margin-bottom:4px}
+.mob-back-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
 .sidebar{background:var(--surface);border-right:1px solid var(--border);padding:0.875rem 0.625rem;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
 .sec-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;padding:12px 8px 4px;display:flex;align-items:center;gap:5px}
 .sec-label::before{content:'';display:inline-block;width:3px;height:12px;border-radius:2px;flex-shrink:0}
@@ -276,6 +287,30 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .ai-send{width:38px;height:38px;border-radius:var(--r-sm);border:none;background:var(--purple-dim);color:var(--purple);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0}
 .ai-send:hover{background:rgba(192,132,252,0.25)}
 .ai-send svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+/* Botão microfone do chat IA */
+.ai-mic-btn{width:38px;height:38px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0}
+.ai-mic-btn:hover{background:var(--surface2);color:var(--text)}
+.ai-mic-btn.on{background:var(--red-dim);border-color:rgba(248,113,113,0.3);color:var(--red)}
+.ai-mic-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+@keyframes mic-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.ai-mic-btn.on svg{animation:mic-pulse 0.8s infinite}
+/* Botão de foto */
+.photo-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s}
+.photo-btn:hover{border-color:rgba(96,165,250,0.4);color:var(--blue);background:var(--blue-dim)}
+.photo-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8}
+/* Miniatura de foto no card de lembrete */
+.rcard-photo{width:100%;max-height:160px;object-fit:cover;border-radius:var(--r-sm);margin-top:8px;border:1px solid var(--border);cursor:pointer}
+/* Lightbox de foto */
+.photo-lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem}
+.photo-lightbox img{max-width:100%;max-height:90vh;border-radius:var(--r);object-fit:contain}
+.photo-lightbox-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+/* Microfone inline nos inputs de texto */
+.inp-voice-wrap{position:relative;display:flex;align-items:center}
+.inp-voice-wrap .inp{flex:1}
+.inp-mic{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:var(--r-xs);border:none;background:none;color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.inp-mic:hover{color:var(--text);background:var(--surface3)}
+.inp-mic.on{color:var(--red)}
+.inp-mic svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
 .ai-suggestions{display:flex;gap:6px;flex-wrap:wrap;padding:0 1.5rem 0.75rem;flex-shrink:0}
 .ai-sug{padding:5px 11px;border-radius:var(--r-full);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:11px;cursor:pointer;transition:all 0.15s;white-space:nowrap}
 .ai-sug:hover{border-color:var(--purple);color:var(--purple);background:var(--purple-dim)}
@@ -405,6 +440,10 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 
       <!-- MEUS COMPROMISSOS -->
       <div class="sec-label lbl-compromissos">Meus Compromissos</div>
+      <button class="nav-btn" onclick="setView('agenda',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>
+        Meus Compromissos
+      </button>
       <button class="nav-btn" onclick="setView('compromissos-hoje',this)">
         <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/></svg>
         Hoje <span class="nbadge" id="b-comp-hoje">0</span>
@@ -421,8 +460,8 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
         Planilhas
       </button>
 
-      <!-- CONFIG -->
-      <div class="sec-label lbl-config">Config</div>
+      <!-- CONFIGURAÇÕES -->
+      <div class="sec-label lbl-config">Configurações</div>
       <button class="nav-btn" onclick="setView('integracoes',this)">
         <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         Integrações
@@ -443,8 +482,26 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
           </button>
         </div>
         <div class="input-form" id="input-form">
-          <input class="inp" id="f-title" placeholder="O que você precisa lembrar?">
+          <div class="inp-voice-wrap">
+            <input class="inp" id="f-title" placeholder="O que você precisa lembrar?" style="padding-right:38px">
+            <button class="inp-mic" id="inp-mic-title" onclick="toggleInpVoice('f-title','inp-mic-title')" title="Usar voz">
+              <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </button>
+          </div>
           <textarea class="inp" id="f-desc" placeholder="Detalhes, observações... (opcional)" rows="2"></textarea>
+          <!-- Foto -->
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="file" id="f-photo" accept="image/*" capture="environment" style="display:none" onchange="previewPhoto('f-photo','f-photo-preview','f-photo-wrap')">
+            <button type="button" class="photo-btn" onclick="document.getElementById('f-photo').click()">
+              <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              Adicionar foto
+            </button>
+            <span style="font-size:11px;color:var(--text3)" id="f-photo-name"></span>
+          </div>
+          <div id="f-photo-wrap" style="display:none;position:relative;margin-top:4px">
+            <img id="f-photo-preview" style="width:100%;max-height:200px;object-fit:cover;border-radius:var(--r-sm);border:1px solid var(--border)" src="" alt="Foto do lembrete">
+            <button type="button" onclick="removePhoto('f-photo','f-photo-preview','f-photo-wrap','f-photo-name')" style="position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.6);border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1">&times;</button>
+          </div>
           <div class="form-row">
             <select class="inp" id="f-cat"></select>
             <select class="inp" id="f-prio">
@@ -482,6 +539,61 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
           </div>
         </div>
         <div id="list-container"></div>
+      </div>
+
+      <!-- MEUS COMPROMISSOS - DASHBOARD COM 4 CARDS -->
+      <div id="view-agenda" style="display:none;flex-direction:column;gap:1.25rem">
+        <div class="main-hdr">
+          <div><div class="main-title">Meus Compromissos</div><div class="main-meta" id="agenda-meta">Acesso rápido</div></div>
+          <button class="add-btn" onclick="loadCompromissosDia('hoje')">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--accent-text);fill:none;stroke-width:2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Atualizar
+          </button>
+        </div>
+        <!-- 4 Cards de acesso rápido -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
+          <!-- Card Google Agenda -->
+          <a href="https://calendar.google.com/calendar/r" target="_blank" id="agenda-card-google" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(96,165,250,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--blue-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div><div style="font-size:13px;font-weight:600;color:var(--text)">Google Agenda</div><div style="font-size:11px;color:var(--text3)" id="minha-agenda-google-sub">Abrir calendário</div></div>
+          </a>
+          <!-- Card Gmail -->
+          <a href="https://mail.google.com/mail/#inbox" target="_blank" id="agenda-card-gmail" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(248,113,113,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--red-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F87171" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div><div style="font-size:13px;font-weight:600;color:var(--text)">Gmail</div><div style="font-size:11px;color:var(--text3)" id="minha-agenda-gmail-sub">Abrir e-mails</div></div>
+          </a>
+          <!-- Card Outlook -->
+          <a href="https://outlook.live.com/mail/0/inbox" target="_blank" id="agenda-card-outlook" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(0,120,212,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="width:36px;height:36px;border-radius:var(--r-sm);background:rgba(0,120,212,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div><div style="font-size:13px;font-weight:600;color:var(--text)">Outlook</div><div style="font-size:11px;color:var(--text3)" id="minha-agenda-outlook-sub">Abrir caixa de entrada</div></div>
+          </a>
+          <!-- Card Compromissos Hoje -->
+          <div onclick="setView('compromissos-hoje',null)" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(74,222,128,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--accent-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--accent)">Compromissos Hoje</div>
+              <div style="font-size:11px;color:var(--text3)" id="minha-agenda-hoje-sub">Carregando...</div>
+            </div>
+          </div>
+          <!-- Card Compromissos Amanhã -->
+          <div onclick="setView('compromissos-amanha',null)" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(251,191,36,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--amber-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--amber)">Compromissos Amanhã</div>
+              <div style="font-size:11px;color:var(--text3)" id="minha-agenda-amanha-sub">Carregando...</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- MEUS COMPROMISSOS HOJE -->
@@ -565,19 +677,6 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
               <div style="font-size:12px;color:var(--accent);margin-bottom:4px">✓ Conectado como <span id="outlook-email-lbl"></span></div>
               <button class="btn-cancel" style="font-size:12px;margin-top:6px" onclick="disconnectOutlook()">Desconectar</button>
             </div>
-          </div>
-        </div>
-
-        <div class="int-card">
-          <div class="int-card-hdr">
-            <div class="int-ico" style="background:var(--amber-dim)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-            <div style="flex:1"><div style="font-size:14px;font-weight:600;margin-bottom:2px">Resumo diário</div><div style="font-size:12px;color:var(--text3)">Notificação às 6h com agenda do dia e às 20h com agenda de amanhã</div></div>
-            <span class="status-badge" id="digest-badge">Desativado</span>
-          </div>
-          <div class="int-card-body">
-            <button id="digest-btn" onclick="toggleDigest()" style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:var(--r-sm);background:var(--amber-dim);border:1px solid rgba(251,191,36,0.25);color:var(--amber);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">
-              Ativar resumo diário
-            </button>
           </div>
         </div>
 
@@ -676,8 +775,30 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 <div class="modal-wrap" id="edit-modal">
   <div class="modal">
     <h3>Editar lembrete</h3>
-    <div class="field"><label>Título</label><input id="e-title" class="inp" type="text"></div>
+    <div class="field"><label>Título</label>
+      <div class="inp-voice-wrap">
+        <input id="e-title" class="inp" type="text" style="padding-right:38px">
+        <button class="inp-mic" id="inp-mic-edit" onclick="toggleInpVoice('e-title','inp-mic-edit')" title="Usar voz">
+          <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+      </div>
+    </div>
     <div class="field"><label>Detalhes</label><textarea id="e-desc" class="inp" rows="3"></textarea></div>
+    <div class="field">
+      <label>Foto</label>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="file" id="e-photo" accept="image/*" capture="environment" style="display:none" onchange="previewPhoto('e-photo','e-photo-preview','e-photo-wrap')">
+        <button type="button" class="photo-btn" onclick="document.getElementById('e-photo').click()">
+          <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Trocar foto
+        </button>
+        <button type="button" id="e-photo-remove-btn" onclick="removePhoto('e-photo','e-photo-preview','e-photo-wrap',null)" style="display:none;background:none;border:none;color:var(--red);font-size:12px;cursor:pointer">Remover foto</button>
+      </div>
+      <div id="e-photo-wrap" style="display:none;position:relative;margin-top:8px">
+        <img id="e-photo-preview" style="width:100%;max-height:200px;object-fit:cover;border-radius:var(--r-sm);border:1px solid var(--border)" src="" alt="Foto do lembrete">
+        <button type="button" onclick="removePhoto('e-photo','e-photo-preview','e-photo-wrap',null)" style="position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.6);border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1">&times;</button>
+      </div>
+    </div>
     <div class="form-row" style="margin-bottom:1rem">
       <select id="e-cat" class="inp"></select>
       <select id="e-prio" class="inp">
@@ -736,6 +857,9 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
       <button class="ai-sug" onclick="sendAISuggestion(this)">Enviar e-mail</button>
     </div>
     <div class="ai-input-area">
+      <button class="ai-mic-btn" id="ai-mic-btn" onclick="toggleAIVoice()" title="Usar voz">
+        <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      </button>
       <textarea class="ai-input" id="ai-input" placeholder="Pergunte sobre sua agenda, lembretes..." rows="1" onkeydown="aiInputKeydown(event)" oninput="autoResizeAI(this)"></textarea>
       <button class="ai-send" onclick="sendAIMessage()">
         <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -1285,7 +1409,37 @@ function saveEdit(){
   if(view==='compromissos-amanha')loadCompromissosDia('amanha');
 }
 
-// VOICE
+// VOICE UNIVERSAL
+let aiVoiceRec=null,aiVoiceOn=false;
+let inpVoiceRec=null,inpVoiceOn=false,inpVoiceTargetId=null,inpVoiceBtnId=null;
+
+function toggleAIVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){notify('Voz','Use o Chrome para reconhecimento de voz');return;}
+  const btn=document.getElementById('ai-mic-btn');
+  if(aiVoiceOn){if(aiVoiceRec)aiVoiceRec.stop();return;}
+  aiVoiceRec=new SR();aiVoiceRec.lang='pt-BR';aiVoiceRec.interimResults=true;
+  aiVoiceRec.onstart=()=>{aiVoiceOn=true;if(btn){btn.classList.add('on');btn.title='Ouvindo... (clique para parar)';}};
+  aiVoiceRec.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;const inp=document.getElementById('ai-input');if(inp)inp.value=t;if(e.results[e.results.length-1].isFinal){sendAIMessage();}};
+  aiVoiceRec.onend=()=>{aiVoiceOn=false;if(btn){btn.classList.remove('on');btn.title='Usar voz';}};
+  aiVoiceRec.start();
+}
+
+function toggleInpVoice(inputId,btnId){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){notify('Voz','Use o Chrome para reconhecimento de voz');return;}
+  const btn=document.getElementById(btnId);
+  if(inpVoiceOn&&inpVoiceTargetId===inputId){if(inpVoiceRec)inpVoiceRec.stop();return;}
+  if(inpVoiceOn){if(inpVoiceRec)inpVoiceRec.stop();}
+  inpVoiceTargetId=inputId;inpVoiceBtnId=btnId;
+  inpVoiceRec=new SR();inpVoiceRec.lang='pt-BR';inpVoiceRec.interimResults=true;
+  inpVoiceRec.onstart=()=>{inpVoiceOn=true;if(btn)btn.classList.add('on');};
+  inpVoiceRec.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;const inp=document.getElementById(inputId);if(inp)inp.value=t;};
+  inpVoiceRec.onend=()=>{inpVoiceOn=false;if(btn)btn.classList.remove('on');};
+  inpVoiceRec.start();
+}
+
+// VOICE (lembrete - mantém compatibilidade)
 function toggleVoice(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR)return notify('Voz','Use o Chrome para reconhecimento de voz');
@@ -1544,17 +1698,46 @@ function loadCompromissosDia(dia){
   c.innerHTML=html;
 }
 
-const allViews=['view-reminders','view-compromissos-hoje','view-compromissos-amanha','view-planilhas','view-integracoes'];
+const allViews=['view-reminders','view-agenda','view-compromissos-hoje','view-compromissos-amanha','view-planilhas','view-integracoes'];
 function setView(v,btn){
   view=v;
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
   if(btn)btn.classList.add('active');
   allViews.forEach(id=>document.getElementById(id).style.display='none');
-  if(v==='compromissos-hoje'){document.getElementById('view-compromissos-hoje').style.display='flex';loadCompromissosDia('hoje')}
+  // Mobile: adicionar classe para mostrar apenas o conteúdo (sem sidebar)
+  const layout=document.querySelector('.layout');
+  if(layout)layout.classList.add('mob-view-active');
+  if(v==='agenda'){document.getElementById('view-agenda').style.display='flex';renderAgendaDashboard()}
+  else if(v==='compromissos-hoje'){document.getElementById('view-compromissos-hoje').style.display='flex';loadCompromissosDia('hoje')}
   else if(v==='compromissos-amanha'){document.getElementById('view-compromissos-amanha').style.display='flex';loadCompromissosDia('amanha')}
   else if(v==='planilhas'){document.getElementById('view-planilhas').style.display='flex';renderSheets()}
   else if(v==='integracoes'){document.getElementById('view-integracoes').style.display='flex'}
   else{document.getElementById('view-reminders').style.display='flex';document.getElementById('view-title').textContent=viewLbl[v]||catLbl[v.replace('cat-','')]||v;render()}
+}
+function renderAgendaDashboard(){
+  const t=today(),tom=tomorrow();
+  const calEvts=integrations.calendarEvents||[];
+  const nHoje=reminders.filter(r=>!r.done&&r.inAgenda&&r.date===t).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t).length;
+  const nAmanha=reminders.filter(r=>!r.done&&r.inAgenda&&r.date===tom).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===tom).length;
+  const subHoje=document.getElementById('minha-agenda-hoje-sub');
+  if(subHoje)subHoje.textContent=nHoje>0?nHoje+' compromisso'+(nHoje!==1?'s':'')+' hoje':'Ver compromissos do dia';
+  const subAmanha=document.getElementById('minha-agenda-amanha-sub');
+  if(subAmanha)subAmanha.textContent=nAmanha>0?nAmanha+' compromisso'+(nAmanha!==1?'s':'')+' amanhã':'Ver compromissos de amanhã';
+  const gc=integrations.googleConnected;
+  const subGoogle=document.getElementById('minha-agenda-google-sub');
+  if(subGoogle)subGoogle.textContent=gc?(integrations.googleEmail||'Conectado'):'Abrir calendário';
+  const subGmail=document.getElementById('minha-agenda-gmail-sub');
+  if(subGmail)subGmail.textContent=gc?(integrations.googleEmail||'Abrir e-mails'):'Abrir e-mails';
+  const oc=integrations.outlookConnected;
+  const subOutlook=document.getElementById('minha-agenda-outlook-sub');
+  if(subOutlook)subOutlook.textContent=oc?(integrations.outlookEmail||'Conectado'):'Abrir caixa de entrada';
+  // Mostrar/ocultar cards de acordo com integrações
+  const cardGoogle=document.getElementById('agenda-card-google');
+  const cardGmail=document.getElementById('agenda-card-gmail');
+  const cardOutlook=document.getElementById('agenda-card-outlook');
+  if(cardGoogle)cardGoogle.style.display=gc?'flex':'flex'; // sempre visível
+  if(cardGmail)cardGmail.style.display=gc?'flex':'flex';
+  if(cardOutlook)cardOutlook.style.display=oc?'flex':'flex';
 }
 function mobActive(btn){document.querySelectorAll('.mob-btn').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}
 
