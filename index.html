@@ -69,7 +69,20 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:0
 .layout{display:grid;grid-template-columns:220px 1fr;height:calc(100vh - 56px)}
 @media(max-width:640px){.layout{grid-template-columns:1fr}.sidebar{display:none}.mob-bar{display:flex!important}}
 .sidebar{background:var(--surface);border-right:1px solid var(--border);padding:0.875rem 0.625rem;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
-.sec-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);padding:10px 8px 3px}
+.sec-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;padding:12px 8px 4px;display:flex;align-items:center;gap:5px}
+.sec-label::before{content:'';display:inline-block;width:3px;height:12px;border-radius:2px;flex-shrink:0}
+.sec-label.lbl-lembretes{color:#4ADE80}.sec-label.lbl-lembretes::before{background:#4ADE80}
+.sec-label.lbl-compromissos{color:#60A5FA}.sec-label.lbl-compromissos::before{background:#60A5FA}
+.sec-label.lbl-planilhas{color:#FBBF24}.sec-label.lbl-planilhas::before{background:#FBBF24}
+.sec-label.lbl-config{color:#C084FC}.sec-label.lbl-config::before{background:#C084FC}
+/* Chips do header */
+.hdr-chips{display:flex;align-items:center;gap:5px}
+.hdr-chip{display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:var(--r-full);border:1px solid var(--border);background:var(--surface2);font-size:11px;color:var(--text2);text-decoration:none;cursor:default;transition:all 0.15s;white-space:nowrap}
+.hdr-chip:hover{border-color:rgba(240,237,230,0.2);color:var(--text)}
+.hdr-chip.clickable{cursor:pointer}
+.hdr-chip svg{flex-shrink:0}
+.hdr-chip-count{font-weight:700;font-size:11px}
+@media(max-width:640px){.hdr-chips{display:none}}
 .nav-btn{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r-sm);font-size:13px;color:var(--text2);cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:inherit;transition:all 0.15s}
 .nav-btn:hover{background:var(--surface2);color:var(--text)}
 .nav-btn.active{background:var(--accent-dim);color:var(--accent)}
@@ -313,6 +326,34 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
   <header>
     <div class="hdr-logo">Lemb<em>ra</em></div>
     <div class="hdr-right">
+      <!-- Chips de integrações e compromissos -->
+      <div class="hdr-chips" id="hdr-chips">
+        <!-- Google Agenda chip -->
+        <a class="hdr-chip clickable" id="hdr-chip-google" href="https://calendar.google.com/calendar/r" target="_blank" title="Google Agenda" style="display:none">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span id="hdr-chip-google-lbl">Google</span>
+        </a>
+        <!-- Gmail chip -->
+        <a class="hdr-chip clickable" id="hdr-chip-gmail" href="https://mail.google.com/mail/#inbox" target="_blank" title="Gmail" style="display:none">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F87171" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <span id="hdr-chip-gmail-lbl">Gmail</span>
+        </a>
+        <!-- Outlook chip -->
+        <a class="hdr-chip clickable" id="hdr-chip-outlook" href="https://outlook.live.com/mail/0/inbox" target="_blank" title="Outlook" style="display:none">
+          <svg width="12" height="12" viewBox="0 0 23 23" fill="none"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
+          <span id="hdr-chip-outlook-lbl">Outlook</span>
+        </a>
+        <!-- Compromissos Hoje chip -->
+        <button class="hdr-chip clickable" id="hdr-chip-hoje" onclick="setView('compromissos-hoje',null);updateSidebarActive('compromissos-hoje')" title="Compromissos hoje" style="border:none">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Hoje <span class="hdr-chip-count" id="hdr-chip-hoje-n" style="color:#4ADE80">0</span>
+        </button>
+        <!-- Compromissos Amanhã chip -->
+        <button class="hdr-chip clickable" id="hdr-chip-amanha" onclick="setView('compromissos-amanha',null);updateSidebarActive('compromissos-amanha')" title="Compromissos amanhã" style="border:none">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Amanhã <span class="hdr-chip-count" id="hdr-chip-amanha-n" style="color:#FBBF24">0</span>
+        </button>
+      </div>
       <button class="btn-ai" onclick="openAI()">
         <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/></svg>
         Assistente IA
@@ -331,7 +372,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
   <div class="layout">
     <div class="sidebar">
       <!-- LEMBRETES -->
-      <div class="sec-label">Lembretes</div>
+      <div class="sec-label lbl-lembretes">Lembretes</div>
       <!-- Hoje e Todos: sempre visíveis -->
       <button class="nav-btn active" onclick="setView('hoje',this)">
         <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -341,28 +382,29 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
         <svg class="nav-icon" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><polyline points="3 6 4 7 6 5"/><polyline points="3 12 4 13 6 11"/><polyline points="3 18 4 19 6 17"/></svg>
         Todos <span class="nbadge" id="b-todos">0</span>
       </button>
-      <!-- Concluídos: recolhido por padrão -->
-      <button class="sidebar-collapsible-toggle" id="feitos-toggle" onclick="toggleFeitosSection()">
+      <!-- Tipos: toggle que expande Concluídos + Categorias -->
+      <button class="sidebar-collapsible-toggle" id="tipos-toggle" onclick="toggleTiposSection()">
         <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-        Concluídos
+        Tipos
       </button>
-      <div class="sidebar-collapsible" id="feitos-section">
+      <div class="sidebar-collapsible" id="tipos-section">
+        <!-- Concluídos dentro de Tipos -->
         <button class="nav-btn" id="btn-feitos" onclick="setView('feitos',this)" style="padding-left:18px">
           <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-          Ver concluídos
+          Concluídos
         </button>
-      </div>
-      <!-- Categorias: recolhido por padrão -->
-      <button class="sidebar-collapsible-toggle" id="cats-toggle" onclick="toggleCatsSection()">
-        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-        Categorias
-      </button>
-      <div class="sidebar-collapsible" id="cats-section">
-        <div id="sidebar-cats"></div>
+        <!-- Categorias dentro de Tipos -->
+        <button class="sidebar-collapsible-toggle" id="cats-toggle" onclick="toggleCatsSection()" style="padding-left:18px;font-size:10px">
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          Categorias
+        </button>
+        <div class="sidebar-collapsible" id="cats-section">
+          <div id="sidebar-cats"></div>
+        </div>
       </div>
 
       <!-- MEUS COMPROMISSOS -->
-      <div class="sec-label">Meus Compromissos</div>
+      <div class="sec-label lbl-compromissos">Meus Compromissos</div>
       <button class="nav-btn" onclick="setView('compromissos-hoje',this)">
         <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/></svg>
         Hoje <span class="nbadge" id="b-comp-hoje">0</span>
@@ -373,14 +415,14 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
       </button>
 
       <!-- PLANILHAS -->
-      <div class="sec-label">Planilhas</div>
+      <div class="sec-label lbl-planilhas">Planilhas</div>
       <button class="nav-btn" onclick="setView('planilhas',this)">
         <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
         Planilhas
       </button>
 
       <!-- CONFIG -->
-      <div class="sec-label">Config</div>
+      <div class="sec-label lbl-config">Config</div>
       <button class="nav-btn" onclick="setView('integracoes',this)">
         <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         Integrações
@@ -999,6 +1041,42 @@ function updateIntUI(){
   document.getElementById('digest-badge').textContent=d?'✓ Ativo':'Desativado';
   document.getElementById('digest-badge').className='status-badge '+(d?'on':'off');
   document.getElementById('digest-btn').textContent=d?'Desativar resumo diário':'Ativar resumo diário';
+  // Atualizar chips do header
+  updateHeaderChips();
+}
+function updateHeaderChips(){
+  const gc=integrations.googleConnected;
+  const oc=integrations.outlookConnected;
+  // Google Agenda chip
+  const chipGoogle=document.getElementById('hdr-chip-google');
+  if(chipGoogle){
+    chipGoogle.style.display=gc?'flex':'none';
+    const lbl=document.getElementById('hdr-chip-google-lbl');
+    if(lbl)lbl.textContent=integrations.googleEmail?integrations.googleEmail.split('@')[0]:'Google';
+  }
+  // Gmail chip
+  const chipGmail=document.getElementById('hdr-chip-gmail');
+  if(chipGmail){
+    chipGmail.style.display=gc?'flex':'none';
+    const lbl=document.getElementById('hdr-chip-gmail-lbl');
+    if(lbl)lbl.textContent='Gmail';
+  }
+  // Outlook chip
+  const chipOutlook=document.getElementById('hdr-chip-outlook');
+  if(chipOutlook){
+    chipOutlook.style.display=oc?'flex':'none';
+    const lbl=document.getElementById('hdr-chip-outlook-lbl');
+    if(lbl)lbl.textContent=integrations.outlookEmail?integrations.outlookEmail.split('@')[0]:'Outlook';
+  }
+  // Compromissos Hoje/Amanhã chips - sempre visíveis
+  const t=today(),tom=tomorrow();
+  const calEvts=integrations.calendarEvents||[];
+  const nHoje=reminders.filter(r=>!r.done&&r.inAgenda&&r.date===t).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t).length;
+  const nAmanha=reminders.filter(r=>!r.done&&r.inAgenda&&r.date===tom).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===tom).length;
+  const elHojeN=document.getElementById('hdr-chip-hoje-n');
+  const elAmanhaN=document.getElementById('hdr-chip-amanha-n');
+  if(elHojeN)elHojeN.textContent=nHoje;
+  if(elAmanhaN)elAmanhaN.textContent=nAmanha;
 }
 
 // SHEETS
@@ -1028,9 +1106,9 @@ function saveSheet(){
 }
 
 // CATEGORIES
-function toggleFeitosSection(){
-  const sec=document.getElementById('feitos-section');
-  const toggle=document.getElementById('feitos-toggle');
+function toggleTiposSection(){
+  const sec=document.getElementById('tipos-section');
+  const toggle=document.getElementById('tipos-toggle');
   sec.classList.toggle('open');
   toggle.classList.toggle('open');
 }
@@ -1042,8 +1120,8 @@ function toggleCatsSection(){
 }
 function renderSidebar(){
   const c=document.getElementById('sidebar-cats');
-  c.innerHTML=userCats.map(cat=>`<button class="nav-btn${view==='cat-'+cat.id?' active':''}" onclick="setView('cat-${cat.id}',this)"><span class="cat-dot" style="background:${cat.color}"></span>${cat.label}<span class="nbadge" id="b-${cat.id}">0</span></button>`).join('')+
-  `<button class="nav-btn" onclick="openCatModal()" style="color:var(--text3);font-size:12px"><svg class="nav-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova categoria</button>`;
+  c.innerHTML=userCats.map(cat=>`<button class="nav-btn${view==='cat-'+cat.id?' active':''}" onclick="setView('cat-${cat.id}',this)" style="padding-left:26px"><span class="cat-dot" style="background:${cat.color}"></span>${cat.label}<span class="nbadge" id="b-${cat.id}">0</span></button>`).join('')+
+  `<button class="nav-btn" onclick="openCatModal()" style="color:var(--text3);font-size:12px;padding-left:26px"><svg class="nav-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova categoria</button>`;
 }
 function renderCatSelect(){
   const s=document.getElementById('f-cat'),cur=s.value;
@@ -1067,7 +1145,17 @@ function saveNewCat(){
 // REMINDERS
 function toggleForm(){
   const f=document.getElementById('input-form');f.classList.toggle('open');
-  if(f.classList.contains('open'))document.getElementById('f-title').focus();
+  if(f.classList.contains('open')){
+    document.getElementById('f-title').focus();
+    renderCatSelect();
+    // Expandir Tipos > Categorias na sidebar
+    const tiposSec=document.getElementById('tipos-section');
+    const tiposToggle=document.getElementById('tipos-toggle');
+    if(tiposSec&&!tiposSec.classList.contains('open')){tiposSec.classList.add('open');if(tiposToggle)tiposToggle.classList.add('open');}
+    const catSec=document.getElementById('cats-section');
+    const catToggle=document.getElementById('cats-toggle');
+    if(catSec&&!catSec.classList.contains('open')){catSec.classList.add('open');if(catToggle)catToggle.classList.add('open');}
+  }
 }
 function selRecur(btn,val){document.querySelectorAll('.rchip').forEach(x=>x.classList.remove('sel'));btn.classList.add('sel');recur=val}
 function saveReminder(){
@@ -1294,6 +1382,8 @@ function updateBadges(){
   const bCompAmanha=remAgendaAmanha+calAmanha;
   const elCH=document.getElementById('b-comp-hoje');if(elCH)elCH.textContent=bCompHoje;
   const elCA=document.getElementById('b-comp-amanha');if(elCA)elCA.textContent=bCompAmanha;
+  // Sincronizar chips do header
+  updateHeaderChips();
 }
 
 // ── MEUS COMPROMISSOS (Hoje / Amanhã) ──────────────────────────────
@@ -1718,9 +1808,35 @@ Exemplo: *"Enviar e-mail para joao@empresa.com, assunto: Reunião, dizendo: Conf
     return `Abrindo seu cliente de e-mail para enviar mensagem para **${para}**${assunto?' com assunto "'+assunto+'"':''}. Basta clicar em **Enviar** quando estiver pronto! 📧`;
   }
 
-  // Adicionar compromisso
+  // Adicionar/agendar compromisso na agenda Google
+  if(msgLower.includes('incluir na agenda google')||msgLower.includes('agenda google')||msgLower.includes('google agenda')||msgLower.includes('calendário google')){
+    if(!integrations.googleConnected)return 'Para incluir na Google Agenda, primeiro conecte sua conta em **Integrações**.';
+    // Tentar extrair título, data e hora da mensagem
+    const titleMatch=msg.match(/(?:reunião|compromisso|evento|consulta|aula|encontro|call|meeting)[:\s]+([^,\.\n]+)/i);
+    const title=titleMatch?titleMatch[1].trim():msg.replace(/(?:incluir|adicionar|criar|agendar|na agenda google|agenda google|google agenda|calendário google)/gi,'').trim();
+    const dateStr=targetDate?fmtDate(targetDate):'data não especificada';
+    const timeMatch=msg.match(/(\d{1,2})[h:](\d{0,2})/);
+    const timeStr=timeMatch?(timeMatch[1].padStart(2,'0')+':'+(timeMatch[2]||'00')):'horário não especificado';
+    // Abrir Google Agenda com evento pré-preenchido
+    const gcalBase='https://calendar.google.com/calendar/r/eventedit';
+    let gcalUrl=gcalBase+'?text='+encodeURIComponent(title||'Novo compromisso');
+    if(targetDate)gcalUrl+='&dates='+targetDate.replace(/-/g,'')+'T'+(timeMatch?(timeMatch[1].padStart(2,'0')+(timeMatch[2]||'00')+'00'):'090000')+'/'+(targetDate.replace(/-/g,''))+'T'+(timeMatch?(String(parseInt(timeMatch[1])+1).padStart(2,'0')+(timeMatch[2]||'00')+'00'):'100000');
+    setTimeout(()=>window.open(gcalUrl,'_blank'),500);
+    return `Abrindo a **Google Agenda** com o evento pré-preenchido:📅\n\n• **Título:** ${title||'Novo compromisso'}\n• **Data:** ${dateStr}\n• **Hora:** ${timeStr}\n\nRevise e clique em **Salvar** na Google Agenda!`;
+  }
+
+  // Adicionar lembrete/compromisso geral
   if(msgLower.includes('adicionar')||msgLower.includes('incluir')||msgLower.includes('criar')||msgLower.includes('agendar')){
-    return `Para adicionar um compromisso, clique em **"Novo lembrete"** na tela de Lembretes e depois use o botão **"Incluir na Agenda"** para movê-lo para os seus compromissos. Ou, se preferir, posso ajudá-lo a criar um lembrete — me diga o título, data e hora!`;
+    // Tentar extrair informações do pedido
+    const timeMatch=msg.match(/(\d{1,2})[h:](\d{0,2})/);
+    const timeStr=timeMatch?(timeMatch[1].padStart(2,'0')+':'+(timeMatch[2]||'00')):null;
+    const dateStr=targetDate?fmtDate(targetDate):null;
+    // Remover palavras de comando para extrair o título
+    const cleanMsg=msg.replace(/(?:adicionar|incluir|criar|agendar|um|uma|lembrete|compromisso|para|mim|me|na agenda|no calendário)/gi,'').replace(/\d{1,2}[h:]\d{0,2}/g,'').replace(/\d{1,2}[\/-]\d{1,2}(?:[\/-]\d{2,4})?/g,'').trim();
+    if(cleanMsg.length>3){
+      return `Entendido! Para criar o lembrete **"${cleanMsg}"**${dateStr?' para '+dateStr:''}${timeStr?' às '+timeStr:''}, clique em **Novo lembrete** na tela de Lembretes e preencha os campos. Depois use **Incluir na Agenda** para mover para seus compromissos.\n\nOu, se quiser incluir direto na **Google Agenda**, me diga: *"incluir na agenda Google: ${cleanMsg}"*`;
+    }
+    return `Para adicionar um compromisso, clique em **"Novo lembrete"** na tela de Lembretes. Depois use o botão **"Incluir na Agenda"** para mover para seus compromissos.\n\nPosso também abrir a **Google Agenda** diretamente — é só me dizer o nome, data e hora do evento!`;
   }
 
   // Resumo geral
@@ -1732,8 +1848,30 @@ Exemplo: *"Enviar e-mail para joao@empresa.com, assunto: Reunião, dizendo: Conf
     return `Aqui está seu resumo:\n\n📌 **${pend}** lembrete(s) pendente(s)\n📅 **${agenda}** lembrete(s) na agenda\n🗓️ **${cal}** evento(s) do calendário sincronizados\n⏰ **${hoje}** compromisso(s) para hoje\n\nIntegrações ativas: ${integrations.googleConnected?'Google ✓':''}${integrations.outlookConnected?' Outlook ✓':''}${!integrations.googleConnected&&!integrations.outlookConnected?'Nenhuma (conecte em Integrações)':''}`;
   }
 
+  // Resposta genérica inteligente: tenta interpretar a mensagem como consulta de data
+  // Se a mensagem parece uma pergunta sobre agenda sem data específica
+  if(msgLower.includes('tenho')||msgLower.includes('agenda')||msgLower.includes('compromisso')||msgLower.includes('próximo')||msgLower.includes('proximo')){
+    const pend=reminders.filter(r=>!r.done&&!r.inAgenda);
+    const agenda=reminders.filter(r=>!r.done&&r.inAgenda);
+    const hojeItems=pend.filter(r=>r.date===t);
+    const amanhaItems=pend.filter(r=>r.date===tom);
+    const calHoje=calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t);
+    const calAmanha=calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===tom);
+    let resp=`Aqui está uma visão geral da sua agenda:\n\n`;
+    const totalHoje=hojeItems.length+calHoje.length;
+    const totalAmanha=amanhaItems.length+calAmanha.length;
+    if(totalHoje>0){resp+=`⏰ **Hoje:** ${totalHoje} compromisso(s)\n`;}
+    else{resp+=`⏰ **Hoje:** agenda livre\n`;}
+    if(totalAmanha>0){resp+=`📅 **Amanhã:** ${totalAmanha} compromisso(s)\n`;}
+    else{resp+=`📅 **Amanhã:** agenda livre\n`;}
+    if(agenda.length>0){resp+=`📌 **Lembretes na agenda:** ${agenda.length}\n`;}
+    if(pend.length>0){resp+=`📝 **Lembretes pendentes:** ${pend.length}\n`;}
+    resp+='\nQuer detalhes de algum dia específico?';
+    return resp;
+  }
+
   // Resposta padrão
-  return `Entendi sua pergunta! Posso ajudar com:\n\n• **"O que tenho hoje?"** — ver compromissos do dia\n• **"Lembretes pendentes"** — listar lembretes\n• **"Compromissos amanhã"** — ver agenda de amanhã\n• **"Resumo"** — visão geral do app\n• Consultar por data: **"O que tenho dia 15/4?"**\n• **"Enviar e-mail para fulano@email.com"** — abrir cliente de e-mail\n\nO que você gostaria de saber?`;
+  return `Olá! Posso ajudar com sua agenda e lembretes. Experimente perguntar:\n\n• *"O que tenho hoje?"*\n• *"Compromissos de amanhã"*\n• *"Lembretes pendentes"*\n• *"Resumo da semana"*\n• *"Enviar e-mail para fulano@email.com"*\n• *"Incluir na agenda Google: Reunião às 15h dia 25/3"*\n\nO que você precisa?`;
 }
 
 window.onload=()=>{
