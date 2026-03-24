@@ -657,8 +657,10 @@ function loadSheets(){userSheets=JSON.parse(localStorage.getItem(SHEETS_KEY(user
 function saveSheets(){localStorage.setItem(SHEETS_KEY(user.email),JSON.stringify(userSheets))}
 function loadInt(){integrations=JSON.parse(localStorage.getItem(INT_KEY(user.email))||'{}')}
 function saveInt(){localStorage.setItem(INT_KEY(user.email),JSON.stringify(integrations))}
-function today(){return new Date().toISOString().split('T')[0]}
-function tomorrow(){const d=new Date();d.setDate(d.getDate()+1);return d.toISOString().split('T')[0]}
+function today(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().split('T')[0]}
+function tomorrow(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());d.setDate(d.getDate()+1);return d.toISOString().split('T')[0]}
+function fmtTime(dt){if(!dt)return'';const d=new Date(dt);if(isNaN(d))return dt.slice(11,16)||'';return d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/Sao_Paulo'})}
+function fmtDateLocal(dt){if(!dt)return'';const d=new Date(dt);if(isNaN(d))return dt.split('T')[0]||'';return d.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'})}
 function initials(n){return n.trim().split(/\s+/).map(x=>x[0]).join('').toUpperCase().slice(0,2)}
 function fmtDate(d){const p=d.split('-');return`${p[2]}/${p[1]}/${p[0]}`}
 
@@ -740,7 +742,7 @@ function sendDigest(tipo){
   const d=tipo==='hoje'?today():tomorrow();
   const evts=(integrations.calendarEvents||[]).filter(e=>(e.start?.dateTime||e.start?.date||'').startsWith(d));
   const rems=reminders.filter(r=>!r.done&&r.date===d);
-  const all=[...evts.map(e=>({t:(e.start?.dateTime||'').slice(11,16),n:e.summary})),...rems.map(r=>({t:r.time,n:r.title}))];
+  const all=[...evts.map(e=>({t:fmtTime(e.start?.dateTime),n:e.summary})),...rems.map(r=>({t:r.time,n:r.title}))];
   if(!all.length){sysNotif(tipo==='hoje'?'☀️ Bom dia!':'🌙 Boa noite!',tipo==='hoje'?'Sua agenda de hoje está livre!':'Sua agenda de amanhã está livre!');return}
   sysNotif(tipo==='hoje'?`☀️ Agenda de hoje (${all.length})`:`🌙 Agenda de amanhã (${all.length})`,all.map(e=>`${e.t?e.t+' — ':''}${e.n}`).join('\n'));
 }
@@ -803,9 +805,9 @@ async function fetchGoogleCalendarEvents(){
     }
     // 2. Buscar eventos do Google Calendar
     const t=today(),tom=tomorrow();
-    const tMin=new Date(t+'T00:00:00').toISOString();
-    const tMax=new Date(tom+'T23:59:59').toISOString();
-    const url=`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${tMin}&timeMax=${tMax}&singleEvents=true&orderBy=startTime&maxResults=50`;
+    const tMin=t+'T00:00:00-03:00';
+    const tMax=tom+'T23:59:59-03:00';
+    const url=`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(tMin)}&timeMax=${encodeURIComponent(tMax)}&singleEvents=true&orderBy=startTime&maxResults=50`;
     const res=await fetch(url,{headers:{Authorization:'Bearer '+gcalToken}});
     if(!res.ok)throw new Error('HTTP '+res.status);
     const data=await res.json();
@@ -957,17 +959,17 @@ function renderAgenda(){
   }
   const t=today(),tom=tomorrow();
   const groups={};
-  events.forEach(e=>{const d=(e.start?.dateTime||e.start?.date||'').split('T')[0];if(!groups[d])groups[d]=[];groups[d].push(e)});
+  events.forEach(e=>{const raw=e.start?.dateTime||e.start?.date||'';const d=e.start?.dateTime?fmtDateLocal(e.start.dateTime):raw.split('T')[0];if(!groups[d])groups[d]=[];groups[d].push(e)});
   reminders.filter(r=>!r.done&&r.date).forEach(r=>{if(!groups[r.date])groups[r.date]=[];groups[r.date].push({summary:r.title,start:{dateTime:r.date+'T'+(r.time||'00:00')},source:'reminder'})});
   const sorted=Object.keys(groups).sort();
   const srcColor={google:'#60A5FA',outlook:'#0078d4',reminder:'#4ADE80'};
   let html='';
   sorted.forEach(d=>{
     const lbl=d===t?'Hoje':d===tom?'Amanhã':fmtDate(d);
-    const evts=groups[d].sort((a,b)=>(a.start?.dateTime||'').slice(11,16).localeCompare((b.start?.dateTime||'').slice(11,16)));
+    const evts=groups[d].sort((a,b)=>fmtTime(a.start?.dateTime).localeCompare(fmtTime(b.start?.dateTime)));
     html+=`<div class="agenda-preview"><div class="agenda-ttl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${lbl}</div>`;
     evts.forEach(e=>{
-      const time=(e.start?.dateTime||'').slice(11,16)||'';
+      const time=fmtTime(e.start?.dateTime)||'';
       const src=e.source==='google'?'Google':e.source==='outlook'?'Outlook':'Lembrete';
       html+=`<div class="agenda-event"><div class="agenda-event-time">${time}</div><div class="agenda-event-dot" style="background:${srcColor[e.source]||'#9BA39D'}"></div><div class="agenda-event-title">${e.summary}</div><div class="agenda-event-src">${src}</div></div>`;
     });
@@ -1149,7 +1151,7 @@ function render(){
 
   // Na tela "Hoje", incluir também eventos do calendário
   const calEvts=integrations.calendarEvents||[];
-  const calHoje=view==='hoje'?calEvts.filter(e=>(e.start?.dateTime||e.start?.date||'').startsWith(t)):[];
+  const calHoje=view==='hoje'?calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t):[];
 
   if(!list.length&&!calHoje.length){
     // Estado vazio: mostrar e-mail conectado se houver
@@ -1182,9 +1184,9 @@ function render(){
   list.forEach(r=>{const k=r.date||'z-sem-data';if(!groups[k])groups[k]=[];groups[k].push({_type:'reminder',...r})});
   // Adicionar eventos do calendário na tela Hoje
   calHoje.forEach(e=>{
-    const d=(e.start?.dateTime||e.start?.date||'').split('T')[0]||t;
+    const d=(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||'').split('T')[0])||t;
     if(!groups[d])groups[d]=[];
-    groups[d].push({_type:'cal',id:'cal_'+e.id,title:e.summary||'(sem título)',time:(e.start?.dateTime||'').slice(11,16)||'',source:e.source||'google',cat:null});
+    groups[d].push({_type:'cal',id:'cal_'+e.id,title:e.summary||'(sem título)',time:fmtTime(e.start?.dateTime)||'',source:e.source||'google',cat:null});
   });
 
   const sorted=Object.keys(groups).sort();
@@ -1255,8 +1257,8 @@ function updateBadges(){
   userCats.forEach(c=>{const el=document.getElementById('b-'+c.id);if(el)el.textContent=a.filter(r=>r.cat===c.id).length});
   // Badges agenda: lembretes + eventos do calendário
   const calEvts=integrations.calendarEvents||[];
-  const bHoje=a.filter(r=>r.date===t).length+calEvts.filter(e=>(e.start?.dateTime||e.start?.date||'').startsWith(t)).length;
-  const bAmanha=a.filter(r=>r.date===tom).length+calEvts.filter(e=>(e.start?.dateTime||e.start?.date||'').startsWith(tom)).length;
+  const bHoje=a.filter(r=>r.date===t).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t).length;
+  const bAmanha=a.filter(r=>r.date===tom).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===tom).length;
   const elH=document.getElementById('b-agenda-hoje');if(elH)elH.textContent=bHoje;
   const elA=document.getElementById('b-agenda-amanha');if(elA)elA.textContent=bAmanha;
   // Atualizar subtítulos dos cards da Minha Agenda
@@ -1267,7 +1269,7 @@ function updateBadges(){
   const subAmanha=document.getElementById('minha-agenda-amanha-sub');
   if(subAmanha)subAmanha.textContent=bAmanha>0?bAmanha+' compromisso'+(bAmanha!==1?'s':'')+' amanhã':'Ver compromissos de amanhã';
   // Google Agenda: nº de eventos hoje (do calendário)
-  const evtsHoje=calEvts.filter(e=>(e.start?.dateTime||e.start?.date||'').startsWith(t)&&e.source==='google').length;
+  const evtsHoje=calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t&&e.source==='google').length;
   const subGoogle=document.getElementById('minha-agenda-google-sub');
   if(subGoogle){
     if(integrations.googleConnected&&evtsHoje>0)subGoogle.textContent=evtsHoje+' evento'+(evtsHoje!==1?'s':'')+' hoje'+(integrations.googleEmail?' · '+integrations.googleEmail:'');
@@ -1323,12 +1325,12 @@ function loadAgendaDia(dia){
 
   // Eventos do Google Calendar (se conectado)
   const calItems=(integrations.calendarEvents||[]).filter(e=>{
-    const d=(e.start?.dateTime||e.start?.date||'').split('T')[0];
+    const d=e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||'').split('T')[0];
     return d===targetDate;
   }).map(e=>({
     id:'gcal_'+e.id,
     title:e.summary||'(sem título)',
-    time:(e.start?.dateTime||'').slice(11,16)||'',
+    time:fmtTime(e.start?.dateTime)||'',
     source:e.source||'google',
     sourceLabel:e.source==='google'?'Google Agenda':'Outlook',
     sourceColor:e.source==='google'?'#60A5FA':'#0078d4',
@@ -1613,6 +1615,6 @@ initSupabase();
     await signOut(auth);
   };
 </script>
-<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=4');</script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=5');</script>
 </body>
 </html>
