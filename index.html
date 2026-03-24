@@ -24,6 +24,11 @@
   --purple:#C084FC;--purple-dim:rgba(192,132,252,0.12);
   --r:14px;--r-sm:9px;--r-xs:6px;--r-full:999px;
 }
+[data-theme="light"]{
+  --bg:#F5F7F5;--surface:#FFFFFF;--surface2:#EEF1EE;--surface3:#E2E7E2;
+  --text:#111C14;--text2:#4A5C4E;--text3:#8A9E8E;
+  --border:rgba(17,28,20,0.10);
+}
 body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 /* AUTH */
 #auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;position:relative;overflow:hidden}
@@ -54,6 +59,9 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:0
 .avatar{width:24px;height:24px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--accent)}
 .btn-sm{padding:6px 12px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:12px;cursor:pointer;transition:all 0.15s}
 .btn-sm:hover{background:var(--surface2);color:var(--text)}
+.theme-btn{width:32px;height:32px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0}
+.theme-btn:hover{background:var(--surface2);color:var(--text)}
+.theme-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8}
 .layout{display:grid;grid-template-columns:220px 1fr;height:calc(100vh - 56px)}
 @media(max-width:640px){.layout{grid-template-columns:1fr}.sidebar{display:none}.mob-bar{display:flex!important}}
 .sidebar{background:var(--surface);border-right:1px solid var(--border);padding:0.875rem 0.625rem;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
@@ -252,6 +260,10 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
         <div class="avatar" id="hdr-av">?</div>
         <span id="hdr-nm">—</span>
       </div>
+      <button class="theme-btn" id="theme-toggle" onclick="toggleTheme()" title="Alternar tema">
+        <svg id="theme-icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg id="theme-icon-sun" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
       <button class="btn-sm" onclick="doLogout()">Sair</button>
     </div>
   </header>
@@ -647,6 +659,17 @@ const emojiOptions=['📊','🏥','💊','📚','💰','✈️','🏠','👥','�
 const catColors={},catBg={},catLbl={};
 function syncCatMaps(){userCats.forEach(c=>{catColors[c.id]=c.color;catBg[c.id]=c.bg;catLbl[c.id]=c.label})}
 
+function toggleTheme(){
+  const isLight=document.documentElement.getAttribute('data-theme')==='light';
+  const next=isLight?'dark':'light';
+  applyTheme(next);
+  localStorage.setItem('lembra_theme',next);
+}
+function applyTheme(t){
+  if(t==='light'){document.documentElement.setAttribute('data-theme','light');document.getElementById('theme-icon-moon').style.display='none';document.getElementById('theme-icon-sun').style.display='block';}
+  else{document.documentElement.removeAttribute('data-theme');document.getElementById('theme-icon-moon').style.display='block';document.getElementById('theme-icon-sun').style.display='none';}
+}
+(function(){const saved=localStorage.getItem('lembra_theme');if(saved==='light')applyTheme('light');})();
 function getUsers(){return JSON.parse(localStorage.getItem(USERS_KEY)||'{}')}
 function saveUsers(u){localStorage.setItem(USERS_KEY,JSON.stringify(u))}
 function loadReminders(){return JSON.parse(localStorage.getItem(DATA_KEY(user.email))||'[]')}
