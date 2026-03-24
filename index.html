@@ -864,10 +864,10 @@ async function fetchOutlookCalendarEvents(){
   if(!outlookToken){return;}
   try{
     const t=today(),tom=tomorrow();
-    const tMin=new Date(t+'T00:00:00').toISOString();
-    const tMax=new Date(tom+'T23:59:59').toISOString();
+    const tMin=t+'T00:00:00-03:00';
+    const tMax=tom+'T23:59:59-03:00';
     const url=`https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=${tMin}&endDateTime=${tMax}&$select=subject,start,end&$orderby=start/dateTime&$top=50`;
-    const res=await fetch(url,{headers:{Authorization:'Bearer '+outlookToken,'Content-Type':'application/json'}});
+    const res=await fetch(url,{headers:{Authorization:'Bearer '+outlookToken,'Content-Type':'application/json','Prefer':'outlook.timezone="America/Sao_Paulo"'}});
     if(!res.ok)throw new Error('HTTP '+res.status);
     const data=await res.json();
     const outlookEvts=(data.value||[]).map(e=>({
