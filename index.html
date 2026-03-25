@@ -1144,73 +1144,64 @@ function connectGoogle(){
 }
 
 async function fetchGoogleCalendarEvents(){
-  if(!gcalToken){loadMockGoogleEvents();return;}
+  if(!gcalToken){updateBadges();return;}
   try{
+    // Buscar e-mail do usuário Google
     const uRes=await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+gcalToken}});
     if(uRes.ok){const uData=await uRes.json();if(uData.email)integrations.googleEmail=uData.email;}
-    const t=today(),tom=tomorrow();
-    const tMin=t+'T00:00:00-03:00';
-    const tMax=tom+'T23:59:59-03:00';
-    const url=`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(tMin)}&timeMax=${encodeURIComponent(tMax)}&singleEvents=true&orderBy=startTime&maxResults=50`;
-    const res=await fetch(url,{headers:{Authorization:'Bearer '+gcalToken}});
-    if(!res.ok)throw new Error('HTTP '+res.status);
+    // Usar Edge Function do Supabase para buscar eventos
+    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+    const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({provider:'google',token:gcalToken})
+    });
+    if(!res.ok)throw new Error('Edge Function HTTP '+res.status);
     const data=await res.json();
+    if(data.erro)throw new Error(data.erro);
     const outlookEvts=(integrations.calendarEvents||[]).filter(e=>e.source==='outlook');
-    const googleEvts=(data.items||[]).map(e=>({id:e.id,summary:e.summary||'(sem título)',start:e.start,end:e.end,source:'google'}));
+    const googleEvts=(data.eventos||[]).map(e=>({...e,source:'google'}));
     integrations.calendarEvents=[...googleEvts,...outlookEvts];
     saveInt();
-    const emailInfo=integrations.googleEmail?` (${integrations.googleEmail})`:'';
+    const emailInfo=integrations.googleEmail?` (${integrations.googleEmail})`:''
     notify('Google Agenda',`✓ ${googleEvts.length} evento(s) carregado(s)${emailInfo}`);
     updateBadges();
     if(view==='compromissos-hoje')loadCompromissosDia('hoje');
     if(view==='compromissos-amanha')loadCompromissosDia('amanha');
   } catch(err){
     console.error('Erro Google Calendar:',err);
-    loadMockGoogleEvents();
+    notify('Google Agenda','Erro ao buscar eventos: '+err.message);
   }
 }
-// CRIAR EVENTO NO GOOGLE CALENDAR
+// CRIAR EVENTO NO GOOGLE CALENDAR (via Edge Function Supabase)
 async function createGoogleCalendarEvent(title,date,time,desc){
   if(!gcalToken)return false;
   try{
-    const startDt=time?`${date}T${time}:00`:`${date}T09:00:00`;
-    const endDt=time?`${date}T${time.split(':')[0].padStart(2,'0')}:${String(parseInt(time.split(':')[1]||0)+30).padStart(2,'0')}:00`:`${date}T10:00:00`;
-    const tz='America/Sao_Paulo';
-    const body={
-      summary:title,
-      description:desc||'Criado pelo Lembra App',
-      start:{dateTime:startDt,timeZone:tz},
-      end:{dateTime:endDt,timeZone:tz},
-      reminders:{useDefault:false,overrides:[{method:'popup',minutes:10}]}
-    };
-    const res=await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events',{
+    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+    const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
       method:'POST',
-      headers:{Authorization:'Bearer '+gcalToken,'Content-Type':'application/json'},
-      body:JSON.stringify(body)
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({provider:'google',token:gcalToken,action:'create',event:{title,date,time,desc}})
     });
     if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    if(data.erro)throw new Error(data.erro);
     return true;
   }catch(e){console.error('Erro criar evento Google:',e);return false;}
 }
-// CRIAR EVENTO NO OUTLOOK
+// CRIAR EVENTO NO OUTLOOK (via Edge Function Supabase)
 async function createOutlookCalendarEvent(title,date,time,desc){
   if(!outlookToken)return false;
   try{
-    const startDt=time?`${date}T${time}:00`:`${date}T09:00:00`;
-    const endDt=time?`${date}T${time.split(':')[0].padStart(2,'0')}:${String(parseInt(time.split(':')[1]||0)+30).padStart(2,'0')}:00`:`${date}T10:00:00`;
-    const body={
-      subject:title,
-      body:{contentType:'text',content:desc||'Criado pelo Lembra App'},
-      start:{dateTime:startDt,timeZone:'America/Sao_Paulo'},
-      end:{dateTime:endDt,timeZone:'America/Sao_Paulo'},
-      isReminderOn:true,reminderMinutesBeforeStart:10
-    };
-    const res=await fetch('https://graph.microsoft.com/v1.0/me/events',{
+    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+    const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
       method:'POST',
-      headers:{Authorization:'Bearer '+outlookToken,'Content-Type':'application/json'},
-      body:JSON.stringify(body)
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({provider:'outlook',token:outlookToken,action:'create',event:{title,date,time,desc}})
     });
     if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    if(data.erro)throw new Error(data.erro);
     return true;
   }catch(e){console.error('Erro criar evento Outlook:',e);return false;}
 }
@@ -1252,14 +1243,17 @@ async function connectOutlook(){
 async function fetchOutlookCalendarEvents(){
   if(!outlookToken){return;}
   try{
-    const t=today(),tom=tomorrow();
-    const tMin=t+'T00:00:00-03:00';
-    const tMax=tom+'T23:59:59-03:00';
-    const url=`https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=${tMin}&endDateTime=${tMax}&$select=subject,start,end&$orderby=start/dateTime&$top=50`;
-    const res=await fetch(url,{headers:{Authorization:'Bearer '+outlookToken,'Content-Type':'application/json','Prefer':'outlook.timezone="America/Sao_Paulo"'}});
-    if(!res.ok)throw new Error('HTTP '+res.status);
+    // Usar Edge Function do Supabase para buscar eventos do Outlook
+    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+    const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({provider:'outlook',token:outlookToken})
+    });
+    if(!res.ok)throw new Error('Edge Function HTTP '+res.status);
     const data=await res.json();
-    const outlookEvts=(data.value||[]).map(e=>({id:e.id,summary:e.subject||'(sem título)',start:{dateTime:e.start.dateTime},end:{dateTime:e.end.dateTime},source:'outlook'}));
+    if(data.erro)throw new Error(data.erro);
+    const outlookEvts=(data.eventos||[]).map(e=>({...e,source:'outlook'}));
     const googleEvts=(integrations.calendarEvents||[]).filter(e=>e.source==='google');
     integrations.calendarEvents=[...googleEvts,...outlookEvts];
     saveInt();
@@ -1270,7 +1264,7 @@ async function fetchOutlookCalendarEvents(){
     if(view==='compromissos-amanha')loadCompromissosDia('amanha');
   } catch(err){
     console.error('Erro Outlook Calendar:',err);
-    notify('Outlook','Erro ao buscar eventos. Tente reconectar.');
+    notify('Outlook','Erro ao buscar eventos: '+err.message);
   }
 }
 function disconnectOutlook(){
@@ -2262,39 +2256,46 @@ CATEGORIAS: ${userCats.map(c=>c.label).join(', ')}`;
 }
 
 async function callAI(userMessage,context){
-  const OPENAI_API_KEY=window.__AI_KEY||'';
-  // Usar a API OpenAI configurada no ambiente
-  const apiKey=OPENAI_API_KEY;
-  
-  const systemPrompt=`Você é o Assistente Lembra, um assistente pessoal integrado ao app Lembra. Você tem acesso ao contexto completo do app do usuário (lembretes, compromissos e eventos do calendário).
+  // URL da Edge Function do Supabase
+  const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+  const SUPABASE_ANON_KEY=''; // Não necessária para funções públicas com CORS
+  const edgeFnUrl=SUPABASE_URL+'/functions/v1/ai-chat';
 
-Responda de forma concisa e útil em português brasileiro. Quando o usuário pedir para adicionar um compromisso complexo, diga que vai abrir a tela de agenda para ele incluir. Para consultas simples, responda diretamente com base no contexto fornecido.
+  // Montar contexto estruturado para a IA
+  const t=today(),tom=tomorrow();
+  const calEvts=integrations.calendarEvents||[];
+  const lembretes=reminders.map(r=>({
+    title:r.title,date:r.date,time:r.time,done:r.done,cat:catLbl[r.cat]||r.cat,prio:r.prio,inAgenda:r.inAgenda
+  }));
+  const eventos=calEvts.map(e=>({
+    summary:e.summary,start:e.start,end:e.end,origem:e.source==='google'?'Google Agenda':'Outlook'
+  }));
 
-Contexto atual do app:
-${context}`;
+  // Histórico das últimas 8 mensagens
+  const historico=aiMessages.slice(-8).map(m=>({role:m.role,content:m.text}));
 
   try{
-    const res=await fetch('https://api.openai.com/v1/chat/completions',{
+    const res=await fetch(edgeFnUrl,{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        model:'gpt-4.1-mini',
-        messages:[
-          {role:'system',content:systemPrompt},
-          ...aiMessages.slice(-10).map(m=>({role:m.role,content:m.text})),
-          {role:'user',content:userMessage}
-        ],
-        max_tokens:500,
-        temperature:0.7
+        mensagem:userMessage,
+        historico,
+        contexto:{lembretes,eventos}
       })
     });
     if(!res.ok){
-      // Fallback: resposta local sem API
+      console.warn('Edge Function retornou erro:',res.status);
       return processLocalAI(userMessage,context);
     }
     const data=await res.json();
-    return data.choices?.[0]?.message?.content||processLocalAI(userMessage,context);
+    if(data.erro){
+      console.warn('Erro da IA:',data.erro);
+      return processLocalAI(userMessage,context);
+    }
+    return data.resposta||processLocalAI(userMessage,context);
   } catch(e){
+    console.warn('Erro ao chamar Edge Function:',e);
     return processLocalAI(userMessage,context);
   }
 }
