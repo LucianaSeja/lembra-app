@@ -709,6 +709,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
             <div id="google-connected-area" style="display:none">
               <div style="font-size:12px;color:var(--accent);margin-bottom:4px">✓ Conectado como <span id="google-email-lbl"></span></div>
               <button class="btn-cancel" style="font-size:12px;margin-top:6px" onclick="disconnectGoogle()">Desconectar</button>
+              <button class="connect-btn" style="font-size:12px;margin-top:6px;background:rgba(74,222,128,0.15);color:var(--accent);border:1px solid rgba(74,222,128,0.3)" onclick="fetchGoogleCalendarEvents()">↻ Sincronizar agora</button>
             </div>
           </div>
         </div>
@@ -730,6 +731,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
             <div id="outlook-connected-area" style="display:none">
               <div style="font-size:12px;color:var(--accent);margin-bottom:4px">✓ Conectado como <span id="outlook-email-lbl"></span></div>
               <button class="btn-cancel" style="font-size:12px;margin-top:6px" onclick="disconnectOutlook()">Desconectar</button>
+              <button class="connect-btn" style="font-size:12px;margin-top:6px;background:rgba(0,120,212,0.15);color:#60A5FA;border:1px solid rgba(0,120,212,0.3)" onclick="fetchOutlookCalendarEvents()">↻ Sincronizar agora</button>
             </div>
           </div>
         </div>
@@ -752,6 +754,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
             <div id="outlook2-connected-area" style="display:none">
               <div style="font-size:12px;color:var(--accent);margin-bottom:4px">✓ Conectado como <span id="outlook2-email-lbl"></span></div>
               <button class="btn-cancel" style="font-size:12px;margin-top:6px" onclick="disconnectOutlook2()">Desconectar</button>
+              <button class="connect-btn" style="font-size:12px;margin-top:6px;background:rgba(0,180,216,0.15);color:#00b4d8;border:1px solid rgba(0,180,216,0.3)" onclick="fetchOutlookCalendarEvents2()">↻ Sincronizar agora</button>
             </div>
           </div>
         </div>
@@ -1040,6 +1043,8 @@ function startSession(u){
   // Solicitar permissão de notificações e iniciar monitoramento
   requestNotifPermission();
   // Renovar tokens silenciosamente após 2s (aguardar carregamento dos SDKs)
+  // Restaurar token Google do storage imediatamente
+  restoreGcalToken();
   setTimeout(()=>{
     silentReauthGoogle();
     silentReauthOutlook();
@@ -1100,9 +1105,32 @@ let outlookToken=null;   // conta principal (hotmail/pessoal)
 let outlookToken2=null;  // segunda conta (sejadigital/corporativa)
 let gcalToken=null;
 
+// Restaurar gcalToken do localStorage ao iniciar (token Google persiste ~1h)
+function restoreGcalToken(){
+  try{
+    const saved=integrations.gcalToken;
+    if(saved&&integrations.googleConnected){
+      gcalToken=saved;
+      console.log('[Lembra] gcalToken restaurado do storage');
+    }
+  }catch(e){}
+}
+
 // Renovação silenciosa de tokens ao iniciar o app
 async function silentReauthGoogle(){
   if(!integrations.googleConnected)return;
+  // Se já temos token (restaurado do storage), tentar buscar eventos direto
+  if(gcalToken){
+    try{
+      await fetchGoogleCalendarEvents();
+      return;
+    }catch(e){
+      console.warn('Google fetch com token salvo falhou, tentando reauth:',e);
+      gcalToken=null;
+      delete integrations.gcalToken;
+    }
+  }
+  // Tentar renovar token silenciosamente via Google SDK
   if(typeof google==='undefined'||!google.accounts)return;
   try{
     await new Promise((resolve,reject)=>{
@@ -1113,6 +1141,7 @@ async function silentReauthGoogle(){
         callback:(r)=>{
           if(r.error){reject(r);return;}
           gcalToken=r.access_token;
+          integrations.gcalToken=gcalToken;
           resolve(r);
         }
       }).requestAccessToken();
@@ -1155,6 +1184,7 @@ function connectGoogle(){
         if(resp.error){notify('Erro','Não foi possível conectar ao Google.');return;}
         gcalToken=resp.access_token;
         integrations.googleConnected=true;
+        integrations.gcalToken=gcalToken; // persistir token
         // googleEmail será preenchido por fetchGoogleCalendarEvents via userinfo
         saveInt();updateIntUI();
         fetchGoogleCalendarEvents();
@@ -1183,9 +1213,10 @@ async function fetchGoogleCalendarEvents(){
     if(!res.ok)throw new Error('Edge Function HTTP '+res.status);
     const data=await res.json();
     if(data.erro)throw new Error(data.erro);
-    const outlookEvts=(integrations.calendarEvents||[]).filter(e=>e.source==='outlook');
+    const nonGoogleEvts=(integrations.calendarEvents||[]).filter(e=>e.source!=='google');
     const googleEvts=(data.eventos||[]).map(e=>({...e,source:'google'}));
-    integrations.calendarEvents=[...googleEvts,...outlookEvts];
+    integrations.calendarEvents=[...googleEvts,...nonGoogleEvts];
+    integrations.gcalToken=gcalToken; // manter token atualizado
     saveInt();
     const emailInfo=integrations.googleEmail?` (${integrations.googleEmail})`:''
     notify('Google Agenda',`✓ ${googleEvts.length} evento(s) carregado(s)${emailInfo}`);
@@ -1231,6 +1262,7 @@ async function createOutlookCalendarEvent(title,date,time,desc){
 }
 function disconnectGoogle(){
   integrations.googleConnected=false;gcalToken=null;
+  delete integrations.gcalToken;
   if(integrations.calendarEvents)integrations.calendarEvents=integrations.calendarEvents.filter(e=>e.source!=='google');
   saveInt();updateIntUI();updateBadges();
   if(view==='compromissos-hoje')loadCompromissosDia('hoje');
@@ -1278,8 +1310,8 @@ async function fetchOutlookCalendarEvents(){
     const data=await res.json();
     if(data.erro)throw new Error(data.erro);
     const outlookEvts=(data.eventos||[]).map(e=>({...e,source:'outlook'}));
-    const googleEvts=(integrations.calendarEvents||[]).filter(e=>e.source==='google');
-    integrations.calendarEvents=[...googleEvts,...outlookEvts];
+    const nonOutlookEvts=(integrations.calendarEvents||[]).filter(e=>e.source!=='outlook');
+    integrations.calendarEvents=[...nonOutlookEvts,...outlookEvts];
     saveInt();
     const emailInfo=integrations.outlookEmail?` (${integrations.outlookEmail})`:''
     notify('Outlook',`✓ ${outlookEvts.length} evento(s) carregado(s)${emailInfo}`);
@@ -2876,6 +2908,6 @@ async function loginWithGoogle() {
   }
 }
 </script>
-<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=11');</script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=12');</script>
 </body>
 </html>
