@@ -420,31 +420,79 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
   <div class="layout">
     <div class="sidebar">
       <!-- LEMBRETES -->
-      <button class="nav-btn active" id="nav-lembretes" onclick="setView('hoje',this)" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#4ADE80;padding:12px 8px 8px">
-        <span style="display:inline-block;width:3px;height:12px;border-radius:2px;background:#4ADE80;flex-shrink:0"></span>
+      <button class="sec-label lbl-lembretes" id="nav-lembretes" onclick="toggleSidebarSection('sec-lembretes','nav-lembretes')" style="cursor:pointer;width:100%;text-align:left;border:none;background:none;font-family:inherit">
         Lembretes <span class="nbadge" id="b-hoje" style="margin-left:auto">0</span>
+        <svg style="width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2;transition:transform 0.25s;flex-shrink:0;margin-left:4px" id="arrow-lembretes" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
-      <!-- badges ocultos necessários para updateBadges() -->
-      <span id="b-todos" style="display:none">0</span>
+      <div class="sidebar-collapsible open" id="sec-lembretes">
+        <button class="nav-btn active" id="btn-hoje" onclick="setView('hoje',this)">
+          <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Hoje
+        </button>
+        <button class="nav-btn" id="btn-todos" onclick="setView('todos',this)">
+          <svg class="nav-icon" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><polyline points="3 6 4 7 6 5"/><polyline points="3 12 4 13 6 11"/><polyline points="3 18 4 19 6 17"/></svg>
+          Todos <span class="nbadge" id="b-todos">0</span>
+        </button>
+        <!-- Tipos: toggle que expande Concluídos + Categorias -->
+        <button class="sidebar-collapsible-toggle" id="tipos-toggle" onclick="toggleTiposSection()">
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          Tipos
+        </button>
+        <div class="sidebar-collapsible" id="tipos-section">
+          <button class="nav-btn" id="btn-feitos" onclick="setView('feitos',this)" style="padding-left:18px">
+            <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Concluídos
+          </button>
+          <button class="sidebar-collapsible-toggle" id="cats-toggle" onclick="toggleCatsSection()" style="padding-left:18px;font-size:10px">
+            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            Categorias
+          </button>
+          <div class="sidebar-collapsible" id="cats-section">
+            <div id="sidebar-cats"></div>
+          </div>
+        </div>
+      </div>
       <!-- MEUS COMPROMISSOS -->
-      <button class="nav-btn" id="nav-compromissos" onclick="setView('agenda',this)" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#60A5FA;padding:12px 8px 8px">
-        <span style="display:inline-block;width:3px;height:12px;border-radius:2px;background:#60A5FA;flex-shrink:0"></span>
-        Meus Compromissos <span class="nbadge" id="b-comp-hoje" style="margin-left:auto">0</span>
+      <button class="sec-label lbl-compromissos" id="nav-compromissos" onclick="toggleSidebarSection('sec-compromissos','nav-compromissos')" style="cursor:pointer;width:100%;text-align:left;border:none;background:none;font-family:inherit">
+        Meus Compromissos
+        <svg style="width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2;transition:transform 0.25s;flex-shrink:0;margin-left:4px" id="arrow-compromissos" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
-      <!-- badge amanhã oculto necessário para updateBadges() -->
-      <span id="b-comp-amanha" style="display:none">0</span>
+      <div class="sidebar-collapsible" id="sec-compromissos">
+        <button class="nav-btn" onclick="setView('agenda',this)">
+          <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>
+          Meus Compromissos
+        </button>
+        <button class="nav-btn" onclick="setView('compromissos-hoje',this)">
+          <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/></svg>
+          Hoje <span class="nbadge" id="b-comp-hoje">0</span>
+        </button>
+        <button class="nav-btn" onclick="setView('compromissos-amanha',this)">
+          <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h8M8 18h5"/></svg>
+          Amanhã <span class="nbadge" id="b-comp-amanha">0</span>
+        </button>
+      </div>
       <!-- PLANILHAS -->
-      <button class="nav-btn" id="nav-planilhas" onclick="setView('planilhas',this)" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#FBBF24;padding:12px 8px 8px">
-        <span style="display:inline-block;width:3px;height:12px;border-radius:2px;background:#FBBF24;flex-shrink:0"></span>
+      <button class="sec-label lbl-planilhas" id="nav-planilhas" onclick="toggleSidebarSection('sec-planilhas','nav-planilhas')" style="cursor:pointer;width:100%;text-align:left;border:none;background:none;font-family:inherit">
         Planilhas
+        <svg style="width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2;transition:transform 0.25s;flex-shrink:0;margin-left:4px" id="arrow-planilhas" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
+      <div class="sidebar-collapsible" id="sec-planilhas">
+        <button class="nav-btn" onclick="setView('planilhas',this)">
+          <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+          Planilhas
+        </button>
+      </div>
       <!-- CONFIGURAÇÕES -->
-      <button class="nav-btn" id="nav-config" onclick="setView('integracoes',this)" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#C084FC;padding:12px 8px 8px">
-        <span style="display:inline-block;width:3px;height:12px;border-radius:2px;background:#C084FC;flex-shrink:0"></span>
+      <button class="sec-label lbl-config" id="nav-config" onclick="toggleSidebarSection('sec-config','nav-config')" style="cursor:pointer;width:100%;text-align:left;border:none;background:none;font-family:inherit">
         Configurações
+        <svg style="width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2;transition:transform 0.25s;flex-shrink:0;margin-left:4px" id="arrow-config" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
-      <!-- sidebar-cats mantido oculto para compatibilidade com renderSidebar() -->
-      <div id="sidebar-cats" style="display:none"></div>
+      <div class="sidebar-collapsible" id="sec-config">
+        <button class="nav-btn" onclick="setView('integracoes',this)">
+          <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Integrações
+        </button>
+      </div>
     </div>
 
     <main id="main">
@@ -1025,6 +1073,12 @@ function startSession(u){
   renderSidebar();renderCatSelect();renderSheets();updateIntUI();render();scheduleNotifs();scheduleDigest();
   // Solicitar permissão de notificações e iniciar monitoramento
   requestNotifPermission();
+  // Limpar eventos do calendário salvos (podem ter fuso errado da versão anterior)
+  // Serão resincronizados automaticamente abaixo
+  if(integrations.calendarEvents&&integrations.calendarEvents.length>0){
+    integrations.calendarEvents=[];
+    saveInt();
+  }
   // Renovar tokens silenciosamente após 2s (aguardar carregamento dos SDKs)
   // Restaurar token Google do storage imediatamente
   restoreGcalToken();
@@ -1212,12 +1266,35 @@ function connectGoogle(){
   }
 }
 
+async function renewGcalToken(){
+  // Renovar token Google silenciosamente
+  if(typeof google==='undefined'||!google.accounts)return false;
+  try{
+    const r=await new Promise((resolve,reject)=>{
+      google.accounts.oauth2.initTokenClient({
+        client_id:GCAL_CLIENT_ID,
+        scope:GCAL_SCOPES,
+        prompt:'',
+        callback:(resp)=>resp.error?reject(resp):resolve(resp)
+      }).requestAccessToken();
+    });
+    gcalToken=r.access_token;
+    integrations.gcalToken=gcalToken;
+    return true;
+  }catch(e){console.warn('Google token renewal failed:',e);return false;}
+}
 async function fetchGoogleCalendarEvents(){
   if(!gcalToken){updateBadges();return;}
   try{
-    // Buscar e-mail do usuário Google
+    // Verificar se token ainda é válido
     const uRes=await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+gcalToken}});
-    if(uRes.ok){const uData=await uRes.json();if(uData.email)integrations.googleEmail=uData.email;}
+    if(uRes.status===401){
+      // Token expirado: tentar renovar
+      const renewed=await renewGcalToken();
+      if(!renewed){notify('Google Agenda','Sessão expirada. Clique em Conectar Google novamente.');gcalToken=null;delete integrations.gcalToken;saveInt();updateIntUI();return;}
+    } else if(uRes.ok){
+      const uData=await uRes.json();if(uData.email)integrations.googleEmail=uData.email;
+    }
     // Usar Edge Function do Supabase para buscar eventos
     const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
     const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
@@ -1225,7 +1302,33 @@ async function fetchGoogleCalendarEvents(){
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
       body:JSON.stringify({provider:'google',token:gcalToken})
     });
-    if(!res.ok)throw new Error('Edge Function HTTP '+res.status);
+    if(!res.ok){
+      // Se ainda 400/401, token realmente inválido
+      if(res.status===401||res.status===400){
+        const renewed=await renewGcalToken();
+        if(!renewed){notify('Google Agenda','Sessão expirada. Clique em Conectar Google novamente.');return;}
+        // Tentar novamente com novo token
+        const res2=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
+          body:JSON.stringify({provider:'google',token:gcalToken})
+        });
+        if(!res2.ok)throw new Error('Edge Function HTTP '+res2.status);
+        const data2=await res2.json();
+        if(data2.erro)throw new Error(data2.erro);
+        const nonGoogleEvts=(integrations.calendarEvents||[]).filter(e=>e.source!=='google');
+        const googleEvts=(data2.eventos||[]).map(e=>({...e,source:'google'}));
+        integrations.calendarEvents=[...googleEvts,...nonGoogleEvts];
+        integrations.gcalToken=gcalToken;
+        saveInt();
+        notify('Google Agenda',`✓ ${googleEvts.length} evento(s) carregado(s)`);
+        updateBadges();
+        if(view==='compromissos-hoje')loadCompromissosDia('hoje');
+        if(view==='compromissos-amanha')loadCompromissosDia('amanha');
+        return;
+      }
+      throw new Error('Edge Function HTTP '+res.status);
+    }
     const data=await res.json();
     if(data.erro)throw new Error(data.erro);
     const nonGoogleEvts=(integrations.calendarEvents||[]).filter(e=>e.source!=='google');
@@ -1347,14 +1450,25 @@ function disconnectOutlook(){
   if(view==='compromissos-amanha')loadCompromissosDia('amanha');
 }
 // SEGUNDA CONTA MICROSOFT (sejadigital / corporativa)
+let msalApp2=null;
+function getMsalApp2(){
+  if(!msalApp2&&typeof msal!=='undefined'){
+    msalApp2=new msal.PublicClientApplication({
+      auth:{clientId:OUTLOOK_CLIENT_ID,authority:'https://login.microsoftonline.com/common',redirectUri:window.location.origin},
+      cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
+    });
+  }
+  return msalApp2;
+}
 async function connectOutlook2(){
   const loaded=await loadMSAL();
   if(!loaded){notify('Erro','Não foi possível carregar a biblioteca Microsoft.');return;}
-  const app=getMsalApp();
-  if(!app){notify('Erro','Biblioteca Microsoft não inicializada. Tente recarregar a página.');return;}
+  // Usar instância MSAL separada com sessionStorage para não conflitar com conta principal
+  const app2=getMsalApp2();
+  if(!app2){notify('Erro','Biblioteca Microsoft não inicializada. Tente recarregar a página.');return;}
   try{
-    // Forçar seleção de conta diferente com prompt:'select_account'
-    const resp=await app.loginPopup({scopes:OUTLOOK_SCOPES,prompt:'select_account'});
+    // Sempre pedir seleção de conta
+    const resp=await app2.loginPopup({scopes:OUTLOOK_SCOPES,prompt:'select_account'});
     outlookToken2=resp.accessToken;
     integrations.outlook2Connected=true;
     integrations.outlook2Email=resp.account.username||resp.account.name||'';
@@ -1363,7 +1477,21 @@ async function connectOutlook2(){
   } catch(err){
     if(err.errorCode==='user_cancelled')return;
     console.error('Erro MSAL conta 2:',err);
-    notify('Erro Outlook','Não foi possível conectar a segunda conta.');
+    // Tentar com acquireTokenPopup se loginPopup falhar
+    try{
+      const app2b=getMsalApp2();
+      const accounts=app2b?app2b.getAllAccounts():[];
+      if(accounts.length>0){
+        const resp2=await app2b.acquireTokenPopup({scopes:OUTLOOK_SCOPES,account:accounts[0]});
+        outlookToken2=resp2.accessToken;
+        integrations.outlook2Connected=true;
+        integrations.outlook2Email=resp2.account.username||resp2.account.name||'';
+        saveInt();updateIntUI();
+        await fetchOutlookCalendarEvents2();
+        return;
+      }
+    }catch(e2){console.error('Retry MSAL2:',e2);}
+    notify('Erro Outlook','Não foi possível conectar a segunda conta. Verifique se o domínio está autorizado no Azure.');
   }
 }
 async function fetchOutlookCalendarEvents2(){
@@ -1616,6 +1744,13 @@ function saveSheet(){
 }
 
 // CATEGORIES
+function toggleSidebarSection(secId,btnId){
+  const sec=document.getElementById(secId);
+  const arrow=document.getElementById('arrow-'+secId.replace('sec-',''));
+  const isOpen=sec.classList.contains('open');
+  sec.classList.toggle('open');
+  if(arrow)arrow.style.transform=isOpen?'':'rotate(90deg)';
+}
 function toggleTiposSection(){
   const sec=document.getElementById('tipos-section');
   const toggle=document.getElementById('tipos-toggle');
@@ -2388,16 +2523,32 @@ function setView(v,btn){
   view=v;
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
   if(btn)btn.classList.add('active');
-  // Destacar o botão correto da sidebar simplificada
-  const navMap={
-    'hoje':'nav-lembretes','todos':'nav-lembretes','feitos':'nav-lembretes',
-    'agenda':'nav-compromissos','compromissos-hoje':'nav-compromissos','compromissos-amanha':'nav-compromissos',
-    'planilhas':'nav-planilhas',
-    'integracoes':'nav-config'
+  // Abrir a seção correta da sidebar accordion
+  const sectionMap={
+    'hoje':'sec-lembretes','todos':'sec-lembretes','feitos':'sec-lembretes',
+    'agenda':'sec-compromissos','compromissos-hoje':'sec-compromissos','compromissos-amanha':'sec-compromissos',
+    'planilhas':'sec-planilhas',
+    'integracoes':'sec-config'
   };
-  if(!btn){
-    const navId=navMap[v]||(v.startsWith('cat-')?'nav-lembretes':null);
-    if(navId){const nb=document.getElementById(navId);if(nb)nb.classList.add('active');}
+  const targetSec=sectionMap[v]||(v.startsWith('cat-')?'sec-lembretes':null);
+  if(targetSec){
+    const sec=document.getElementById(targetSec);
+    if(sec&&!sec.classList.contains('open')){
+      sec.classList.add('open');
+      const arrowId='arrow-'+targetSec.replace('sec-','');
+      const arrow=document.getElementById(arrowId);
+      if(arrow)arrow.style.transform='rotate(90deg)';
+    }
+    // Ativar o botão correto se nenhum btn foi passado
+    if(!btn){
+      const sec2=document.getElementById(targetSec);
+      if(sec2){
+        sec2.querySelectorAll('.nav-btn').forEach(nb=>{
+          const oc=nb.getAttribute('onclick')||'';
+          if(oc.includes("'"+v+"'")||oc.includes('"'+v+'"'))nb.classList.add('active');
+        });
+      }
+    }
   }
   allViews.forEach(id=>document.getElementById(id).style.display='none');
   // Mobile: adicionar classe para mostrar apenas o conteúdo (sem sidebar)
@@ -2416,8 +2567,15 @@ function goHome(){
   if(layout)layout.classList.remove('mob-view-active');
   view='hoje';
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
-  const navLem=document.getElementById('nav-lembretes');
-  if(navLem)navLem.classList.add('active');
+  const btnHoje=document.getElementById('btn-hoje');
+  if(btnHoje)btnHoje.classList.add('active');
+  // Garantir que a seção Lembretes está aberta
+  const secLem=document.getElementById('sec-lembretes');
+  if(secLem&&!secLem.classList.contains('open')){
+    secLem.classList.add('open');
+    const arrow=document.getElementById('arrow-lembretes');
+    if(arrow)arrow.style.transform='rotate(90deg)';
+  }
   allViews.forEach(id=>document.getElementById(id).style.display='none');
   document.getElementById('view-reminders').style.display='flex';
   document.getElementById('view-title').textContent='Hoje';
@@ -2974,6 +3132,6 @@ async function loginWithGoogle() {
   }
 }
 </script>
-<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=14');</script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=15');</script>
 </body>
 </html>
