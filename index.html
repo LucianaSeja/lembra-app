@@ -562,53 +562,73 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
         </button>
         <div class="main-hdr">
           <div><div class="main-title">Meus Compromissos</div><div class="main-meta" id="agenda-meta">Acesso rápido</div></div>
-          <button class="add-btn" onclick="loadCompromissosDia('hoje')">
+          <button class="add-btn" onclick="refreshAllCalendars()">
             <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--accent-text);fill:none;stroke-width:2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             Atualizar
           </button>
         </div>
-        <!-- 4 Cards compactos: 2 linhas x 2 colunas -->
+        <!-- 6 Cards compactos: 3 linhas x 2 colunas -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <!-- Card Compromissos Hoje -->
+          <!-- Card Todos Compromissos Hoje -->
           <div onclick="setView('compromissos-hoje',null)" class="agenda-dash-card" id="dash-card-hoje">
             <div class="agenda-dash-ico" style="background:var(--accent-dim)">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             </div>
             <div class="agenda-dash-info">
-              <div class="agenda-dash-title" style="color:var(--accent)">Hoje</div>
+              <div class="agenda-dash-title" style="color:var(--accent)">Todos Compromissos Hoje</div>
               <div class="agenda-dash-sub" id="minha-agenda-hoje-sub">Carregando...</div>
             </div>
             <div class="agenda-dash-badge" id="dash-badge-hoje" style="background:var(--accent-dim);color:var(--accent)">0</div>
           </div>
-          <!-- Card Compromissos Amanhã -->
+          <!-- Card Todos Compromissos Amanhã -->
           <div onclick="setView('compromissos-amanha',null)" class="agenda-dash-card" id="dash-card-amanha">
             <div class="agenda-dash-ico" style="background:var(--amber-dim)">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             </div>
             <div class="agenda-dash-info">
-              <div class="agenda-dash-title" style="color:var(--amber)">Amanhã</div>
+              <div class="agenda-dash-title" style="color:var(--amber)">Todos Compromissos Amanhã</div>
               <div class="agenda-dash-sub" id="minha-agenda-amanha-sub">Carregando...</div>
             </div>
             <div class="agenda-dash-badge" id="dash-badge-amanha" style="background:var(--amber-dim);color:var(--amber)">0</div>
           </div>
-          <!-- Card Gmail -->
+          <!-- Card Agenda Gmail -->
+          <a href="https://calendar.google.com/calendar/r" target="_blank" class="agenda-dash-card" id="dash-card-agenda-gmail">
+            <div class="agenda-dash-ico" style="background:var(--blue-dim)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg>
+            </div>
+            <div class="agenda-dash-info">
+              <div class="agenda-dash-title" style="color:#60A5FA">Agenda Gmail</div>
+              <div class="agenda-dash-sub" id="dash-sub-agenda-gmail">Google Calendar</div>
+            </div>
+          </a>
+          <!-- Card Agenda Outlook -->
+          <a href="https://outlook.live.com/calendar/0/view/month" target="_blank" class="agenda-dash-card" id="dash-card-agenda-outlook">
+            <div class="agenda-dash-ico" style="background:rgba(0,120,212,0.15)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg>
+            </div>
+            <div class="agenda-dash-info">
+              <div class="agenda-dash-title" style="color:#0078d4">Agenda Outlook</div>
+              <div class="agenda-dash-sub" id="dash-sub-agenda-outlook">Outlook Calendar</div>
+            </div>
+          </a>
+          <!-- Card Gmail (e-mail) -->
           <a href="https://mail.google.com/mail/#inbox" target="_blank" class="agenda-dash-card" id="dash-card-gmail">
             <div class="agenda-dash-ico" style="background:var(--red-dim)">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F87171" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             </div>
             <div class="agenda-dash-info">
               <div class="agenda-dash-title" style="color:#F87171">Gmail</div>
-              <div class="agenda-dash-sub">Abrir e-mails</div>
+              <div class="agenda-dash-sub" id="dash-sub-gmail">Abrir e-mails</div>
             </div>
           </a>
-          <!-- Card Outlook -->
+          <!-- Card Outlook (e-mail) -->
           <a href="https://outlook.live.com/mail/0/inbox" target="_blank" class="agenda-dash-card" id="dash-card-outlook">
             <div class="agenda-dash-ico" style="background:rgba(0,120,212,0.12)">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             </div>
             <div class="agenda-dash-info">
               <div class="agenda-dash-title" style="color:#0078d4">Outlook</div>
-              <div class="agenda-dash-sub">Abrir e-mails</div>
+              <div class="agenda-dash-sub" id="dash-sub-outlook">Abrir e-mails</div>
             </div>
           </a>
         </div>
@@ -1174,6 +1194,27 @@ function disconnectOutlook(){
   if(view==='compromissos-hoje')loadCompromissosDia('hoje');
   if(view==='compromissos-amanha')loadCompromissosDia('amanha');
 }
+async function refreshAllCalendars(){
+  const btn=document.querySelector('[onclick="refreshAllCalendars()"]');
+  if(btn){btn.disabled=true;btn.textContent='Atualizando...';}
+  let updated=0;
+  try{
+    if(integrations.googleConnected&&gcalToken){
+      await fetchGoogleCalendarEvents();
+      updated++;
+    }
+    if(integrations.outlookConnected&&outlookToken){
+      await fetchOutlookCalendarEvents();
+      updated++;
+    }
+    if(updated===0){
+      notify('Atualizar','Nenhuma integração ativa. Conecte Google Agenda ou Outlook em Configurações.');
+    }
+    renderAgendaDashboard();
+  } finally{
+    if(btn){btn.disabled=false;btn.textContent='Atualizar';}
+  }
+}
 function loadMockGoogleEvents(){
   if(!integrations.calendarEvents)integrations.calendarEvents=[];
   saveInt();
@@ -1380,17 +1421,33 @@ function confirmToAgenda(){
     persist();
     updateBadges();
     notify('Agenda','✓ Lembrete incluído nos seus compromissos!');
-    render();
     // Navegar para a tela de compromissos do dia correspondente
     const targetDate=r.date;
     const t=today(),tom=tomorrow();
-    if(targetDate===t){setView('compromissos-hoje',null);updateSidebarActive('compromissos-hoje');}
-    else if(targetDate===tom){setView('compromissos-amanha',null);updateSidebarActive('compromissos-amanha');}
-    else{
+    if(targetDate===t){
+      // Ir direto para Compromissos Hoje e carregar a lista
+      view='compromissos-hoje';
+      allViews.forEach(id=>document.getElementById(id).style.display='none');
+      document.getElementById('view-compromissos-hoje').style.display='flex';
+      loadCompromissosDia('hoje');
+      updateSidebarActive('compromissos-hoje');
+    } else if(targetDate===tom){
+      // Ir direto para Compromissos Amanhã e carregar a lista
+      view='compromissos-amanha';
+      allViews.forEach(id=>document.getElementById(id).style.display='none');
+      document.getElementById('view-compromissos-amanha').style.display='flex';
+      loadCompromissosDia('amanha');
+      updateSidebarActive('compromissos-amanha');
+    } else {
       // Data futura: ir para o dashboard de compromissos
-      setView('agenda',null);updateSidebarActive('agenda');
+      view='agenda';
+      allViews.forEach(id=>document.getElementById(id).style.display='none');
+      document.getElementById('view-agenda').style.display='flex';
+      renderAgendaDashboard();
+      updateSidebarActive('agenda');
       notify('Agenda',`Lembrete agendado para ${r.date}. Acesse Meus Compromissos para ver.`);
     }
+    render(); // atualiza a lista de lembretes em background
   }
   closeToAgendaModal();
 }
@@ -1531,7 +1588,21 @@ function toggleAIVoice(){
   if(aiVoiceOn){if(aiVoiceRec)aiVoiceRec.stop();return;}
   aiVoiceRec=new SR();aiVoiceRec.lang='pt-BR';aiVoiceRec.interimResults=true;
   aiVoiceRec.onstart=()=>{aiVoiceOn=true;if(btn){btn.classList.add('on');btn.title='Ouvindo... (clique para parar)';}};
-  aiVoiceRec.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;const inp=document.getElementById('ai-input');if(inp)inp.value=t;if(e.results[e.results.length-1].isFinal){sendAIMessage();}};
+  let aiVoiceSilenceTimer=null;
+  aiVoiceRec.onresult=e=>{
+    let t='';
+    for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;
+    const inp=document.getElementById('ai-input');
+    if(inp)inp.value=t;
+    // Aguardar 1.5s de silêncio antes de enviar
+    if(aiVoiceSilenceTimer)clearTimeout(aiVoiceSilenceTimer);
+    if(e.results[e.results.length-1].isFinal){
+      aiVoiceSilenceTimer=setTimeout(()=>{
+        if(aiVoiceRec)aiVoiceRec.stop();
+        sendAIMessage();
+      },1500);
+    }
+  };
   aiVoiceRec.onend=()=>{aiVoiceOn=false;if(btn){btn.classList.remove('on');btn.title='Usar voz';}};
   aiVoiceRec.start();
 }
@@ -1853,13 +1924,17 @@ function renderAgendaDashboard(){
   if(subAmanha)subAmanha.textContent=nAmanha>0?nAmanha+' compromisso'+(nAmanha!==1?'s':'')+' amanhã':'Nenhum compromisso';
   const badgeAmanha=document.getElementById('dash-badge-amanha');
   if(badgeAmanha){badgeAmanha.textContent=nAmanha;badgeAmanha.style.display=nAmanha>0?'flex':'none';}
-  // E-mail nos cards Gmail/Outlook
+  // E-mail nos cards Gmail/Outlook e Agenda Gmail/Outlook
   const gc=integrations.googleConnected;
   const oc=integrations.outlookConnected;
-  const subGmail=document.querySelector('#dash-card-gmail .agenda-dash-sub');
+  const subGmail=document.getElementById('dash-sub-gmail');
   if(subGmail)subGmail.textContent=gc?(integrations.googleEmail||'Abrir e-mails'):'Abrir e-mails';
-  const subOutlook=document.querySelector('#dash-card-outlook .agenda-dash-sub');
+  const subOutlook=document.getElementById('dash-sub-outlook');
   if(subOutlook)subOutlook.textContent=oc?(integrations.outlookEmail||'Abrir e-mails'):'Abrir e-mails';
+  const subAgendaGmail=document.getElementById('dash-sub-agenda-gmail');
+  if(subAgendaGmail)subAgendaGmail.textContent=gc?(integrations.googleEmail||'Google Calendar'):'Google Calendar';
+  const subAgendaOutlook=document.getElementById('dash-sub-agenda-outlook');
+  if(subAgendaOutlook)subAgendaOutlook.textContent=oc?(integrations.outlookEmail||'Outlook Calendar'):'Outlook Calendar';
 }
 function mobActive(btn){document.querySelectorAll('.mob-btn').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}
 
@@ -1879,7 +1954,7 @@ let aiTyping=false;
 function openAI(){
   document.getElementById('ai-modal').classList.add('open');
   if(!aiMessages.length){
-    addAIMessage('assistant','Olá! Sou o seu Assistente Lembra. Posso consultar seus lembretes e compromissos para responder suas perguntas. Como posso ajudar?');
+    addAIMessage('assistant','Olá! Como posso ajudar?');
   }
 }
 function closeAI(){
@@ -2175,8 +2250,18 @@ Exemplo: *"Enviar e-mail para joao@empresa.com, assunto: Reunião, dizendo: Conf
     return resp;
   }
 
-  // Resposta padrão
-  return `Olá! Posso ajudar com sua agenda e lembretes. Experimente perguntar:\n\n• *"O que tenho hoje?"*\n• *"Compromissos de amanhã"*\n• *"Lembretes pendentes"*\n• *"Resumo da semana"*\n• *"Enviar e-mail para fulano@email.com"*\n• *"Incluir na agenda Google: Reunião às 15h dia 25/3"*\n\nO que você precisa?`;
+  // Resposta conversacional genérica
+  // Tenta entender a intenção da mensagem
+  const pend=reminders.filter(r=>!r.done&&!r.inAgenda);
+  const calHoje=calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t);
+  const totalHoje=pendingRem.filter(r=>r.date===t).length+calHoje.length;
+  if(totalHoje>0){
+    return `Hoje você tem **${totalHoje} compromisso(s)**. Quer que eu liste os detalhes?`;
+  }
+  if(pend.length>0){
+    return `Você tem **${pend.length} lembrete(s) pendente(s)**. Posso listar, buscar por data ou ajudar com qualquer outra coisa.`;
+  }
+  return `Não encontrei nada relacionado. Pode me perguntar sobre seus lembretes, compromissos de hoje ou amanhã, ou pedir para enviar um e-mail.`;
 }
 
 window.onload=()=>{
