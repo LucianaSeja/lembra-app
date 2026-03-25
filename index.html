@@ -575,7 +575,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             </div>
             <div class="agenda-dash-info">
-              <div class="agenda-dash-title" style="color:var(--accent)">Todos Compromissos Hoje</div>
+              <div class="agenda-dash-title" style="color:var(--accent)">Todos os Compromissos de Hoje</div>
               <div class="agenda-dash-sub" id="minha-agenda-hoje-sub">Carregando...</div>
             </div>
             <div class="agenda-dash-badge" id="dash-badge-hoje" style="background:var(--accent-dim);color:var(--accent)">0</div>
@@ -586,7 +586,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             </div>
             <div class="agenda-dash-info">
-              <div class="agenda-dash-title" style="color:var(--amber)">Todos Compromissos Amanhã</div>
+              <div class="agenda-dash-title" style="color:var(--amber)">Todos os Compromissos de Amanhã</div>
               <div class="agenda-dash-sub" id="minha-agenda-amanha-sub">Carregando...</div>
             </div>
             <div class="agenda-dash-badge" id="dash-badge-amanha" style="background:var(--amber-dim);color:var(--amber)">0</div>
@@ -1199,18 +1199,57 @@ async function refreshAllCalendars(){
   if(btn){btn.disabled=true;btn.textContent='Atualizando...';}
   let updated=0;
   try{
+    // Tentar reautenticar silenciosamente com Google se conectado mas sem token
+    if(integrations.googleConnected&&!gcalToken){
+      try{
+        const tokenResp=await new Promise((resolve,reject)=>{
+          google.accounts.oauth2.initTokenClient({
+            client_id:GOOGLE_CLIENT_ID,
+            scope:GOOGLE_SCOPES,
+            prompt:'',
+            callback:(r)=>r.error?reject(r):resolve(r)
+          }).requestAccessToken();
+        });
+        gcalToken=tokenResp.access_token;
+      } catch(e){console.warn('Silent Google reauth failed',e);}
+    }
     if(integrations.googleConnected&&gcalToken){
       await fetchGoogleCalendarEvents();
       updated++;
+    } else if(integrations.googleConnected&&!gcalToken){
+      // Mostrar eventos já salvos mesmo sem token
+      updated++;
+    }
+    // Tentar reautenticar Outlook silenciosamente
+    if(integrations.outlookConnected&&!outlookToken){
+      try{
+        const loaded=await loadMSAL();
+        if(loaded){
+          const app=getMsalApp();
+          if(app){
+            const accounts=app.getAllAccounts();
+            if(accounts.length>0){
+              const silentResp=await app.acquireTokenSilent({scopes:OUTLOOK_SCOPES,account:accounts[0]});
+              outlookToken=silentResp.accessToken;
+            }
+          }
+        }
+      } catch(e){console.warn('Silent Outlook reauth failed',e);}
     }
     if(integrations.outlookConnected&&outlookToken){
       await fetchOutlookCalendarEvents();
       updated++;
+    } else if(integrations.outlookConnected&&!outlookToken){
+      updated++;
     }
     if(updated===0){
       notify('Atualizar','Nenhuma integração ativa. Conecte Google Agenda ou Outlook em Configurações.');
+    } else {
+      // Atualizar as views com os dados já salvos
+      renderAgendaDashboard();
+      if(view==='compromissos-hoje')loadCompromissosDia('hoje');
+      if(view==='compromissos-amanha')loadCompromissosDia('amanha');
     }
-    renderAgendaDashboard();
   } finally{
     if(btn){btn.disabled=false;btn.textContent='Atualizar';}
   }
@@ -1222,6 +1261,7 @@ function loadMockGoogleEvents(){
   updateBadges();
   if(view==='compromissos-hoje')loadCompromissosDia('hoje');
   if(view==='compromissos-amanha')loadCompromissosDia('amanha');
+  if(view==='agenda')renderAgendaDashboard();
 }
 function updateIntUI(){
   const gc=integrations.googleConnected;
@@ -1270,8 +1310,8 @@ function updateHeaderChips(){
   // Compromissos Hoje/Amanhã chips - sempre visíveis
   const t=today(),tom=tomorrow();
   const calEvts=integrations.calendarEvents||[];
-  const nHoje=reminders.filter(r=>!r.done&&r.inAgenda&&r.date===t).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t).length;
-  const nAmanha=reminders.filter(r=>!r.done&&r.inAgenda&&r.date===tom).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===tom).length;
+  const nHoje=reminders.filter(r=>!r.done&&r.date===t).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t).length;
+  const nAmanha=reminders.filter(r=>!r.done&&r.date===tom).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===tom).length;
   const elHojeN=document.getElementById('hdr-chip-hoje-n');
   const elAmanhaN=document.getElementById('hdr-chip-amanha-n');
   if(elHojeN)elHojeN.textContent=nHoje;
@@ -1732,8 +1772,8 @@ function loadCompromissosDia(dia){
   const c=document.getElementById(containerId);
   const meta=document.getElementById(metaId);
 
-  // Lembretes que foram movidos para agenda E que têm data de hoje ou amanhã
-  const agendaItems=reminders.filter(r=>!r.done&&r.inAgenda&&r.date===targetDate).map(r=>({
+  // Lembretes com data de hoje ou amanhã (inAgenda=true) OU lembretes normais com essa data
+  const agendaItems=reminders.filter(r=>!r.done&&r.date===targetDate).map(r=>({
     id:r.id,
     title:r.title,
     time:r.time||'',
@@ -1871,8 +1911,8 @@ function loadCompromissosDia(dia){
     });
   }
 
-  // Se não tem integração ativa, mostrar aviso
-  if(!integrations.googleConnected&&!integrations.outlookConnected){
+  // Se não tem integração ativa E não tem lembretes, mostrar aviso
+  if(!integrations.googleConnected&&!integrations.outlookConnected&&!agendaSection.length){
     html+=`<div style="background:var(--surface);border:1px dashed var(--border);border-radius:var(--r);padding:1rem;text-align:center;margin-top:8px">
       <div style="font-size:13px;color:var(--text3);line-height:1.6">Conecte sua <strong style="color:var(--text)">Google Agenda</strong> ou <strong style="color:var(--text)">Outlook</strong> em <strong style="color:var(--text)">Integrações</strong> para ver seus eventos do calendário aqui.</div>
     </div>`;
@@ -1890,9 +1930,9 @@ function setView(v,btn){
   // Mobile: adicionar classe para mostrar apenas o conteúdo (sem sidebar)
   const layout=document.querySelector('.layout');
   if(layout)layout.classList.add('mob-view-active');
-  if(v==='agenda'){document.getElementById('view-agenda').style.display='flex';renderAgendaDashboard()}
-  else if(v==='compromissos-hoje'){document.getElementById('view-compromissos-hoje').style.display='flex';loadCompromissosDia('hoje')}
-  else if(v==='compromissos-amanha'){document.getElementById('view-compromissos-amanha').style.display='flex';loadCompromissosDia('amanha')}
+  if(v==='agenda'){document.getElementById('view-agenda').style.display='flex';renderAgendaDashboard();}
+  else if(v==='compromissos-hoje'){document.getElementById('view-compromissos-hoje').style.display='flex';loadCompromissosDia('hoje');}
+  else if(v==='compromissos-amanha'){document.getElementById('view-compromissos-amanha').style.display='flex';loadCompromissosDia('amanha');}
   else if(v==='planilhas'){document.getElementById('view-planilhas').style.display='flex';renderSheets()}
   else if(v==='integracoes'){document.getElementById('view-integracoes').style.display='flex'}
   else{document.getElementById('view-reminders').style.display='flex';document.getElementById('view-title').textContent=viewLbl[v]||catLbl[v.replace('cat-','')]||v;render()}
@@ -1913,8 +1953,8 @@ function goHome(){
 function renderAgendaDashboard(){
   const t=today(),tom=tomorrow();
   const calEvts=integrations.calendarEvents||[];
-  const nHoje=reminders.filter(r=>!r.done&&r.inAgenda&&r.date===t).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t).length;
-  const nAmanha=reminders.filter(r=>!r.done&&r.inAgenda&&r.date===tom).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===tom).length;
+  const nHoje=reminders.filter(r=>!r.done&&r.date===t).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t).length;
+  const nAmanha=reminders.filter(r=>!r.done&&r.date===tom).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===tom).length;
   // Atualizar subtextos e badges dos cards
   const subHoje=document.getElementById('minha-agenda-hoje-sub');
   if(subHoje)subHoje.textContent=nHoje>0?nHoje+' compromisso'+(nHoje!==1?'s':'')+' hoje':'Nenhum compromisso';
