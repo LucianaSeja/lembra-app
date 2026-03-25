@@ -1015,7 +1015,13 @@ function startSession(u){
   document.getElementById('view-meta').textContent=d.charAt(0).toUpperCase()+d.slice(1);
   document.getElementById('f-date').value=today();
   renderSidebar();renderCatSelect();renderSheets();updateIntUI();render();scheduleNotifs();scheduleDigest();
-  if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();
+  // Solicitar permissão de notificações e iniciar monitoramento
+  requestNotifPermission();
+  // Renovar tokens silenciosamente após 2s (aguardar carregamento dos SDKs)
+  setTimeout(()=>{
+    silentReauthGoogle();
+    silentReauthOutlook();
+  },2000);
   loadFromSupabase().then(found=>{if(found){render();scheduleNotifs();notify('Sincronizado','✓ Lembretes sincronizados da nuvem!')}});
 }
 function doLogout(){
@@ -1063,13 +1069,49 @@ function toggleDigest(){
 
 // INTEGRATIONS
 const GCAL_CLIENT_ID='126747406308-eestcpeb8n5jhmt7t7vfpfnjq60jo5k3.apps.googleusercontent.com';
-const GCAL_SCOPES='https://www.googleapis.com/auth/calendar.readonly';
+const GCAL_SCOPES='https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email';
 const OUTLOOK_CLIENT_ID='3cda6425-e947-4dec-9cdf-742a50ea8aec';
-const OUTLOOK_SCOPES=['Calendars.Read','User.Read'];
+const OUTLOOK_SCOPES=['Calendars.ReadWrite','User.Read','offline_access'];
 let msalApp=null;
 let outlookToken=null;
 let gcalToken=null;
 
+// Renovação silenciosa de tokens ao iniciar o app
+async function silentReauthGoogle(){
+  if(!integrations.googleConnected)return;
+  if(typeof google==='undefined'||!google.accounts)return;
+  try{
+    await new Promise((resolve,reject)=>{
+      google.accounts.oauth2.initTokenClient({
+        client_id:GCAL_CLIENT_ID,
+        scope:GCAL_SCOPES,
+        prompt:'',
+        callback:(r)=>{
+          if(r.error){reject(r);return;}
+          gcalToken=r.access_token;
+          resolve(r);
+        }
+      }).requestAccessToken();
+    });
+    // Buscar eventos frescos silenciosamente
+    await fetchGoogleCalendarEvents();
+  } catch(e){console.warn('Google silent reauth:',e);}
+}
+async function silentReauthOutlook(){
+  if(!integrations.outlookConnected)return;
+  try{
+    const loaded=await loadMSAL();
+    if(!loaded)return;
+    const app=getMsalApp();
+    if(!app)return;
+    const accounts=app.getAllAccounts();
+    if(!accounts.length)return;
+    const resp=await app.acquireTokenSilent({scopes:OUTLOOK_SCOPES,account:accounts[0]});
+    outlookToken=resp.accessToken;
+    // Buscar eventos frescos silenciosamente
+    await fetchOutlookCalendarEvents();
+  } catch(e){console.warn('Outlook silent reauth:',e);}
+}
 function getMsalApp(){
   if(!msalApp&&typeof msal!=='undefined'){
     msalApp=new msal.PublicClientApplication({
@@ -1126,6 +1168,51 @@ async function fetchGoogleCalendarEvents(){
     console.error('Erro Google Calendar:',err);
     loadMockGoogleEvents();
   }
+}
+// CRIAR EVENTO NO GOOGLE CALENDAR
+async function createGoogleCalendarEvent(title,date,time,desc){
+  if(!gcalToken)return false;
+  try{
+    const startDt=time?`${date}T${time}:00`:`${date}T09:00:00`;
+    const endDt=time?`${date}T${time.split(':')[0].padStart(2,'0')}:${String(parseInt(time.split(':')[1]||0)+30).padStart(2,'0')}:00`:`${date}T10:00:00`;
+    const tz='America/Sao_Paulo';
+    const body={
+      summary:title,
+      description:desc||'Criado pelo Lembra App',
+      start:{dateTime:startDt,timeZone:tz},
+      end:{dateTime:endDt,timeZone:tz},
+      reminders:{useDefault:false,overrides:[{method:'popup',minutes:10}]}
+    };
+    const res=await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events',{
+      method:'POST',
+      headers:{Authorization:'Bearer '+gcalToken,'Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    return true;
+  }catch(e){console.error('Erro criar evento Google:',e);return false;}
+}
+// CRIAR EVENTO NO OUTLOOK
+async function createOutlookCalendarEvent(title,date,time,desc){
+  if(!outlookToken)return false;
+  try{
+    const startDt=time?`${date}T${time}:00`:`${date}T09:00:00`;
+    const endDt=time?`${date}T${time.split(':')[0].padStart(2,'0')}:${String(parseInt(time.split(':')[1]||0)+30).padStart(2,'0')}:00`:`${date}T10:00:00`;
+    const body={
+      subject:title,
+      body:{contentType:'text',content:desc||'Criado pelo Lembra App'},
+      start:{dateTime:startDt,timeZone:'America/Sao_Paulo'},
+      end:{dateTime:endDt,timeZone:'America/Sao_Paulo'},
+      isReminderOn:true,reminderMinutesBeforeStart:10
+    };
+    const res=await fetch('https://graph.microsoft.com/v1.0/me/events',{
+      method:'POST',
+      headers:{Authorization:'Bearer '+outlookToken,'Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    return true;
+  }catch(e){console.error('Erro criar evento Outlook:',e);return false;}
 }
 function disconnectGoogle(){
   integrations.googleConnected=false;gcalToken=null;
@@ -1451,7 +1538,7 @@ function closeToAgendaModal(){
   document.getElementById('to-agenda-modal').classList.remove('open');
   pendingToAgendaId=null;
 }
-function confirmToAgenda(){
+async function confirmToAgenda(){
   if(!pendingToAgendaId)return;
   const r=reminders.find(x=>x.id===pendingToAgendaId);
   if(r){
@@ -1460,36 +1547,48 @@ function confirmToAgenda(){
     r.inAgenda=true;
     persist();
     updateBadges();
-    notify('Agenda','✓ Lembrete incluído nos seus compromissos!');
+    closeToAgendaModal();
+    // Criar evento nas agendas reais
+    let criados=[];
+    if(integrations.googleConnected&&gcalToken){
+      const ok=await createGoogleCalendarEvent(r.title,r.date,r.time,r.desc);
+      if(ok)criados.push('Google Agenda');
+    }
+    if(integrations.outlookConnected&&outlookToken){
+      const ok=await createOutlookCalendarEvent(r.title,r.date,r.time,r.desc);
+      if(ok)criados.push('Outlook');
+    }
+    // Atualizar eventos do calendário para refletir o novo evento
+    if(integrations.googleConnected&&gcalToken)fetchGoogleCalendarEvents();
+    if(integrations.outlookConnected&&outlookToken)fetchOutlookCalendarEvents();
+    const destinos=criados.length>0?` Criado em: ${criados.join(' e ')}.`:' (Conecte Google Agenda ou Outlook para sincronizar.)';
+    notify('Agenda',`✓ "${r.title}" incluído nos compromissos!${destinos}`);
     // Navegar para a tela de compromissos do dia correspondente
     const targetDate=r.date;
     const t=today(),tom=tomorrow();
     if(targetDate===t){
-      // Ir direto para Compromissos Hoje e carregar a lista
       view='compromissos-hoje';
       allViews.forEach(id=>document.getElementById(id).style.display='none');
       document.getElementById('view-compromissos-hoje').style.display='flex';
       loadCompromissosDia('hoje');
       updateSidebarActive('compromissos-hoje');
     } else if(targetDate===tom){
-      // Ir direto para Compromissos Amanhã e carregar a lista
       view='compromissos-amanha';
       allViews.forEach(id=>document.getElementById(id).style.display='none');
       document.getElementById('view-compromissos-amanha').style.display='flex';
       loadCompromissosDia('amanha');
       updateSidebarActive('compromissos-amanha');
     } else {
-      // Data futura: ir para o dashboard de compromissos
       view='agenda';
       allViews.forEach(id=>document.getElementById(id).style.display='none');
       document.getElementById('view-agenda').style.display='flex';
       renderAgendaDashboard();
       updateSidebarActive('agenda');
-      notify('Agenda',`Lembrete agendado para ${r.date}. Acesse Meus Compromissos para ver.`);
     }
-    render(); // atualiza a lista de lembretes em background
+    render();
+  } else {
+    closeToAgendaModal();
   }
-  closeToAgendaModal();
 }
 function updateSidebarActive(v){
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
@@ -1615,6 +1714,70 @@ function openPhotoLightbox(src,e){
   lb.innerHTML=`<img src="${src}" alt="Foto"><button class="photo-lightbox-close" onclick="this.parentElement.remove()">&times;</button>`;
   lb.onclick=function(ev){if(ev.target===lb)lb.remove();};
   document.body.appendChild(lb);
+}
+
+// NOTIFICAÇÕES POPUP (Web Notifications API)
+let notifPermission='default';
+let notifCheckInterval=null;
+const notifFired=new Set(); // evitar duplicatas
+
+async function requestNotifPermission(){
+  if(!('Notification' in window))return;
+  if(Notification.permission==='granted'){notifPermission='granted';startNotifCheck();return;}
+  if(Notification.permission!=='denied'){
+    const perm=await Notification.requestPermission();
+    notifPermission=perm;
+    if(perm==='granted')startNotifCheck();
+  }
+}
+
+function startNotifCheck(){
+  if(notifCheckInterval)clearInterval(notifCheckInterval);
+  checkUpcomingNotifs(); // checar imediatamente
+  notifCheckInterval=setInterval(checkUpcomingNotifs,60000); // a cada 1 minuto
+}
+
+function checkUpcomingNotifs(){
+  if(Notification.permission!=='granted')return;
+  const now=new Date();
+  const todayStr=today();
+  // Verificar lembretes
+  reminders.filter(r=>!r.done&&r.date&&r.time).forEach(r=>{
+    const dt=new Date(r.date+'T'+r.time);
+    const diff=Math.round((dt-now)/60000); // minutos
+    const key=`r-${r.id}-${r.date}-${r.time}`;
+    if((diff===0||diff===10||diff===5)&&!notifFired.has(key)){
+      notifFired.add(key);
+      const msg=diff===0?'Agora!':diff===5?'Em 5 minutos':'Em 10 minutos';
+      const n=new Notification(`⏰ ${r.title}`,{
+        body:`${msg} • ${r.time}${r.desc?' • '+r.desc:''}`,
+        icon:'/icon.svg',
+        requireInteraction:true,
+        tag:key
+      });
+      n.onclick=()=>{window.focus();n.close();};
+    }
+  });
+  // Verificar eventos do calendário
+  (integrations.calendarEvents||[]).forEach(e=>{
+    const dtStr=e.start?.dateTime||e.start?.date;
+    if(!dtStr)return;
+    const dt=new Date(dtStr);
+    const diff=Math.round((dt-now)/60000);
+    const key=`e-${e.id}-${dtStr}`;
+    if((diff===0||diff===10||diff===5)&&!notifFired.has(key)){
+      notifFired.add(key);
+      const msg=diff===0?'Agora!':diff===5?'Em 5 minutos':'Em 10 minutos';
+      const src=e.source==='google'?'🗓️ Google':'📧 Outlook';
+      const n=new Notification(`📅 ${e.summary||'Compromisso'}`,{
+        body:`${msg} • ${src}`,
+        icon:'/icon.svg',
+        requireInteraction:true,
+        tag:key
+      });
+      n.onclick=()=>{window.focus();n.close();};
+    }
+  });
 }
 
 // VOICE UNIVERSAL
