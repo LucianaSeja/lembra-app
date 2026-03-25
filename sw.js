@@ -1,4 +1,4 @@
-const CACHE = 'lembra-v7';
+const CACHE = 'lembra-v8';
 const ASSETS = ['/', '/index.html', '/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', e => {
@@ -23,5 +23,18 @@ self.addEventListener('fetch', e => {
       caches.open(CACHE).then(c => c.put(e.request, clone));
       return r;
     }).catch(() => caches.match(e.request))
+  );
+});
+
+// Ao clicar na notificação, focar/abrir o app
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      for (const client of list) {
+        if (client.url && 'focus' in client) return client.focus();
+      }
+      if (clients.openWindow) return clients.openWindow('/');
+    })
   );
 });
