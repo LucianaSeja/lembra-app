@@ -1,4 +1,4 @@
-const CACHE = 'lembra-v12';
+const CACHE = 'lembra-v13';
 const ASSETS = ['/', '/index.html', '/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', e => {
@@ -26,6 +26,7 @@ self.addEventListener('fetch', e => {
   );
 });
 
+// Ao clicar na notificação, focar/abrir o app
 self.addEventListener('notificationclick', e => {
   e.notification.close();
   e.waitUntil(
