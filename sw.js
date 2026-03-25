@@ -26,7 +26,6 @@ self.addEventListener('fetch', e => {
   );
 });
 
-// Ao clicar na notificação, focar/abrir o app
 self.addEventListener('notificationclick', e => {
   e.notification.close();
   e.waitUntil(
