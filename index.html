@@ -394,12 +394,12 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
         <!-- Compromissos Hoje chip -->
         <button class="hdr-chip clickable" id="hdr-chip-hoje" onclick="setView('compromissos-hoje',null);updateSidebarActive('compromissos-hoje')" title="Compromissos hoje" style="border:none">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Hoje <span class="hdr-chip-count" id="hdr-chip-hoje-n" style="color:#4ADE80">0</span>
+          Hoje
         </button>
         <!-- Compromissos Amanhã chip -->
         <button class="hdr-chip clickable" id="hdr-chip-amanha" onclick="setView('compromissos-amanha',null);updateSidebarActive('compromissos-amanha')" title="Compromissos amanhã" style="border:none">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          Amanhã <span class="hdr-chip-count" id="hdr-chip-amanha-n" style="color:#FBBF24">0</span>
+          Amanhã
         </button>
       </div>
       <button class="btn-ai" onclick="openAI()">
@@ -734,7 +734,29 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
           </div>
         </div>
 
-        <div style="background:var(--accent-dim);border:1px solid rgba(74,222,128,0.15);border-radius:var(--r);padding:1.25rem;display:flex;gap:1rem">
+        <!-- Segunda conta Microsoft -->
+        <div class="int-card" style="margin-top:12px">
+          <div class="int-card-hdr">
+            <div class="int-ico" style="background:rgba(0,180,216,0.12)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00b4d8" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg></div>
+            <div style="flex:1"><div style="font-size:14px;font-weight:600;margin-bottom:2px">2ª conta Microsoft</div><div style="font-size:12px;color:var(--text3)">Ex: luciana.lopes@sejadigital</div></div>
+            <span class="status-badge" id="outlook2-badge">Não conectado</span>
+          </div>
+          <div class="int-card-body">
+            <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:1rem">Conecte uma segunda conta Microsoft para ver eventos de ambas as agendas.</div>
+            <div id="outlook2-connect-area">
+              <button class="connect-btn microsoft" onclick="connectOutlook2()">
+                <svg width="16" height="16" viewBox="0 0 23 23" fill="none"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
+                Entrar com 2ª conta Microsoft
+              </button>
+            </div>
+            <div id="outlook2-connected-area" style="display:none">
+              <div style="font-size:12px;color:var(--accent);margin-bottom:4px">✓ Conectado como <span id="outlook2-email-lbl"></span></div>
+              <button class="btn-cancel" style="font-size:12px;margin-top:6px" onclick="disconnectOutlook2()">Desconectar</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:var(--accent-dim);border:1px solid rgba(74,222,128,0.15);border-radius:var(--r);padding:1.25rem;display:flex;gap:1rem;margin-top:12px">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <div><div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:4px">Dica</div><div style="font-size:13px;color:var(--text2);line-height:1.6">Somente as integrações ativas aparecem nos seus compromissos. Conecte acima para sincronizar.</div></div>
         </div>
@@ -1021,6 +1043,7 @@ function startSession(u){
   setTimeout(()=>{
     silentReauthGoogle();
     silentReauthOutlook();
+    silentReauthOutlook2();
   },2000);
   loadFromSupabase().then(found=>{if(found){render();scheduleNotifs();notify('Sincronizado','✓ Lembretes sincronizados da nuvem!')}});
 }
@@ -1073,7 +1096,8 @@ const GCAL_SCOPES='https://www.googleapis.com/auth/calendar.events https://www.g
 const OUTLOOK_CLIENT_ID='3cda6425-e947-4dec-9cdf-742a50ea8aec';
 const OUTLOOK_SCOPES=['Calendars.ReadWrite','User.Read','offline_access'];
 let msalApp=null;
-let outlookToken=null;
+let outlookToken=null;   // conta principal (hotmail/pessoal)
+let outlookToken2=null;  // segunda conta (sejadigital/corporativa)
 let gcalToken=null;
 
 // Renovação silenciosa de tokens ao iniciar o app
@@ -1131,7 +1155,7 @@ function connectGoogle(){
         if(resp.error){notify('Erro','Não foi possível conectar ao Google.');return;}
         gcalToken=resp.access_token;
         integrations.googleConnected=true;
-        integrations.googleEmail=user.email;
+        // googleEmail será preenchido por fetchGoogleCalendarEvents via userinfo
         saveInt();updateIntUI();
         fetchGoogleCalendarEvents();
       }
@@ -1275,6 +1299,93 @@ function disconnectOutlook(){
   if(view==='compromissos-hoje')loadCompromissosDia('hoje');
   if(view==='compromissos-amanha')loadCompromissosDia('amanha');
 }
+// SEGUNDA CONTA MICROSOFT (sejadigital / corporativa)
+async function connectOutlook2(){
+  const loaded=await loadMSAL();
+  if(!loaded){notify('Erro','Não foi possível carregar a biblioteca Microsoft.');return;}
+  const app=getMsalApp();
+  if(!app){notify('Erro','Biblioteca Microsoft não inicializada. Tente recarregar a página.');return;}
+  try{
+    // Forçar seleção de conta diferente com prompt:'select_account'
+    const resp=await app.loginPopup({scopes:OUTLOOK_SCOPES,prompt:'select_account'});
+    outlookToken2=resp.accessToken;
+    integrations.outlook2Connected=true;
+    integrations.outlook2Email=resp.account.username||resp.account.name||'';
+    saveInt();updateIntUI();
+    await fetchOutlookCalendarEvents2();
+  } catch(err){
+    if(err.errorCode==='user_cancelled')return;
+    console.error('Erro MSAL conta 2:',err);
+    notify('Erro Outlook','Não foi possível conectar a segunda conta.');
+  }
+}
+async function fetchOutlookCalendarEvents2(){
+  if(!outlookToken2)return;
+  try{
+    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+    const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({provider:'outlook',token:outlookToken2,accountId:'outlook2'})
+    });
+    if(!res.ok)throw new Error('Edge Function HTTP '+res.status);
+    const data=await res.json();
+    if(data.erro)throw new Error(data.erro);
+    const outlook2Evts=(data.eventos||[]).map(e=>({...e,source:'outlook2'}));
+    // Manter eventos das outras fontes, substituir apenas outlook2
+    const outros=(integrations.calendarEvents||[]).filter(e=>e.source!=='outlook2');
+    integrations.calendarEvents=[...outros,...outlook2Evts];
+    saveInt();
+    const emailInfo=integrations.outlook2Email?` (${integrations.outlook2Email})`:''
+    notify('Outlook 2ª conta',`✓ ${outlook2Evts.length} evento(s) carregado(s)${emailInfo}`);
+    updateBadges();
+    if(view==='compromissos-hoje')loadCompromissosDia('hoje');
+    if(view==='compromissos-amanha')loadCompromissosDia('amanha');
+  } catch(err){
+    console.error('Erro Outlook2 Calendar:',err);
+    notify('Outlook 2ª conta','Erro ao buscar eventos: '+err.message);
+  }
+}
+async function createOutlookCalendarEvent2(title,date,time,desc){
+  if(!outlookToken2)return false;
+  try{
+    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+    const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({provider:'outlook',token:outlookToken2,action:'create',event:{title,date,time,desc}})
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    if(data.erro)throw new Error(data.erro);
+    return true;
+  }catch(e){console.error('Erro criar evento Outlook2:',e);return false;}
+}
+function disconnectOutlook2(){
+  integrations.outlook2Connected=false;
+  outlookToken2=null;
+  if(integrations.calendarEvents)integrations.calendarEvents=integrations.calendarEvents.filter(e=>e.source!=='outlook2');
+  saveInt();updateIntUI();updateBadges();
+  if(view==='compromissos-hoje')loadCompromissosDia('hoje');
+  if(view==='compromissos-amanha')loadCompromissosDia('amanha');
+}
+async function silentReauthOutlook2(){
+  if(!integrations.outlook2Connected)return;
+  try{
+    const loaded=await loadMSAL();
+    if(!loaded)return;
+    const app=getMsalApp();
+    if(!app)return;
+    const accounts=app.getAllAccounts();
+    // Tentar conta diferente da principal
+    const email2=integrations.outlook2Email||'';
+    const acc2=accounts.find(a=>a.username===email2)||accounts[1];
+    if(!acc2)return;
+    const resp=await app.acquireTokenSilent({scopes:OUTLOOK_SCOPES,account:acc2});
+    outlookToken2=resp.accessToken;
+    await fetchOutlookCalendarEvents2();
+  } catch(e){console.warn('Outlook2 silent reauth:',e);}
+}
 async function refreshAllCalendars(){
   const btn=document.querySelector('[onclick="refreshAllCalendars()"]');
   if(btn){btn.disabled=true;btn.textContent='Atualizando...';}
@@ -1285,8 +1396,8 @@ async function refreshAllCalendars(){
       try{
         const tokenResp=await new Promise((resolve,reject)=>{
           google.accounts.oauth2.initTokenClient({
-            client_id:GOOGLE_CLIENT_ID,
-            scope:GOOGLE_SCOPES,
+            client_id:GCAL_CLIENT_ID,
+            scope:GCAL_SCOPES,
             prompt:'',
             callback:(r)=>r.error?reject(r):resolve(r)
           }).requestAccessToken();
@@ -1323,6 +1434,30 @@ async function refreshAllCalendars(){
     } else if(integrations.outlookConnected&&!outlookToken){
       updated++;
     }
+    // Segunda conta Outlook
+    if(integrations.outlook2Connected&&!outlookToken2){
+      try{
+        const loaded=await loadMSAL();
+        if(loaded){
+          const app=getMsalApp();
+          if(app){
+            const accounts=app.getAllAccounts();
+            const email2=integrations.outlook2Email||'';
+            const acc2=accounts.find(a=>a.username===email2)||accounts[1];
+            if(acc2){
+              const silentResp2=await app.acquireTokenSilent({scopes:OUTLOOK_SCOPES,account:acc2});
+              outlookToken2=silentResp2.accessToken;
+            }
+          }
+        }
+      } catch(e){console.warn('Silent Outlook2 reauth failed',e);}
+    }
+    if(integrations.outlook2Connected&&outlookToken2){
+      await fetchOutlookCalendarEvents2();
+      updated++;
+    } else if(integrations.outlook2Connected&&!outlookToken2){
+      updated++;
+    }
     if(updated===0){
       notify('Atualizar','Nenhuma integração ativa. Conecte Google Agenda ou Outlook em Configurações.');
     } else {
@@ -1357,6 +1492,16 @@ function updateIntUI(){
   document.getElementById('outlook-connect-area').style.display=oc?'none':'block';
   document.getElementById('outlook-connected-area').style.display=oc?'block':'none';
   if(oc)document.getElementById('outlook-email-lbl').textContent=integrations.outlookEmail||'';
+  // Segunda conta Outlook
+  const oc2=integrations.outlook2Connected;
+  const elO2Badge=document.getElementById('outlook2-badge');
+  const elO2ConnArea=document.getElementById('outlook2-connect-area');
+  const elO2ConnectedArea=document.getElementById('outlook2-connected-area');
+  const elO2EmailLbl=document.getElementById('outlook2-email-lbl');
+  if(elO2Badge){elO2Badge.textContent=oc2?'✓ Conectado':'Não conectado';elO2Badge.className='status-badge '+(oc2?'on':'off');}
+  if(elO2ConnArea)elO2ConnArea.style.display=oc2?'none':'block';
+  if(elO2ConnectedArea)elO2ConnectedArea.style.display=oc2?'block':'none';
+  if(oc2&&elO2EmailLbl)elO2EmailLbl.textContent=integrations.outlook2Email||'';
   const d=integrations.digest;
   document.getElementById('digest-badge').textContent=d?'✓ Ativo':'Desativado';
   document.getElementById('digest-badge').className='status-badge '+(d?'on':'off');
@@ -1394,10 +1539,7 @@ function updateHeaderChips(){
   const nHoje=reminders.filter(r=>!r.done&&r.date===t).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t).length;
   const nAmanha=reminders.filter(r=>!r.done&&r.date===tom).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===tom).length;
   // Nota: reminders.filter(!r.done&&r.date===t) já inclui inAgenda=true e inAgenda=false
-  const elHojeN=document.getElementById('hdr-chip-hoje-n');
-  const elAmanhaN=document.getElementById('hdr-chip-amanha-n');
-  if(elHojeN)elHojeN.textContent=nHoje;
-  if(elAmanhaN)elAmanhaN.textContent=nAmanha;
+  // Números removidos dos chips do header (exibidos apenas na tela interna)
 }
 
 // SHEETS
@@ -1583,10 +1725,17 @@ async function confirmToAgenda(){
     }
     if(integrations.outlookConnected&&outlookToken){
       const ok=await createOutlookCalendarEvent(r.title,r.date,r.time,r.desc);
-      if(ok)criados.push('Outlook');
+      if(ok)criados.push('Outlook ('+( integrations.outlookEmail||'conta 1')+')');
       else semToken.push('Outlook (erro ao criar)');
     } else if(integrations.outlookConnected&&!outlookToken){
       semToken.push('Outlook (sessão expirada — reconecte em Integrações)');
+    }
+    if(integrations.outlook2Connected&&outlookToken2){
+      const ok2=await createOutlookCalendarEvent2(r.title,r.date,r.time,r.desc);
+      if(ok2)criados.push('Outlook ('+( integrations.outlook2Email||'conta 2')+')');
+      else semToken.push('Outlook 2ª conta (erro ao criar)');
+    } else if(integrations.outlook2Connected&&!outlookToken2){
+      semToken.push('Outlook 2ª conta (sessão expirada — reconecte em Integrações)');
     }
 
     // Atualizar eventos do calendário para refletir o novo evento
@@ -1955,8 +2104,18 @@ function updateBadges(){
   const remAgendaAmanha=reminders.filter(r=>!r.done&&r.inAgenda&&r.date===tom).length;
   const remNormHoje=reminders.filter(r=>!r.done&&!r.inAgenda&&r.date===t).length;
   const remNormAmanha=reminders.filter(r=>!r.done&&!r.inAgenda&&r.date===tom).length;
-  const calHoje=calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t).length;
-  const calAmanha=calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===tom).length;
+  const calHoje=calEvts.filter(e=>{
+    if(e.source==='google'&&!integrations.googleConnected)return false;
+    if(e.source==='outlook'&&!integrations.outlookConnected)return false;
+    if(e.source==='outlook2'&&!integrations.outlook2Connected)return false;
+    return (e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t;
+  }).length;
+  const calAmanha=calEvts.filter(e=>{
+    if(e.source==='google'&&!integrations.googleConnected)return false;
+    if(e.source==='outlook'&&!integrations.outlookConnected)return false;
+    if(e.source==='outlook2'&&!integrations.outlook2Connected)return false;
+    return (e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===tom;
+  }).length;
   const bCompHoje=remAgendaHoje+remNormHoje+calHoje;
   const bCompAmanha=remAgendaAmanha+remNormAmanha+calAmanha;
   const elCH=document.getElementById('b-comp-hoje');if(elCH)elCH.textContent=bCompHoje;
@@ -2007,6 +2166,7 @@ function loadCompromissosDia(dia){
     // Filtrar por integração ativa
     if(e.source==='google'&&!integrations.googleConnected)return false;
     if(e.source==='outlook'&&!integrations.outlookConnected)return false;
+    if(e.source==='outlook2'&&!integrations.outlook2Connected)return false;
     const d=e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||'').split('T')[0];
     return d===targetDate;
   }).map(e=>({
@@ -2014,9 +2174,9 @@ function loadCompromissosDia(dia){
     title:e.summary||'(sem título)',
     time:fmtTime(e.start?.dateTime)||'',
     source:e.source||'google',
-    sourceLabel:e.source==='google'?'Google Agenda':'Outlook',
-    sourceColor:e.source==='google'?'#60A5FA':'#0078d4',
-    sourceEmail:e.source==='google'?(integrations.googleEmail||''):(integrations.outlookEmail||''),
+    sourceLabel:e.source==='google'?'Google Agenda':(e.source==='outlook2'?'Outlook ('+( integrations.outlook2Email||'2ª conta')+')':'Outlook'),
+    sourceColor:e.source==='google'?'#60A5FA':(e.source==='outlook2'?'#00b4d8':'#0078d4'),
+    sourceEmail:e.source==='google'?(integrations.googleEmail||''):(e.source==='outlook2'?(integrations.outlook2Email||''):(integrations.outlookEmail||'')),
     isReminderAgenda:false,
     isReminder:false,
     done:false
@@ -2716,6 +2876,6 @@ async function loginWithGoogle() {
   }
 }
 </script>
-<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=9');</script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=11');</script>
 </body>
 </html>
