@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -294,6 +294,19 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .ai-mic-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
 @keyframes mic-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
 .ai-mic-btn.on svg{animation:mic-pulse 0.8s infinite}
+/* Cards compactos da agenda dashboard */
+.agenda-dash-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:0.75rem 0.9rem;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all 0.2s;text-decoration:none;position:relative}
+.agenda-dash-card:hover{border-color:rgba(74,222,128,0.3);background:var(--surface2)}
+.agenda-dash-ico{width:32px;height:32px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.agenda-dash-info{flex:1;min-width:0}
+.agenda-dash-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.agenda-dash-sub{font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.agenda-dash-badge{min-width:22px;height:22px;border-radius:var(--r-full);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 5px;flex-shrink:0}
+/* Botão voltar mobile */
+.mob-back-btn{display:none;align-items:center;gap:6px;padding:6px 0 8px;background:none;border:none;color:var(--text2);font-family:inherit;font-size:13px;cursor:pointer;width:100%}
+.mob-back-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.mob-back-btn:hover{color:var(--text)}
+@media(max-width:640px){.mob-back-btn{display:flex!important}}
 /* Botão de foto */
 .photo-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s}
 .photo-btn:hover{border-color:rgba(96,165,250,0.4);color:var(--blue);background:var(--blue-dim)}
@@ -359,7 +372,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 <!-- APP -->
 <div id="app-screen">
   <header>
-    <div class="hdr-logo">Lemb<em>ra</em></div>
+    <button class="hdr-logo" onclick="goHome()" title="Voltar ao início" style="background:none;border:none;cursor:pointer;padding:0"><em>Lembra</em></button>
     <div class="hdr-right">
       <!-- Chips de integrações e compromissos -->
       <div class="hdr-chips" id="hdr-chips">
@@ -543,6 +556,10 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 
       <!-- MEUS COMPROMISSOS - DASHBOARD COM 4 CARDS -->
       <div id="view-agenda" style="display:none;flex-direction:column;gap:1.25rem">
+        <button class="mob-back-btn" onclick="goHome()">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Voltar
+        </button>
         <div class="main-hdr">
           <div><div class="main-title">Meus Compromissos</div><div class="main-meta" id="agenda-meta">Acesso rápido</div></div>
           <button class="add-btn" onclick="loadCompromissosDia('hoje')">
@@ -550,54 +567,59 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
             Atualizar
           </button>
         </div>
-        <!-- 4 Cards de acesso rápido -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
-          <!-- Card Google Agenda -->
-          <a href="https://calendar.google.com/calendar/r" target="_blank" id="agenda-card-google" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(96,165,250,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
-            <div style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--blue-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            </div>
-            <div><div style="font-size:13px;font-weight:600;color:var(--text)">Google Agenda</div><div style="font-size:11px;color:var(--text3)" id="minha-agenda-google-sub">Abrir calendário</div></div>
-          </a>
-          <!-- Card Gmail -->
-          <a href="https://mail.google.com/mail/#inbox" target="_blank" id="agenda-card-gmail" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(248,113,113,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
-            <div style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--red-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F87171" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            </div>
-            <div><div style="font-size:13px;font-weight:600;color:var(--text)">Gmail</div><div style="font-size:11px;color:var(--text3)" id="minha-agenda-gmail-sub">Abrir e-mails</div></div>
-          </a>
-          <!-- Card Outlook -->
-          <a href="https://outlook.live.com/mail/0/inbox" target="_blank" id="agenda-card-outlook" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(0,120,212,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
-            <div style="width:36px;height:36px;border-radius:var(--r-sm);background:rgba(0,120,212,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            </div>
-            <div><div style="font-size:13px;font-weight:600;color:var(--text)">Outlook</div><div style="font-size:11px;color:var(--text3)" id="minha-agenda-outlook-sub">Abrir caixa de entrada</div></div>
-          </a>
+        <!-- 4 Cards compactos: 2 linhas x 2 colunas -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <!-- Card Compromissos Hoje -->
-          <div onclick="setView('compromissos-hoje',null)" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(74,222,128,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
-            <div style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--accent-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <div onclick="setView('compromissos-hoje',null)" class="agenda-dash-card" id="dash-card-hoje">
+            <div class="agenda-dash-ico" style="background:var(--accent-dim)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             </div>
-            <div>
-              <div style="font-size:13px;font-weight:600;color:var(--accent)">Compromissos Hoje</div>
-              <div style="font-size:11px;color:var(--text3)" id="minha-agenda-hoje-sub">Carregando...</div>
+            <div class="agenda-dash-info">
+              <div class="agenda-dash-title" style="color:var(--accent)">Hoje</div>
+              <div class="agenda-dash-sub" id="minha-agenda-hoje-sub">Carregando...</div>
             </div>
+            <div class="agenda-dash-badge" id="dash-badge-hoje" style="background:var(--accent-dim);color:var(--accent)">0</div>
           </div>
           <!-- Card Compromissos Amanhã -->
-          <div onclick="setView('compromissos-amanha',null)" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(251,191,36,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
-            <div style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--amber-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <div onclick="setView('compromissos-amanha',null)" class="agenda-dash-card" id="dash-card-amanha">
+            <div class="agenda-dash-ico" style="background:var(--amber-dim)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             </div>
-            <div>
-              <div style="font-size:13px;font-weight:600;color:var(--amber)">Compromissos Amanhã</div>
-              <div style="font-size:11px;color:var(--text3)" id="minha-agenda-amanha-sub">Carregando...</div>
+            <div class="agenda-dash-info">
+              <div class="agenda-dash-title" style="color:var(--amber)">Amanhã</div>
+              <div class="agenda-dash-sub" id="minha-agenda-amanha-sub">Carregando...</div>
             </div>
+            <div class="agenda-dash-badge" id="dash-badge-amanha" style="background:var(--amber-dim);color:var(--amber)">0</div>
           </div>
+          <!-- Card Gmail -->
+          <a href="https://mail.google.com/mail/#inbox" target="_blank" class="agenda-dash-card" id="dash-card-gmail">
+            <div class="agenda-dash-ico" style="background:var(--red-dim)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F87171" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div class="agenda-dash-info">
+              <div class="agenda-dash-title" style="color:#F87171">Gmail</div>
+              <div class="agenda-dash-sub">Abrir e-mails</div>
+            </div>
+          </a>
+          <!-- Card Outlook -->
+          <a href="https://outlook.live.com/mail/0/inbox" target="_blank" class="agenda-dash-card" id="dash-card-outlook">
+            <div class="agenda-dash-ico" style="background:rgba(0,120,212,0.12)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div class="agenda-dash-info">
+              <div class="agenda-dash-title" style="color:#0078d4">Outlook</div>
+              <div class="agenda-dash-sub">Abrir e-mails</div>
+            </div>
+          </a>
         </div>
       </div>
 
       <!-- MEUS COMPROMISSOS HOJE -->
       <div id="view-compromissos-hoje" style="display:none;flex-direction:column;gap:1.25rem">
+        <button class="mob-back-btn" onclick="setView('agenda',null)">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Meus Compromissos
+        </button>
         <div class="main-hdr">
           <div>
             <div class="main-title">Compromissos Hoje</div>
@@ -613,6 +635,10 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 
       <!-- MEUS COMPROMISSOS AMANHÃ -->
       <div id="view-compromissos-amanha" style="display:none;flex-direction:column;gap:1.25rem">
+        <button class="mob-back-btn" onclick="setView('agenda',null)">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Meus Compromissos
+        </button>
         <div class="main-hdr">
           <div>
             <div class="main-title">Compromissos Amanhã</div>
@@ -628,6 +654,10 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 
       <!-- PLANILHAS -->
       <div id="view-planilhas" style="display:none;flex-direction:column;gap:1.25rem">
+        <button class="mob-back-btn" onclick="goHome()">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Voltar
+        </button>
         <div class="main-hdr">
           <div><div class="main-title">Planilhas</div><div class="main-meta">Acesso rápido às suas planilhas</div></div>
         </div>
@@ -636,6 +666,10 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 
       <!-- INTEGRACOES -->
       <div id="view-integracoes" style="display:none;flex-direction:column;gap:1rem">
+        <button class="mob-back-btn" onclick="goHome()">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Voltar
+        </button>
         <div><div class="main-title">Integrações</div><div class="main-meta">Conecte sua agenda Google ou Outlook</div></div>
 
         <div class="int-card">
@@ -1284,10 +1318,14 @@ function toggleForm(){
 function selRecur(btn,val){document.querySelectorAll('.rchip').forEach(x=>x.classList.remove('sel'));btn.classList.add('sel');recur=val}
 function saveReminder(){
   const title=document.getElementById('f-title').value.trim();if(!title)return;
-  const r={id:Date.now(),title,desc:document.getElementById('f-desc').value.trim(),cat:document.getElementById('f-cat').value,prio:document.getElementById('f-prio').value,date:document.getElementById('f-date').value,time:document.getElementById('f-time').value,recur,done:false,created:Date.now(),inAgenda:false};
+  const photoPreview=document.getElementById('f-photo-preview');
+  const photo=photoPreview&&photoPreview.src&&photoPreview.src.startsWith('data:')?photoPreview.src:null;
+  const r={id:Date.now(),title,desc:document.getElementById('f-desc').value.trim(),cat:document.getElementById('f-cat').value,prio:document.getElementById('f-prio').value,date:document.getElementById('f-date').value,time:document.getElementById('f-time').value,recur,done:false,created:Date.now(),inAgenda:false,photo};
   reminders.unshift(r);persist();
   document.getElementById('f-title').value='';document.getElementById('f-desc').value='';document.getElementById('f-time').value='';document.getElementById('f-date').value=today();
   document.querySelectorAll('.rchip').forEach(x=>x.classList.remove('sel'));document.querySelector('.rchip').classList.add('sel');recur='nenhuma';
+  // Limpar foto
+  removePhoto('f-photo','f-photo-preview','f-photo-wrap','f-photo-name');
   toggleForm();render();scheduleNotifs();
 }
 
@@ -1340,6 +1378,7 @@ function confirmToAgenda(){
     r.time=document.getElementById('ta-time').value||r.time;
     r.inAgenda=true;
     persist();
+    updateBadges();
     notify('Agenda','✓ Lembrete incluído nos seus compromissos!');
     render();
     // Navegar para a tela de compromissos do dia correspondente
@@ -1347,7 +1386,11 @@ function confirmToAgenda(){
     const t=today(),tom=tomorrow();
     if(targetDate===t){setView('compromissos-hoje',null);updateSidebarActive('compromissos-hoje');}
     else if(targetDate===tom){setView('compromissos-amanha',null);updateSidebarActive('compromissos-amanha');}
-    else{setView('compromissos-hoje',null);updateSidebarActive('compromissos-hoje');}
+    else{
+      // Data futura: ir para o dashboard de compromissos
+      setView('agenda',null);updateSidebarActive('agenda');
+      notify('Agenda',`Lembrete agendado para ${r.date}. Acesse Meus Compromissos para ver.`);
+    }
   }
   closeToAgendaModal();
 }
@@ -1393,6 +1436,17 @@ function openEdit(id,e){
   document.getElementById('e-prio').value=r.prio||'normal';
   renderCatSelect();
   document.getElementById('e-cat').value=r.cat;
+  // Carregar foto existente
+  const eWrap=document.getElementById('e-photo-wrap');
+  const ePrev=document.getElementById('e-photo-preview');
+  const eRemBtn=document.getElementById('e-photo-remove-btn');
+  if(r.photo){
+    ePrev.src=r.photo;eWrap.style.display='block';
+    if(eRemBtn)eRemBtn.style.display='inline-block';
+  }else{
+    ePrev.src='';eWrap.style.display='none';
+    if(eRemBtn)eRemBtn.style.display='none';
+  }
   document.getElementById('edit-modal').classList.add('open');
 }
 function closeEditModal(){document.getElementById('edit-modal').classList.remove('open');editingId=null}
@@ -1404,9 +1458,66 @@ function saveEdit(){
   r.prio=document.getElementById('e-prio').value;
   r.date=document.getElementById('e-date').value;
   r.time=document.getElementById('e-time').value;
+  // Salvar foto editada
+  const ePrev=document.getElementById('e-photo-preview');
+  const eWrap=document.getElementById('e-photo-wrap');
+  if(eWrap.style.display!=='none'&&ePrev.src&&ePrev.src.startsWith('data:')){
+    r.photo=ePrev.src;
+  }else if(eWrap.style.display==='none'){
+    r.photo=null;
+  }
   persist();render();closeEditModal();
   if(view==='compromissos-hoje')loadCompromissosDia('hoje');
   if(view==='compromissos-amanha')loadCompromissosDia('amanha');
+}
+
+// FOTO NOS LEMBRETES
+function previewPhoto(inputId,previewId,wrapId){
+  const file=document.getElementById(inputId).files[0];
+  if(!file)return;
+  // Comprimir imagem antes de salvar (max 800px, qualidade 0.7)
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const img=new Image();
+    img.onload=function(){
+      const canvas=document.createElement('canvas');
+      const MAX=800;
+      let w=img.width,h=img.height;
+      if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      const dataUrl=canvas.toDataURL('image/jpeg',0.72);
+      const prev=document.getElementById(previewId);
+      const wrap=document.getElementById(wrapId);
+      if(prev)prev.src=dataUrl;
+      if(wrap)wrap.style.display='block';
+      const nameEl=document.getElementById(inputId.replace('photo','photo-name'));
+      if(nameEl)nameEl.textContent=file.name;
+      const remBtn=document.getElementById('e-photo-remove-btn');
+      if(remBtn&&inputId==='e-photo')remBtn.style.display='inline-block';
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function removePhoto(inputId,previewId,wrapId,nameId){
+  const inp=document.getElementById(inputId);
+  const prev=document.getElementById(previewId);
+  const wrap=document.getElementById(wrapId);
+  if(inp)inp.value='';
+  if(prev)prev.src='';
+  if(wrap)wrap.style.display='none';
+  if(nameId){const n=document.getElementById(nameId);if(n)n.textContent='';}
+  const remBtn=document.getElementById('e-photo-remove-btn');
+  if(remBtn&&inputId==='e-photo')remBtn.style.display='none';
+}
+function openPhotoLightbox(src,e){
+  if(e)e.stopPropagation();
+  const lb=document.createElement('div');
+  lb.className='photo-lightbox';
+  lb.innerHTML=`<img src="${src}" alt="Foto"><button class="photo-lightbox-close" onclick="this.parentElement.remove()">&times;</button>`;
+  lb.onclick=function(ev){if(ev.target===lb)lb.remove();};
+  document.body.appendChild(lb);
 }
 
 // VOICE UNIVERSAL
@@ -1499,6 +1610,7 @@ function render(){
         <div class="r-body">
           <div class="r-title">${r.title}</div>
           ${r.desc?`<div class="r-desc">${r.desc}</div>`:''}
+          ${r.photo?`<img class="rcard-photo" src="${r.photo}" alt="Foto" onclick="openPhotoLightbox('${r.photo}',event)">`  :''}
           <div class="r-meta">
             <span class="r-tag" style="background:${catBg[r.cat]||'rgba(155,163,157,0.12)'};color:${catColors[r.cat]||'#9BA39D'}">${catLbl[r.cat]||r.cat||''}</span>
             ${r.time?`<span class="r-time">${r.time}</span>`:''}
@@ -1549,7 +1661,7 @@ function loadCompromissosDia(dia){
   const c=document.getElementById(containerId);
   const meta=document.getElementById(metaId);
 
-  // Lembretes que foram movidos para agenda
+  // Lembretes que foram movidos para agenda E que têm data de hoje ou amanhã
   const agendaItems=reminders.filter(r=>!r.done&&r.inAgenda&&r.date===targetDate).map(r=>({
     id:r.id,
     title:r.title,
@@ -1714,30 +1826,40 @@ function setView(v,btn){
   else if(v==='integracoes'){document.getElementById('view-integracoes').style.display='flex'}
   else{document.getElementById('view-reminders').style.display='flex';document.getElementById('view-title').textContent=viewLbl[v]||catLbl[v.replace('cat-','')]||v;render()}
 }
+function goHome(){
+  // Voltar para Lembretes Hoje e mostrar sidebar no mobile
+  const layout=document.querySelector('.layout');
+  if(layout)layout.classList.remove('mob-view-active');
+  view='hoje';
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  const btnHoje=document.querySelector('.nav-btn[onclick*="setView(\'hoje"]');
+  if(btnHoje)btnHoje.classList.add('active');
+  allViews.forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('view-reminders').style.display='flex';
+  document.getElementById('view-title').textContent='Hoje';
+  render();
+}
 function renderAgendaDashboard(){
   const t=today(),tom=tomorrow();
   const calEvts=integrations.calendarEvents||[];
   const nHoje=reminders.filter(r=>!r.done&&r.inAgenda&&r.date===t).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t).length;
   const nAmanha=reminders.filter(r=>!r.done&&r.inAgenda&&r.date===tom).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===tom).length;
+  // Atualizar subtextos e badges dos cards
   const subHoje=document.getElementById('minha-agenda-hoje-sub');
-  if(subHoje)subHoje.textContent=nHoje>0?nHoje+' compromisso'+(nHoje!==1?'s':'')+' hoje':'Ver compromissos do dia';
+  if(subHoje)subHoje.textContent=nHoje>0?nHoje+' compromisso'+(nHoje!==1?'s':'')+' hoje':'Nenhum compromisso';
+  const badgeHoje=document.getElementById('dash-badge-hoje');
+  if(badgeHoje){badgeHoje.textContent=nHoje;badgeHoje.style.display=nHoje>0?'flex':'none';}
   const subAmanha=document.getElementById('minha-agenda-amanha-sub');
-  if(subAmanha)subAmanha.textContent=nAmanha>0?nAmanha+' compromisso'+(nAmanha!==1?'s':'')+' amanhã':'Ver compromissos de amanhã';
+  if(subAmanha)subAmanha.textContent=nAmanha>0?nAmanha+' compromisso'+(nAmanha!==1?'s':'')+' amanhã':'Nenhum compromisso';
+  const badgeAmanha=document.getElementById('dash-badge-amanha');
+  if(badgeAmanha){badgeAmanha.textContent=nAmanha;badgeAmanha.style.display=nAmanha>0?'flex':'none';}
+  // E-mail nos cards Gmail/Outlook
   const gc=integrations.googleConnected;
-  const subGoogle=document.getElementById('minha-agenda-google-sub');
-  if(subGoogle)subGoogle.textContent=gc?(integrations.googleEmail||'Conectado'):'Abrir calendário';
-  const subGmail=document.getElementById('minha-agenda-gmail-sub');
-  if(subGmail)subGmail.textContent=gc?(integrations.googleEmail||'Abrir e-mails'):'Abrir e-mails';
   const oc=integrations.outlookConnected;
-  const subOutlook=document.getElementById('minha-agenda-outlook-sub');
-  if(subOutlook)subOutlook.textContent=oc?(integrations.outlookEmail||'Conectado'):'Abrir caixa de entrada';
-  // Mostrar/ocultar cards de acordo com integrações
-  const cardGoogle=document.getElementById('agenda-card-google');
-  const cardGmail=document.getElementById('agenda-card-gmail');
-  const cardOutlook=document.getElementById('agenda-card-outlook');
-  if(cardGoogle)cardGoogle.style.display=gc?'flex':'flex'; // sempre visível
-  if(cardGmail)cardGmail.style.display=gc?'flex':'flex';
-  if(cardOutlook)cardOutlook.style.display=oc?'flex':'flex';
+  const subGmail=document.querySelector('#dash-card-gmail .agenda-dash-sub');
+  if(subGmail)subGmail.textContent=gc?(integrations.googleEmail||'Abrir e-mails'):'Abrir e-mails';
+  const subOutlook=document.querySelector('#dash-card-outlook .agenda-dash-sub');
+  if(subOutlook)subOutlook.textContent=oc?(integrations.outlookEmail||'Abrir e-mails'):'Abrir e-mails';
 }
 function mobActive(btn){document.querySelectorAll('.mob-btn').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}
 
