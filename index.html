@@ -1393,6 +1393,7 @@ function updateHeaderChips(){
   const calEvts=integrations.calendarEvents||[];
   const nHoje=reminders.filter(r=>!r.done&&r.date===t).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t).length;
   const nAmanha=reminders.filter(r=>!r.done&&r.date===tom).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===tom).length;
+  // Nota: reminders.filter(!r.done&&r.date===t) já inclui inAgenda=true e inAgenda=false
   const elHojeN=document.getElementById('hdr-chip-hoje-n');
   const elAmanhaN=document.getElementById('hdr-chip-amanha-n');
   if(elHojeN)elHojeN.textContent=nHoje;
@@ -1542,21 +1543,64 @@ async function confirmToAgenda(){
     persist();
     updateBadges();
     closeToAgendaModal();
+
+    // Tentar reautenticar silenciosamente se não tiver token
+    if(integrations.googleConnected&&!gcalToken){
+      try{
+        await new Promise((resolve,reject)=>{
+          if(typeof google==='undefined'||!google.accounts){reject('no-google-sdk');return;}
+          google.accounts.oauth2.initTokenClient({
+            client_id:GCAL_CLIENT_ID,scope:GCAL_SCOPES,prompt:'',
+            callback:(resp)=>resp.error?reject(resp):resolve(resp)
+          }).requestAccessToken();
+        }).then(resp=>{gcalToken=resp.access_token;});
+      }catch(e){console.warn('Silent Google reauth for agenda:',e);}
+    }
+    if(integrations.outlookConnected&&!outlookToken){
+      try{
+        const loaded=await loadMSAL();
+        if(loaded){
+          const app=getMsalApp();
+          if(app){
+            const accounts=app.getAllAccounts();
+            if(accounts.length>0){
+              const sr=await app.acquireTokenSilent({scopes:OUTLOOK_SCOPES,account:accounts[0]});
+              outlookToken=sr.accessToken;
+            }
+          }
+        }
+      }catch(e){console.warn('Silent Outlook reauth for agenda:',e);}
+    }
+
     // Criar evento nas agendas reais
-    let criados=[];
+    let criados=[],semToken=[];
     if(integrations.googleConnected&&gcalToken){
       const ok=await createGoogleCalendarEvent(r.title,r.date,r.time,r.desc);
       if(ok)criados.push('Google Agenda');
+      else semToken.push('Google Agenda (erro ao criar)');
+    } else if(integrations.googleConnected&&!gcalToken){
+      semToken.push('Google Agenda (sessão expirada — reconecte em Integrações)');
     }
     if(integrations.outlookConnected&&outlookToken){
       const ok=await createOutlookCalendarEvent(r.title,r.date,r.time,r.desc);
       if(ok)criados.push('Outlook');
+      else semToken.push('Outlook (erro ao criar)');
+    } else if(integrations.outlookConnected&&!outlookToken){
+      semToken.push('Outlook (sessão expirada — reconecte em Integrações)');
     }
+
     // Atualizar eventos do calendário para refletir o novo evento
     if(integrations.googleConnected&&gcalToken)fetchGoogleCalendarEvents();
     if(integrations.outlookConnected&&outlookToken)fetchOutlookCalendarEvents();
-    const destinos=criados.length>0?` Criado em: ${criados.join(' e ')}.`:' (Conecte Google Agenda ou Outlook para sincronizar.)';
-    notify('Agenda',`✓ "${r.title}" incluído nos compromissos!${destinos}`);
+
+    if(criados.length>0){
+      notify('✓ Incluído na Agenda',`"${r.title}" criado em: ${criados.join(' e ')}.`);
+    } else if(!integrations.googleConnected&&!integrations.outlookConnected){
+      notify('✓ Incluído na Agenda',`"${r.title}" salvo nos compromissos do app. Conecte Google Agenda ou Outlook em Integrações para sincronizar com sua agenda real.`);
+    } else {
+      notify('⚠️ Atenção',`"${r.title}" salvo no app, mas não foi possível criar na agenda externa. ${semToken.join('; ')}`);
+    }
+
     // Navegar para a tela de compromissos do dia correspondente
     const targetDate=r.date;
     const t=today(),tom=tomorrow();
@@ -1905,15 +1949,16 @@ function updateBadges(){
   document.getElementById('b-hoje').textContent=a.filter(r=>r.date===t).length;
   document.getElementById('b-todos').textContent=a.length;
   userCats.forEach(c=>{const el=document.getElementById('b-'+c.id);if(el)el.textContent=a.filter(r=>r.cat===c.id).length});
-  // Badges compromissos: lembretes na agenda + eventos do calendário
+  // Badges compromissos: lembretes na agenda + lembretes normais do dia + eventos do calendário
   const calEvts=integrations.calendarEvents||[];
   const remAgendaHoje=reminders.filter(r=>!r.done&&r.inAgenda&&r.date===t).length;
   const remAgendaAmanha=reminders.filter(r=>!r.done&&r.inAgenda&&r.date===tom).length;
-  const calHoje=calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t).length
-;
+  const remNormHoje=reminders.filter(r=>!r.done&&!r.inAgenda&&r.date===t).length;
+  const remNormAmanha=reminders.filter(r=>!r.done&&!r.inAgenda&&r.date===tom).length;
+  const calHoje=calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t).length;
   const calAmanha=calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===tom).length;
-  const bCompHoje=remAgendaHoje+calHoje;
-  const bCompAmanha=remAgendaAmanha+calAmanha;
+  const bCompHoje=remAgendaHoje+remNormHoje+calHoje;
+  const bCompAmanha=remAgendaAmanha+remNormAmanha+calAmanha;
   const elCH=document.getElementById('b-comp-hoje');if(elCH)elCH.textContent=bCompHoje;
   const elCA=document.getElementById('b-comp-amanha');if(elCA)elCA.textContent=bCompAmanha;
   // Sincronizar chips do header
@@ -1929,8 +1974,22 @@ function loadCompromissosDia(dia){
   const c=document.getElementById(containerId);
   const meta=document.getElementById(metaId);
 
-  // Lembretes com data de hoje ou amanhã (inAgenda=true) OU lembretes normais com essa data
-  const agendaItems=reminders.filter(r=>!r.done&&r.date===targetDate).map(r=>({
+  // Lembretes com inAgenda=true (foram incluídos na agenda) com data de hoje ou amanhã
+  const agendaItems=reminders.filter(r=>!r.done&&r.inAgenda&&r.date===targetDate).map(r=>({
+    id:r.id,
+    title:r.title,
+    time:r.time||'',
+    source:'lembrete-agenda',
+    sourceLabel:'Na Agenda',
+    sourceColor:'#4ADE80',
+    cat:r.cat,
+    isReminderAgenda:true,
+    isReminder:false,
+    done:r.done
+  }));
+
+  // Lembretes normais do dia (inAgenda=false) — aparecem como lembretes pendentes
+  const lembreteItems=reminders.filter(r=>!r.done&&!r.inAgenda&&r.date===targetDate).map(r=>({
     id:r.id,
     title:r.title,
     time:r.time||'',
@@ -1938,6 +1997,7 @@ function loadCompromissosDia(dia){
     sourceLabel:'Lembrete',
     sourceColor:'#4ADE80',
     cat:r.cat,
+    isReminderAgenda:false,
     isReminder:true,
     done:r.done
   }));
@@ -1950,20 +2010,21 @@ function loadCompromissosDia(dia){
     const d=e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||'').split('T')[0];
     return d===targetDate;
   }).map(e=>({
-    id:'gcal_'+e.id,
+    id:'gcal_'+(e.id||Math.random()),
     title:e.summary||'(sem título)',
     time:fmtTime(e.start?.dateTime)||'',
     source:e.source||'google',
     sourceLabel:e.source==='google'?'Google Agenda':'Outlook',
     sourceColor:e.source==='google'?'#60A5FA':'#0078d4',
     sourceEmail:e.source==='google'?(integrations.googleEmail||''):(integrations.outlookEmail||''),
+    isReminderAgenda:false,
     isReminder:false,
     done:false
   }));
 
-  const all=[...agendaItems,...calItems].sort((a,b)=>a.time.localeCompare(b.time));
+  const all=[...agendaItems,...calItems,...lembreteItems].sort((a,b)=>a.time.localeCompare(b.time));
 
-  // Atualizar badge
+  // Atualizar badge (conta agenda + cal + lembretes do dia)
   document.getElementById(isHoje?'b-comp-hoje':'b-comp-amanha').textContent=all.length;
 
   // Sem nada — mostrar tela com e-mails conectados (imagem 4)
@@ -1994,18 +2055,49 @@ function loadCompromissosDia(dia){
     'Amanhã, '+new Date(targetDate+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
   meta.textContent=nomeDia+' · '+all.length+' compromisso'+(all.length!==1?'s':'');
 
-  // Separar lembretes da agenda e eventos do calendário
-  const agendaSection=all.filter(x=>x.isReminder);
-  const calSection=all.filter(x=>!x.isReminder);
+  // Separar em 3 seções: eventos do calendário, lembretes incluídos na agenda, lembretes normais do dia
+  const calSection=all.filter(x=>!x.isReminder&&!x.isReminderAgenda);
+  const agendaSection=all.filter(x=>x.isReminderAgenda);
+  const lembreteSection=all.filter(x=>x.isReminder&&!x.isReminderAgenda);
 
   let html='';
   const now=new Date();
 
-  // SEÇÃO: LEMBRETES NA AGENDA
-  if(agendaSection.length){
+  // SEÇÃO: COMPROMISSOS DO CALENDÁRIO (Google / Outlook)
+  if(calSection.length){
     html+=`<div class="compromissos-section-hdr">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span>Agenda</span>
+      <span class="csec-badge">${calSection.length}</span>
+    </div>`;
+    calSection.forEach(item=>{
+      const timeStr=item.time?`<span style="font-size:12px;color:var(--text3);min-width:42px;flex-shrink:0">${item.time}</span>`:'';      const emailRight=item.sourceEmail
+        ?`<span style="font-size:10px;color:var(--text3);margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;flex-shrink:0" title="${item.sourceEmail}">${item.sourceEmail}</span>`
+        :'';
+      html+=`<div class="rcard" style="margin-bottom:8px;cursor:default">
+        <div class="pbar" style="background:${item.sourceColor}"></div>
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin:0 4px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${item.sourceColor}" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div class="r-body">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            ${timeStr}
+            <span class="r-title" style="margin-bottom:0;flex:1;min-width:0">${item.title}</span>
+            ${emailRight}
+          </div>
+          <div style="margin-top:4px">
+            <span style="font-size:10px;padding:2px 7px;border-radius:var(--r-full);background:rgba(0,0,0,0.2);color:${item.sourceColor}">${item.sourceLabel}</span>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  // SEÇÃO: LEMBRETES INCLUÍDOS NA AGENDA (inAgenda=true)
+  if(agendaSection.length){
+    html+=`<div class="compromissos-section-hdr" style="margin-top:${calSection.length?'1rem':'0'}">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-      <span>Lembretes</span>
+      <span>Incluídos na Agenda</span>
       <span class="csec-badge">${agendaSection.length}</span>
     </div>`;
     agendaSection.forEach(item=>{
@@ -2036,40 +2128,45 @@ function loadCompromissosDia(dia){
     });
   }
 
-  // SEÇÃO: COMPROMISSOS DO CALENDÁRIO
-  if(calSection.length){
-    html+=`<div class="compromissos-section-hdr" style="margin-top:${agendaSection.length?'1rem':'0'}">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      <span>Agenda</span>
-      <span class="csec-badge">${calSection.length}</span>
+  // SEÇÃO: LEMBRETES DO DIA (inAgenda=false, apenas com data de hoje/amanhã)
+  if(lembreteSection.length){
+    const hasAbove=calSection.length||agendaSection.length;
+    html+=`<div class="compromissos-section-hdr" style="margin-top:${hasAbove?'1rem':'0'}">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      <span>Lembretes</span>
+      <span class="csec-badge">${lembreteSection.length}</span>
     </div>`;
-    calSection.forEach(item=>{
-      const timeStr=item.time?`<span style="font-size:12px;color:var(--text3);min-width:42px;flex-shrink:0">${item.time}</span>`:'';
-      // E-mail da origem no final da linha
-      const emailRight=item.sourceEmail
-        ?`<span style="font-size:10px;color:var(--text3);margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;flex-shrink:0" title="${item.sourceEmail}">${item.sourceEmail}</span>`
-        :'';
-      html+=`<div class="rcard" style="margin-bottom:8px;cursor:default">
+    lembreteSection.forEach(item=>{
+      let statusClass='',statusPill='';
+      if(item.time){
+        const dt=new Date(targetDate+'T'+item.time);
+        const diff=dt-now;
+        if(diff<0){statusClass=' status-overdue';statusPill='<span class="status-pill overdue">Atrasado</span>';}
+        else if(diff<=30*60*1000){statusClass=' status-now';statusPill='<span class="status-pill now">Agora</span>';}
+      }
+      const timeStr=item.time?`<span style="font-size:12px;color:var(--text3);min-width:42px">${item.time}</span>`:'';
+      html+=`<div class="rcard${statusClass}" style="margin-bottom:8px">
         <div class="pbar" style="background:${item.sourceColor}"></div>
-        <div style="width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin:0 4px">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${item.sourceColor}" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        </div>
+        <button class="chk" onclick="toggleDone(${item.id},event)"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button>
         <div class="r-body">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <div class="r-title">${item.title}</div>
+          <div class="r-meta" style="gap:6px;flex-wrap:wrap">
             ${timeStr}
-            <span class="r-title" style="margin-bottom:0;flex:1;min-width:0">${item.title}</span>
-            ${emailRight}
+            <span style="font-size:10px;padding:2px 7px;border-radius:var(--r-full);background:var(--accent-dim);color:var(--accent)">Lembrete</span>
+            ${statusPill}
+            <span class="r-tag" style="background:${catBg[item.cat]||'rgba(155,163,157,0.12)'};color:${catColors[item.cat]||'#9BA39D'}">${catLbl[item.cat]||item.cat||''}</span>
+            <button class="btn-to-agenda" onclick="openToAgendaModal(${item.id},event)" style="margin-left:auto"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg> Incluir na Agenda</button>
           </div>
-          <div style="margin-top:4px">
-            <span style="font-size:10px;padding:2px 7px;border-radius:var(--r-full);background:rgba(0,0,0,0.2);color:${item.sourceColor}">${item.sourceLabel}</span>
-          </div>
+        </div>
+        <div class="r-acts">
+          <button class="r-act del" onclick="askDelete(${item.id},event)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
         </div>
       </div>`;
     });
   }
 
   // Se não tem integração ativa E não tem lembretes, mostrar aviso
-  if(!integrations.googleConnected&&!integrations.outlookConnected&&!agendaSection.length){
+  if(!integrations.googleConnected&&!integrations.outlookConnected&&!agendaSection.length&&!lembreteSection.length){
     html+=`<div style="background:var(--surface);border:1px dashed var(--border);border-radius:var(--r);padding:1rem;text-align:center;margin-top:8px">
       <div style="font-size:13px;color:var(--text3);line-height:1.6">Conecte sua <strong style="color:var(--text)">Google Agenda</strong> ou <strong style="color:var(--text)">Outlook</strong> em <strong style="color:var(--text)">Integrações</strong> para ver seus eventos do calendário aqui.</div>
     </div>`;
@@ -2619,6 +2716,6 @@ async function loginWithGoogle() {
   }
 }
 </script>
-<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=6');</script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=9');</script>
 </body>
 </html>
