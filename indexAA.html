@@ -1,0 +1,2721 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0D0F0E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lembra">
+<link rel="manifest" href="manifest.json">
+<title>Lembra</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0D0F0E;--surface:#161917;--surface2:#1E2220;--surface3:#262C29;
+  --text:#F0EDE6;--text2:#9BA39D;--text3:#5C6660;
+  --accent:#4ADE80;--accent-dim:rgba(74,222,128,0.12);--accent-text:#071a0f;
+  --border:rgba(240,237,230,0.08);
+  --red:#F87171;--red-dim:rgba(248,113,113,0.12);
+  --amber:#FBBF24;--amber-dim:rgba(251,191,36,0.12);
+  --blue:#60A5FA;--blue-dim:rgba(96,165,250,0.12);
+  --purple:#C084FC;--purple-dim:rgba(192,132,252,0.12);
+  --r:14px;--r-sm:9px;--r-xs:6px;--r-full:999px;
+}
+[data-theme="light"]{
+  --bg:#F5F7F5;--surface:#FFFFFF;--surface2:#EEF1EE;--surface3:#E2E7E2;
+  --text:#111C14;--text2:#4A5C4E;--text3:#8A9E8E;
+  --border:rgba(17,28,20,0.10);
+}
+body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+/* AUTH */
+#auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;position:relative;overflow:hidden}
+.auth-glow{position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:500px;height:300px;background:radial-gradient(ellipse,rgba(74,222,128,0.08) 0%,transparent 70%);pointer-events:none}
+.auth-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:390px;position:relative;z-index:1;animation:fadeUp 0.4s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.auth-logo{font-family:'Fraunces',serif;font-size:34px;font-weight:300;text-align:center;letter-spacing:-1px;margin-bottom:4px}
+.auth-logo em{color:var(--accent);font-style:normal}
+.auth-sub{text-align:center;font-size:13px;color:var(--text3);margin-bottom:2rem}
+.tabs{display:flex;background:var(--surface2);border-radius:var(--r-sm);padding:3px;gap:3px;margin-bottom:1.75rem}
+.tab{flex:1;padding:8px;text-align:center;font-size:13px;font-weight:500;cursor:pointer;border-radius:var(--r-xs);color:var(--text2);border:none;background:none;font-family:inherit;transition:all 0.18s}
+.tab.active{background:var(--surface3);color:var(--text)}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);margin-bottom:5px}
+.field input,.field textarea{width:100%;padding:11px 13px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);font-family:inherit;font-size:14px;color:var(--text);outline:none;transition:border-color 0.2s;resize:none}
+.field input:focus,.field textarea:focus{border-color:rgba(74,222,128,0.5)}
+.field input::placeholder,.field textarea::placeholder{color:var(--text3)}
+.btn-main{width:100%;padding:12px;background:var(--accent);color:var(--accent-text);border:none;border-radius:var(--r-sm);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;margin-top:0.25rem}
+.btn-main:hover{opacity:0.88;transform:translateY(-1px)}
+.err{background:var(--red-dim);border:1px solid rgba(248,113,113,0.2);color:var(--red);font-size:13px;padding:10px 13px;border-radius:var(--r-sm);margin-bottom:1rem;display:none}
+/* APP */
+#app-screen{display:none;min-height:100vh;flex-direction:column}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.25rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.hdr-logo{font-family:'Fraunces',serif;font-size:20px;font-weight:300;letter-spacing:-0.5px}
+.hdr-logo em{color:var(--accent);font-style:normal}
+.hdr-right{display:flex;align-items:center;gap:8px}
+.user-chip{display:flex;align-items:center;gap:7px;padding:4px 11px 4px 5px;background:var(--surface2);border-radius:var(--r-full);font-size:12px;color:var(--text2)}
+.avatar{width:24px;height:24px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--accent)}
+.btn-sm{padding:6px 12px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:12px;cursor:pointer;transition:all 0.15s}
+.btn-sm:hover{background:var(--surface2);color:var(--text)}
+/* Botão Assistente de IA no header */
+.btn-ai{display:flex;align-items:center;gap:6px;padding:6px 13px;border-radius:var(--r-sm);border:1px solid rgba(192,132,252,0.35);background:var(--purple-dim);color:var(--purple);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s}
+.btn-ai:hover{background:rgba(192,132,252,0.2);border-color:var(--purple)}
+.btn-ai svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+.theme-btn{width:32px;height:32px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0}
+.theme-btn:hover{background:var(--surface2);color:var(--text)}
+.theme-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8}
+.layout{display:grid;grid-template-columns:220px 1fr;height:calc(100vh - 56px)}
+@media(max-width:640px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .mob-bar{display:flex!important}
+  /* Mobile: quando uma view está ativa, ocultar sidebar e mostrar apenas o conteúdo */
+  .layout.mob-view-active .sidebar{display:none!important}
+  .layout.mob-view-active main{display:flex!important}
+  /* Botão voltar mobile */
+  .mob-back-btn{display:flex!important}
+}
+.mob-back-btn{display:none;align-items:center;gap:8px;padding:8px 0 4px;background:none;border:none;color:var(--text2);font-family:inherit;font-size:13px;cursor:pointer;margin-bottom:4px}
+.mob-back-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:0.875rem 0.625rem;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.sec-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;padding:12px 8px 4px;display:flex;align-items:center;gap:5px}
+.sec-label::before{content:'';display:inline-block;width:3px;height:12px;border-radius:2px;flex-shrink:0}
+.sec-label.lbl-lembretes{color:#4ADE80}.sec-label.lbl-lembretes::before{background:#4ADE80}
+.sec-label.lbl-compromissos{color:#60A5FA}.sec-label.lbl-compromissos::before{background:#60A5FA}
+.sec-label.lbl-planilhas{color:#FBBF24}.sec-label.lbl-planilhas::before{background:#FBBF24}
+.sec-label.lbl-config{color:#C084FC}.sec-label.lbl-config::before{background:#C084FC}
+/* Chips do header */
+.hdr-chips{display:flex;align-items:center;gap:5px}
+.hdr-chip{display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:var(--r-full);border:1px solid var(--border);background:var(--surface2);font-size:11px;color:var(--text2);text-decoration:none;cursor:default;transition:all 0.15s;white-space:nowrap}
+.hdr-chip:hover{border-color:rgba(240,237,230,0.2);color:var(--text)}
+.hdr-chip.clickable{cursor:pointer}
+.hdr-chip svg{flex-shrink:0}
+.hdr-chip-count{font-weight:700;font-size:11px}
+@media(max-width:640px){.hdr-chips{display:none}}
+.nav-btn{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r-sm);font-size:13px;color:var(--text2);cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:inherit;transition:all 0.15s}
+.nav-btn:hover{background:var(--surface2);color:var(--text)}
+.nav-btn.active{background:var(--accent-dim);color:var(--accent)}
+.nav-icon{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.8}
+.nbadge{margin-left:auto;font-size:10px;padding:2px 6px;border-radius:var(--r-full);background:var(--surface3);color:var(--text3)}
+.nav-btn.active .nbadge{background:var(--accent);color:var(--accent-text)}
+.cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+/* Seção recolhível de categorias na sidebar */
+.sidebar-collapsible{overflow:hidden;transition:max-height 0.3s ease;max-height:0}
+.sidebar-collapsible.open{max-height:500px}
+.sidebar-collapsible-toggle{display:flex;align-items:center;gap:6px;padding:6px 8px 3px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);cursor:pointer;background:none;border:none;width:100%;font-family:inherit;transition:color 0.15s}
+.sidebar-collapsible-toggle:hover{color:var(--text2)}
+.sidebar-collapsible-toggle svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2;transition:transform 0.25s;flex-shrink:0}
+.sidebar-collapsible-toggle.open svg{transform:rotate(90deg)}
+main{overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;gap:1.25rem}
+.main-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.main-title{font-family:'Fraunces',serif;font-size:26px;font-weight:300;letter-spacing:-0.8px}
+.main-meta{font-size:12px;color:var(--text3);margin-top:2px}
+.add-btn{display:flex;align-items:center;gap:7px;padding:9px 16px;background:var(--accent);color:var(--accent-text);border:none;border-radius:var(--r-sm);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;flex-shrink:0}
+.add-btn:hover{opacity:0.88;transform:translateY(-1px)}
+.add-btn svg{width:14px;height:14px;stroke:var(--accent-text);fill:none;stroke-width:2.5}
+/* Botão "Incluir na Agenda" nos cards de lembrete */
+.btn-to-agenda{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:var(--r-full);border:1px solid rgba(251,191,36,0.3);background:var(--amber-dim);color:var(--amber);font-family:inherit;font-size:10px;font-weight:600;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.btn-to-agenda:hover{background:rgba(251,191,36,0.2);border-color:var(--amber)}
+.btn-to-agenda svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2}
+/* FORM */
+.input-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;display:none;flex-direction:column;gap:0.875rem;animation:fadeUp 0.2s ease}
+.input-form.open{display:flex}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:500px){.form-row{grid-template-columns:1fr}}
+.inp{width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);font-family:inherit;font-size:13px;color:var(--text);outline:none;transition:border-color 0.2s}
+.inp:focus{border-color:rgba(74,222,128,0.4)}
+.inp::placeholder{color:var(--text3)}
+select.inp option{background:#1E2220}
+textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
+.recur-row{display:flex;gap:6px;flex-wrap:wrap}
+.rchip{padding:6px 12px;border-radius:var(--r-full);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:12px;cursor:pointer;transition:all 0.15s}
+.rchip:hover{border-color:var(--accent);color:var(--accent)}
+.rchip.sel{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+.form-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.voice-btn{display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:13px;cursor:pointer;transition:all 0.2s}
+.voice-btn:hover{background:var(--surface2);color:var(--text)}
+.voice-btn.on{background:var(--red-dim);border-color:rgba(248,113,113,0.3);color:var(--red)}
+.voice-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+@keyframes mic{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.voice-btn.on svg{animation:mic 0.8s infinite}
+.voice-tx{font-size:12px;color:var(--text3);font-style:italic}
+.form-btns{display:flex;gap:8px}
+.btn-cancel{padding:8px 15px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:13px;cursor:pointer}
+.btn-cancel:hover{background:var(--surface2)}
+.btn-save{padding:8px 18px;border-radius:var(--r-sm);border:none;background:var(--accent);color:var(--accent-text);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.btn-save:hover{opacity:0.88}
+/* CARDS */
+.section-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:10px}
+.reminders-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1.5rem}
+.rcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.125rem;display:flex;align-items:flex-start;gap:12px;transition:border-color 0.2s;position:relative;overflow:hidden;cursor:pointer}
+.rcard:hover{border-color:rgba(240,237,230,0.16)}
+.rcard.done{opacity:0.4}
+.rcard.done .r-title{text-decoration:line-through;color:var(--text3)}
+.chk{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--text3);background:none;cursor:pointer;flex-shrink:0;margin-top:1px;transition:all 0.2s;display:flex;align-items:center;justify-content:center}
+.chk:hover{border-color:var(--accent)}
+.rcard.done .chk{background:var(--accent);border-color:var(--accent)}
+.chk svg{width:10px;height:10px;stroke:var(--accent-text);fill:none;stroke-width:2.5;display:none}
+.rcard.done .chk svg{display:block}
+.r-body{flex:1;min-width:0}
+.r-title{font-size:14px;font-weight:500;margin-bottom:4px;line-height:1.3}
+.r-desc{font-size:12px;color:var(--text2);margin-bottom:5px;line-height:1.5}
+.r-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.r-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:var(--r-full);font-size:11px;font-weight:500}
+.r-time{font-size:11px;color:var(--text3)}
+.r-recur{font-size:11px;color:var(--blue);background:var(--blue-dim);padding:2px 7px;border-radius:var(--r-full)}
+.r-acts{display:flex;gap:4px;opacity:0;transition:opacity 0.15s}
+.rcard:hover .r-acts{opacity:1}
+.r-act{width:28px;height:28px;border-radius:var(--r-xs);border:1px solid var(--border);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.r-act:hover{background:var(--surface2)}
+.r-act svg{width:13px;height:13px;stroke:var(--text2);fill:none;stroke-width:1.8}
+.r-act.del:hover{background:var(--red-dim)}
+.r-act.del:hover svg{stroke:var(--red)}
+.pbar{position:absolute;left:0;top:0;bottom:0;width:3px}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem 2rem;gap:1rem;color:var(--text3);text-align:center}
+.empty-ico{width:48px;height:48px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center}
+.empty-ico svg{width:22px;height:22px;stroke:var(--text3);fill:none;stroke-width:1.5}
+/* Status pills */
+.status-now{border-color:rgba(74,222,128,0.3)!important;background:rgba(74,222,128,0.04)!important}
+.status-overdue{border-color:rgba(248,113,113,0.3)!important;background:rgba(248,113,113,0.04)!important}
+.status-pill{font-size:10px;padding:2px 7px;border-radius:var(--r-full);font-weight:600}
+.status-pill.now{background:var(--accent-dim);color:var(--accent)}
+.status-pill.overdue{background:var(--red-dim);color:var(--red)}
+/* AGENDA */
+.agenda-preview{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.25rem;margin-bottom:10px}
+.agenda-ttl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.agenda-event{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)}
+.agenda-event:last-child{border-bottom:none}
+.agenda-event-time{font-size:11px;color:var(--text3);min-width:38px}
+.agenda-event-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.agenda-event-title{font-size:13px;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.agenda-event-src{font-size:10px;color:var(--text3);white-space:nowrap}
+/* Separador de seção na tela de compromissos */
+.compromissos-section-hdr{display:flex;align-items:center;gap:10px;margin:1rem 0 0.5rem;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.compromissos-section-hdr span{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3)}
+.compromissos-section-hdr .csec-badge{font-size:10px;padding:2px 7px;border-radius:var(--r-full);background:var(--surface3);color:var(--text3)}
+/* SHEETS */
+.sheets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.sheet-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;text-decoration:none}
+.sheet-card:hover{border-color:rgba(240,237,230,0.2);transform:translateY(-2px)}
+.sheet-ico{width:44px;height:44px;border-radius:var(--r-sm);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:22px}
+.sheet-name{font-size:13px;font-weight:500;color:var(--text)}
+.sheet-add{background:transparent;border:1.5px dashed var(--border);border-radius:var(--r);padding:1rem;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.sheet-add:hover{border-color:var(--accent)}
+.sheet-add svg{width:22px;height:22px;stroke:var(--text3);fill:none;stroke-width:1.5}
+.sheet-add:hover svg{stroke:var(--accent)}
+.sheet-add span{font-size:12px;color:var(--text3)}
+.sheet-add:hover span{color:var(--accent)}
+/* INTEGRATIONS */
+.int-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1rem}
+.int-card-hdr{padding:1.25rem;display:flex;align-items:center;gap:1rem}
+.int-card-body{padding:1.25rem;border-top:1px solid var(--border)}
+.int-ico{width:40px;height:40px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.status-badge{font-size:11px;padding:4px 10px;border-radius:var(--r-full);font-weight:600}
+.status-badge.on{background:var(--accent-dim);color:var(--accent)}
+.status-badge.off{background:var(--surface2);color:var(--text3)}
+.connect-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s}
+.connect-btn:hover{background:var(--surface3)}
+.connect-btn.google:hover{border-color:rgba(66,133,244,0.4)}
+.connect-btn.microsoft:hover{border-color:rgba(0,120,212,0.4)}
+/* MODALS */
+.modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:200;padding:1rem;backdrop-filter:blur(4px)}
+.modal-wrap.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:1.75rem;width:100%;max-width:400px;animation:fadeUp 0.2s ease}
+.modal h3{font-family:'Fraunces',serif;font-size:20px;font-weight:300;margin-bottom:0.5rem}
+.modal p{font-size:13px;color:var(--text2);margin-bottom:1.5rem;line-height:1.6}
+.modal-btns{display:flex;gap:10px}
+.emoji-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem}
+.emoji-opt{width:36px;height:36px;border-radius:var(--r-sm);background:var(--surface2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;border:2px solid transparent;transition:all 0.15s}
+.emoji-opt.sel{border-color:var(--accent);background:var(--accent-dim)}
+/* NOTIF */
+.notif-bar{position:fixed;bottom:1rem;right:1rem;display:flex;flex-direction:column;gap:8px;z-index:300;pointer-events:none}
+.notif{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;font-size:13px;color:var(--text2);min-width:220px;max-width:300px;animation:fadeUp 0.3s ease;pointer-events:auto;box-shadow:0 4px 20px rgba(0,0,0,0.3)}
+.notif-ttl{font-weight:600;color:var(--text);margin-bottom:2px;font-size:13px}
+/* COMPLETE MODAL */
+.complete-modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:200;padding:1rem;backdrop-filter:blur(4px)}
+.complete-modal-wrap.open{display:flex}
+.complete-modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2rem;width:100%;max-width:360px;text-align:center;animation:fadeUp 0.2s ease}
+.complete-modal-icon{width:56px;height:56px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem}
+.complete-modal-icon svg{width:26px;height:26px;stroke:var(--accent);fill:none;stroke-width:2}
+.complete-modal h3{font-family:'Fraunces',serif;font-size:22px;font-weight:300;margin-bottom:0.5rem}
+.complete-modal p{font-size:13px;color:var(--text2);margin-bottom:1.75rem;line-height:1.6}
+.complete-modal-btns{display:flex;gap:10px}
+.btn-complete-yes{flex:1;padding:12px;border-radius:var(--r-sm);border:none;background:var(--accent);color:var(--accent-text);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s}
+.btn-complete-yes:hover{opacity:0.88;transform:translateY(-1px)}
+.btn-complete-no{flex:1;padding:12px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:14px;cursor:pointer;transition:all 0.2s}
+.btn-complete-no:hover{background:var(--surface2);color:var(--text)}
+/* MOB */
+.mob-bar{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:8px 1rem;gap:4px;z-index:100}
+.mob-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px;border-radius:var(--r-sm);border:none;background:none;color:var(--text3);font-family:inherit;font-size:10px;cursor:pointer;transition:all 0.15s}
+.mob-btn.active{color:var(--accent)}
+.mob-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+/* ASSISTENTE DE IA */
+.ai-modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:flex-end;justify-content:center;z-index:250;padding:0;backdrop-filter:blur(6px)}
+.ai-modal-wrap.open{display:flex}
+@media(min-width:641px){.ai-modal-wrap{align-items:center;padding:1rem}}
+.ai-modal{background:var(--surface);border:1px solid var(--border);border-radius:20px 20px 0 0;width:100%;max-width:600px;height:85vh;display:flex;flex-direction:column;animation:slideUp 0.3s ease;overflow:hidden}
+@media(min-width:641px){.ai-modal{border-radius:20px;height:75vh}}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+.ai-modal-hdr{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.ai-modal-title{display:flex;align-items:center;gap:10px}
+.ai-modal-title span{font-family:'Fraunces',serif;font-size:18px;font-weight:300}
+.ai-avatar{width:32px;height:32px;border-radius:50%;background:var(--purple-dim);border:1px solid rgba(192,132,252,0.3);display:flex;align-items:center;justify-content:center}
+.ai-avatar svg{width:16px;height:16px;stroke:var(--purple);fill:none;stroke-width:2}
+.ai-close{width:30px;height:30px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.ai-close:hover{background:var(--surface2);color:var(--text)}
+.ai-close svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+.ai-messages{flex:1;overflow-y:auto;padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:12px}
+.ai-msg{display:flex;gap:10px;animation:fadeUp 0.2s ease}
+.ai-msg.user{flex-direction:row-reverse}
+.ai-bubble{max-width:80%;padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.6}
+.ai-msg.assistant .ai-bubble{background:var(--surface2);color:var(--text);border-radius:4px 14px 14px 14px}
+.ai-msg.user .ai-bubble{background:var(--purple-dim);color:var(--text);border:1px solid rgba(192,132,252,0.2);border-radius:14px 4px 14px 14px}
+.ai-msg-avatar{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+.ai-msg.assistant .ai-msg-avatar{background:var(--purple-dim);color:var(--purple)}
+.ai-msg.user .ai-msg-avatar{background:var(--accent-dim);color:var(--accent)}
+.ai-typing{display:flex;gap:4px;align-items:center;padding:10px 14px}
+.ai-typing span{width:6px;height:6px;border-radius:50%;background:var(--text3);animation:typing 1.2s infinite}
+.ai-typing span:nth-child(2){animation-delay:0.2s}
+.ai-typing span:nth-child(3){animation-delay:0.4s}
+@keyframes typing{0%,60%,100%{transform:translateY(0);opacity:0.4}30%{transform:translateY(-4px);opacity:1}}
+.ai-input-area{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:10px;align-items:flex-end;flex-shrink:0}
+.ai-input{flex:1;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);font-family:inherit;font-size:13px;color:var(--text);outline:none;resize:none;max-height:120px;line-height:1.5;transition:border-color 0.2s}
+.ai-input:focus{border-color:rgba(192,132,252,0.4)}
+.ai-input::placeholder{color:var(--text3)}
+.ai-send{width:38px;height:38px;border-radius:var(--r-sm);border:none;background:var(--purple-dim);color:var(--purple);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0}
+.ai-send:hover{background:rgba(192,132,252,0.25)}
+.ai-send svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+/* Botão microfone do chat IA */
+.ai-mic-btn{width:38px;height:38px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0}
+.ai-mic-btn:hover{background:var(--surface2);color:var(--text)}
+.ai-mic-btn.on{background:var(--red-dim);border-color:rgba(248,113,113,0.3);color:var(--red)}
+.ai-mic-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+@keyframes mic-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.ai-mic-btn.on svg{animation:mic-pulse 0.8s infinite}
+/* Cards compactos da agenda dashboard */
+.agenda-dash-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:0.75rem 0.9rem;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all 0.2s;text-decoration:none;position:relative}
+.agenda-dash-card:hover{border-color:rgba(74,222,128,0.3);background:var(--surface2)}
+.agenda-dash-ico{width:32px;height:32px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.agenda-dash-info{flex:1;min-width:0}
+.agenda-dash-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.agenda-dash-sub{font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.agenda-dash-badge{min-width:22px;height:22px;border-radius:var(--r-full);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 5px;flex-shrink:0}
+/* Botão voltar mobile */
+.mob-back-btn{display:none;align-items:center;gap:6px;padding:6px 0 8px;background:none;border:none;color:var(--text2);font-family:inherit;font-size:13px;cursor:pointer;width:100%}
+.mob-back-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.mob-back-btn:hover{color:var(--text)}
+@media(max-width:640px){.mob-back-btn{display:flex!important}}
+/* Botão de foto */
+.photo-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s}
+.photo-btn:hover{border-color:rgba(96,165,250,0.4);color:var(--blue);background:var(--blue-dim)}
+.photo-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8}
+/* Miniatura de foto no card de lembrete */
+.rcard-photo{width:100%;max-height:160px;object-fit:cover;border-radius:var(--r-sm);margin-top:8px;border:1px solid var(--border);cursor:pointer}
+/* Lightbox de foto */
+.photo-lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem}
+.photo-lightbox img{max-width:100%;max-height:90vh;border-radius:var(--r);object-fit:contain}
+.photo-lightbox-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+/* Microfone inline nos inputs de texto */
+.inp-voice-wrap{position:relative;display:flex;align-items:center}
+.inp-voice-wrap .inp{flex:1}
+.inp-mic{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:var(--r-xs);border:none;background:none;color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.inp-mic:hover{color:var(--text);background:var(--surface3)}
+.inp-mic.on{color:var(--red)}
+.inp-mic svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
+.ai-suggestions{display:flex;gap:6px;flex-wrap:wrap;padding:0 1.5rem 0.75rem;flex-shrink:0}
+.ai-sug{padding:5px 11px;border-radius:var(--r-full);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:11px;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.ai-sug:hover{border-color:var(--purple);color:var(--purple);background:var(--purple-dim)}
+/* Modal de mover lembrete para agenda */
+.to-agenda-modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:200;padding:1rem;backdrop-filter:blur(4px)}
+.to-agenda-modal-wrap.open{display:flex}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-glow"></div>
+  <div class="auth-box">
+    <div class="auth-logo">Lemb<em>ra</em></div>
+    <div class="auth-sub">Seus lembretes, do seu jeito</div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('login')">Entrar</button>
+      <button class="tab" onclick="switchTab('signup')">Criar conta</button>
+    </div>
+    <div class="err" id="auth-err"></div>
+    <div id="login-form">
+      <div class="field"><label>Email</label><input type="email" id="l-email" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="field"><label>Senha</label><input type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn-main" onclick="doLogin()">Entrar</button>
+      <div style="display:flex;align-items:center;gap:12px;margin:1.25rem 0 1rem"><div style="flex:1;height:1px;background:var(--border)"></div><span style="font-size:12px;color:var(--text3)">ou</span><div style="flex:1;height:1px;background:var(--border)"></div></div>
+      <button onclick="loginWithGoogle()" style="width:100%;padding:11px;background:white;border:none;border-radius:var(--r-sm);font-family:inherit;font-size:14px;font-weight:500;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:opacity 0.2s" onmouseover="this.style.opacity='.9'" onmouseout="this.style.opacity='1'">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Entrar com Google
+      </button>
+    </div>
+    <div id="signup-form" style="display:none">
+      <div class="field"><label>Nome</label><input type="text" id="s-name" placeholder="Seu nome completo"></div>
+      <div class="field"><label>Email</label><input type="email" id="s-email" placeholder="seu@email.com"></div>
+      <div class="field"><label>Senha</label><input type="password" id="s-pass" placeholder="Mínimo 6 caracteres"></div>
+      <button class="btn-main" onclick="doSignup()">Criar conta</button>
+      <div style="display:flex;align-items:center;gap:12px;margin:1.25rem 0 1rem"><div style="flex:1;height:1px;background:var(--border)"></div><span style="font-size:12px;color:var(--text3)">ou</span><div style="flex:1;height:1px;background:var(--border)"></div></div>
+      <button onclick="loginWithGoogle()" style="width:100%;padding:11px;background:white;border:none;border-radius:var(--r-sm);font-family:inherit;font-size:14px;font-weight:500;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:opacity 0.2s" onmouseover="this.style.opacity='.9'" onmouseout="this.style.opacity='1'">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Criar conta com Google
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+  <header>
+    <button class="hdr-logo" onclick="goHome()" title="Voltar ao início" style="background:none;border:none;cursor:pointer;padding:0"><em>Lembra</em></button>
+    <div class="hdr-right">
+      <!-- Chips de integrações e compromissos -->
+      <div class="hdr-chips" id="hdr-chips">
+        <!-- Google Agenda chip -->
+        <a class="hdr-chip clickable" id="hdr-chip-google" href="https://calendar.google.com/calendar/r" target="_blank" title="Google Agenda" style="display:none">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span id="hdr-chip-google-lbl">Google</span>
+        </a>
+        <!-- Gmail chip -->
+        <a class="hdr-chip clickable" id="hdr-chip-gmail" href="https://mail.google.com/mail/#inbox" target="_blank" title="Gmail" style="display:none">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F87171" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <span id="hdr-chip-gmail-lbl">Gmail</span>
+        </a>
+        <!-- Outlook chip -->
+        <a class="hdr-chip clickable" id="hdr-chip-outlook" href="https://outlook.live.com/mail/0/inbox" target="_blank" title="Outlook" style="display:none">
+          <svg width="12" height="12" viewBox="0 0 23 23" fill="none"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
+          <span id="hdr-chip-outlook-lbl">Outlook</span>
+        </a>
+        <!-- Compromissos Hoje chip -->
+        <button class="hdr-chip clickable" id="hdr-chip-hoje" onclick="setView('compromissos-hoje',null);updateSidebarActive('compromissos-hoje')" title="Compromissos hoje" style="border:none">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Hoje <span class="hdr-chip-count" id="hdr-chip-hoje-n" style="color:#4ADE80">0</span>
+        </button>
+        <!-- Compromissos Amanhã chip -->
+        <button class="hdr-chip clickable" id="hdr-chip-amanha" onclick="setView('compromissos-amanha',null);updateSidebarActive('compromissos-amanha')" title="Compromissos amanhã" style="border:none">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Amanhã <span class="hdr-chip-count" id="hdr-chip-amanha-n" style="color:#FBBF24">0</span>
+        </button>
+      </div>
+      <button class="btn-ai" onclick="openAI()">
+        <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/></svg>
+        Assistente IA
+      </button>
+      <div class="user-chip">
+        <div class="avatar" id="hdr-av">?</div>
+        <span id="hdr-nm">—</span>
+      </div>
+      <button class="theme-btn" id="theme-toggle" onclick="toggleTheme()" title="Alternar tema">
+        <svg id="theme-icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg id="theme-icon-sun" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+      <button class="btn-sm" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+  <div class="layout">
+    <div class="sidebar">
+      <!-- LEMBRETES -->
+      <div class="sec-label lbl-lembretes">Lembretes</div>
+      <!-- Hoje e Todos: sempre visíveis -->
+      <button class="nav-btn active" onclick="setView('hoje',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Hoje <span class="nbadge" id="b-hoje">0</span>
+      </button>
+      <button class="nav-btn" onclick="setView('todos',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><polyline points="3 6 4 7 6 5"/><polyline points="3 12 4 13 6 11"/><polyline points="3 18 4 19 6 17"/></svg>
+        Todos <span class="nbadge" id="b-todos">0</span>
+      </button>
+      <!-- Tipos: toggle que expande Concluídos + Categorias -->
+      <button class="sidebar-collapsible-toggle" id="tipos-toggle" onclick="toggleTiposSection()">
+        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        Tipos
+      </button>
+      <div class="sidebar-collapsible" id="tipos-section">
+        <!-- Concluídos dentro de Tipos -->
+        <button class="nav-btn" id="btn-feitos" onclick="setView('feitos',this)" style="padding-left:18px">
+          <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Concluídos
+        </button>
+        <!-- Categorias dentro de Tipos -->
+        <button class="sidebar-collapsible-toggle" id="cats-toggle" onclick="toggleCatsSection()" style="padding-left:18px;font-size:10px">
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          Categorias
+        </button>
+        <div class="sidebar-collapsible" id="cats-section">
+          <div id="sidebar-cats"></div>
+        </div>
+      </div>
+
+      <!-- MEUS COMPROMISSOS -->
+      <div class="sec-label lbl-compromissos">Meus Compromissos</div>
+      <button class="nav-btn" onclick="setView('agenda',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>
+        Meus Compromissos
+      </button>
+      <button class="nav-btn" onclick="setView('compromissos-hoje',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/></svg>
+        Hoje <span class="nbadge" id="b-comp-hoje">0</span>
+      </button>
+      <button class="nav-btn" onclick="setView('compromissos-amanha',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h8M8 18h5"/></svg>
+        Amanhã <span class="nbadge" id="b-comp-amanha">0</span>
+      </button>
+
+      <!-- PLANILHAS -->
+      <div class="sec-label lbl-planilhas">Planilhas</div>
+      <button class="nav-btn" onclick="setView('planilhas',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+        Planilhas
+      </button>
+
+      <!-- CONFIGURAÇÕES -->
+      <div class="sec-label lbl-config">Configurações</div>
+      <button class="nav-btn" onclick="setView('integracoes',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Integrações
+      </button>
+    </div>
+
+    <main id="main">
+      <!-- LEMBRETES (Hoje / Todos / Concluídos / Categorias) -->
+      <div id="view-reminders" style="display:flex;flex-direction:column;gap:1.25rem">
+        <div class="main-hdr">
+          <div>
+            <div class="main-title" id="view-title">Hoje</div>
+            <div class="main-meta" id="view-meta"></div>
+          </div>
+          <button class="add-btn" onclick="toggleForm()">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Novo lembrete
+          </button>
+        </div>
+        <div class="input-form" id="input-form">
+          <div class="inp-voice-wrap">
+            <input class="inp" id="f-title" placeholder="O que você precisa lembrar?" style="padding-right:38px">
+            <button class="inp-mic" id="inp-mic-title" onclick="toggleInpVoice('f-title','inp-mic-title')" title="Usar voz">
+              <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </button>
+          </div>
+          <textarea class="inp" id="f-desc" placeholder="Detalhes, observações... (opcional)" rows="2"></textarea>
+          <!-- Foto -->
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="file" id="f-photo" accept="image/*" capture="environment" style="display:none" onchange="previewPhoto('f-photo','f-photo-preview','f-photo-wrap')">
+            <button type="button" class="photo-btn" onclick="document.getElementById('f-photo').click()">
+              <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              Adicionar foto
+            </button>
+            <span style="font-size:11px;color:var(--text3)" id="f-photo-name"></span>
+          </div>
+          <div id="f-photo-wrap" style="display:none;position:relative;margin-top:4px">
+            <img id="f-photo-preview" style="width:100%;max-height:200px;object-fit:cover;border-radius:var(--r-sm);border:1px solid var(--border)" src="" alt="Foto do lembrete">
+            <button type="button" onclick="removePhoto('f-photo','f-photo-preview','f-photo-wrap','f-photo-name')" style="position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.6);border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1">&times;</button>
+          </div>
+          <div class="form-row">
+            <select class="inp" id="f-cat"></select>
+            <select class="inp" id="f-prio">
+              <option value="normal">Prioridade normal</option>
+              <option value="alta">🔴 Alta prioridade</option>
+              <option value="baixa">Baixa prioridade</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <input class="inp" type="date" id="f-date">
+            <input class="inp" type="time" id="f-time">
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);margin-bottom:8px">Recorrência</div>
+            <div class="recur-row">
+              <button class="rchip sel" onclick="selRecur(this,'nenhuma')">Nenhuma</button>
+              <button class="rchip" onclick="selRecur(this,'diario')">Diário</button>
+              <button class="rchip" onclick="selRecur(this,'semanal')">Semanal</button>
+              <button class="rchip" onclick="selRecur(this,'quinzenal')">Quinzenal</button>
+              <button class="rchip" onclick="selRecur(this,'mensal')">Mensal</button>
+            </div>
+          </div>
+          <div class="form-footer">
+            <div style="display:flex;align-items:center;gap:10px">
+              <button class="voice-btn" id="voice-btn" onclick="toggleVoice()">
+                <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                Usar voz
+              </button>
+              <span class="voice-tx" id="voice-tx"></span>
+            </div>
+            <div class="form-btns">
+              <button class="btn-cancel" onclick="toggleForm()">Cancelar</button>
+              <button class="btn-save" onclick="saveReminder()">Salvar</button>
+            </div>
+          </div>
+        </div>
+        <div id="list-container"></div>
+      </div>
+
+      <!-- MEUS COMPROMISSOS - DASHBOARD COM 4 CARDS -->
+      <div id="view-agenda" style="display:none;flex-direction:column;gap:1.25rem">
+        <button class="mob-back-btn" onclick="goHome()">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Voltar
+        </button>
+        <div class="main-hdr">
+          <div><div class="main-title">Meus Compromissos</div><div class="main-meta" id="agenda-meta">Acesso rápido</div></div>
+          <button class="add-btn" onclick="refreshAllCalendars()">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--accent-text);fill:none;stroke-width:2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Atualizar
+          </button>
+        </div>
+        <!-- 6 Cards compactos: 3 linhas x 2 colunas -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <!-- Card Todos Compromissos Hoje -->
+          <div onclick="setView('compromissos-hoje',null)" class="agenda-dash-card" id="dash-card-hoje">
+            <div class="agenda-dash-ico" style="background:var(--accent-dim)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="agenda-dash-info">
+              <div class="agenda-dash-title" style="color:var(--accent)">Todos os Compromissos de Hoje</div>
+              <div class="agenda-dash-sub" id="minha-agenda-hoje-sub">Carregando...</div>
+            </div>
+            <div class="agenda-dash-badge" id="dash-badge-hoje" style="background:var(--accent-dim);color:var(--accent)">0</div>
+          </div>
+          <!-- Card Todos Compromissos Amanhã -->
+          <div onclick="setView('compromissos-amanha',null)" class="agenda-dash-card" id="dash-card-amanha">
+            <div class="agenda-dash-ico" style="background:var(--amber-dim)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div class="agenda-dash-info">
+              <div class="agenda-dash-title" style="color:var(--amber)">Todos os Compromissos de Amanhã</div>
+              <div class="agenda-dash-sub" id="minha-agenda-amanha-sub">Carregando...</div>
+            </div>
+            <div class="agenda-dash-badge" id="dash-badge-amanha" style="background:var(--amber-dim);color:var(--amber)">0</div>
+          </div>
+          <!-- Card Agenda Gmail -->
+          <a href="https://calendar.google.com/calendar/r" target="_blank" class="agenda-dash-card" id="dash-card-agenda-gmail">
+            <div class="agenda-dash-ico" style="background:var(--blue-dim)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg>
+            </div>
+            <div class="agenda-dash-info">
+              <div class="agenda-dash-title" style="color:#60A5FA">Agenda Gmail</div>
+              <div class="agenda-dash-sub" id="dash-sub-agenda-gmail">Google Calendar</div>
+            </div>
+          </a>
+          <!-- Card Agenda Outlook -->
+          <a href="https://outlook.live.com/calendar/0/view/month" target="_blank" class="agenda-dash-card" id="dash-card-agenda-outlook">
+            <div class="agenda-dash-ico" style="background:rgba(0,120,212,0.15)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg>
+            </div>
+            <div class="agenda-dash-info">
+              <div class="agenda-dash-title" style="color:#0078d4">Agenda Outlook</div>
+              <div class="agenda-dash-sub" id="dash-sub-agenda-outlook">Outlook Calendar</div>
+            </div>
+          </a>
+          <!-- Card Gmail (e-mail) -->
+          <a href="https://mail.google.com/mail/#inbox" target="_blank" class="agenda-dash-card" id="dash-card-gmail">
+            <div class="agenda-dash-ico" style="background:var(--red-dim)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F87171" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div class="agenda-dash-info">
+              <div class="agenda-dash-title" style="color:#F87171">Gmail</div>
+              <div class="agenda-dash-sub" id="dash-sub-gmail">Abrir e-mails</div>
+            </div>
+          </a>
+          <!-- Card Outlook (e-mail) -->
+          <a href="https://outlook.live.com/mail/0/inbox" target="_blank" class="agenda-dash-card" id="dash-card-outlook">
+            <div class="agenda-dash-ico" style="background:rgba(0,120,212,0.12)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div class="agenda-dash-info">
+              <div class="agenda-dash-title" style="color:#0078d4">Outlook</div>
+              <div class="agenda-dash-sub" id="dash-sub-outlook">Abrir e-mails</div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- MEUS COMPROMISSOS HOJE -->
+      <div id="view-compromissos-hoje" style="display:none;flex-direction:column;gap:1.25rem">
+        <button class="mob-back-btn" onclick="setView('agenda',null)">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Meus Compromissos
+        </button>
+        <div class="main-hdr">
+          <div>
+            <div class="main-title">Compromissos Hoje</div>
+            <div class="main-meta" id="comp-hoje-meta">Carregando...</div>
+          </div>
+          <button class="add-btn" onclick="loadCompromissosDia('hoje')">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--accent-text);fill:none;stroke-width:2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Atualizar
+          </button>
+        </div>
+        <div id="comp-hoje-container"></div>
+      </div>
+
+      <!-- MEUS COMPROMISSOS AMANHÃ -->
+      <div id="view-compromissos-amanha" style="display:none;flex-direction:column;gap:1.25rem">
+        <button class="mob-back-btn" onclick="setView('agenda',null)">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Meus Compromissos
+        </button>
+        <div class="main-hdr">
+          <div>
+            <div class="main-title">Compromissos Amanhã</div>
+            <div class="main-meta" id="comp-amanha-meta">Carregando...</div>
+          </div>
+          <button class="add-btn" onclick="loadCompromissosDia('amanha')">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--accent-text);fill:none;stroke-width:2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Atualizar
+          </button>
+        </div>
+        <div id="comp-amanha-container"></div>
+      </div>
+
+      <!-- PLANILHAS -->
+      <div id="view-planilhas" style="display:none;flex-direction:column;gap:1.25rem">
+        <button class="mob-back-btn" onclick="goHome()">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Voltar
+        </button>
+        <div class="main-hdr">
+          <div><div class="main-title">Planilhas</div><div class="main-meta">Acesso rápido às suas planilhas</div></div>
+        </div>
+        <div class="sheets-grid" id="sheets-grid"></div>
+      </div>
+
+      <!-- INTEGRACOES -->
+      <div id="view-integracoes" style="display:none;flex-direction:column;gap:1rem">
+        <button class="mob-back-btn" onclick="goHome()">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Voltar
+        </button>
+        <div><div class="main-title">Integrações</div><div class="main-meta">Conecte sua agenda Google ou Outlook</div></div>
+
+        <div class="int-card">
+          <div class="int-card-hdr">
+            <div class="int-ico" style="background:var(--blue-dim)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+            <div style="flex:1"><div style="font-size:14px;font-weight:600;margin-bottom:2px">Google Agenda</div><div style="font-size:12px;color:var(--text3)">Sincroniza com a sua conta Google</div></div>
+            <span class="status-badge" id="google-badge">Não conectado</span>
+          </div>
+          <div class="int-card-body">
+            <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:1rem">Clique abaixo para escolher qual conta Google conectar. Cada pessoa conecta a própria conta.</div>
+            <div id="google-connect-area">
+              <button class="connect-btn google" onclick="connectGoogle()">
+                <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                Entrar com Google
+              </button>
+            </div>
+            <div id="google-connected-area" style="display:none">
+              <div style="font-size:12px;color:var(--accent);margin-bottom:4px">✓ Conectado como <span id="google-email-lbl"></span></div>
+              <button class="btn-cancel" style="font-size:12px;margin-top:6px" onclick="disconnectGoogle()">Desconectar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="int-card">
+          <div class="int-card-hdr">
+            <div class="int-ico" style="background:rgba(0,120,212,0.12)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+            <div style="flex:1"><div style="font-size:14px;font-weight:600;margin-bottom:2px">Outlook / Microsoft</div><div style="font-size:12px;color:var(--text3)">Contas pessoais, corporativas e escolares</div></div>
+            <span class="status-badge" id="outlook-badge">Não conectado</span>
+          </div>
+          <div class="int-card-body">
+            <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:1rem">Clique abaixo para escolher qual conta Microsoft conectar.</div>
+            <div id="outlook-connect-area">
+              <button class="connect-btn microsoft" onclick="connectOutlook()">
+                <svg width="16" height="16" viewBox="0 0 23 23" fill="none"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
+                Entrar com Microsoft
+              </button>
+            </div>
+            <div id="outlook-connected-area" style="display:none">
+              <div style="font-size:12px;color:var(--accent);margin-bottom:4px">✓ Conectado como <span id="outlook-email-lbl"></span></div>
+              <button class="btn-cancel" style="font-size:12px;margin-top:6px" onclick="disconnectOutlook()">Desconectar</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:var(--accent-dim);border:1px solid rgba(74,222,128,0.15);border-radius:var(--r);padding:1.25rem;display:flex;gap:1rem">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div><div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:4px">Dica</div><div style="font-size:13px;color:var(--text2);line-height:1.6">Somente as integrações ativas aparecem nos seus compromissos. Conecte acima para sincronizar.</div></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="mob-bar">
+    <button class="mob-btn active" onclick="setView('hoje',this);mobActive(this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Lembretes
+    </button>
+    <button class="mob-btn" onclick="setView('compromissos-hoje',this);mobActive(this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Hoje
+    </button>
+    <button class="mob-btn" onclick="toggleForm()">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Novo
+    </button>
+    <button class="mob-btn" onclick="setView('planilhas',this);mobActive(this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="3" x2="9" y2="21"/></svg>Planilhas
+    </button>
+    <button class="mob-btn" onclick="openAI()">
+      <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/></svg>IA
+    </button>
+  </div>
+</div>
+
+<div class="notif-bar" id="notif-bar"></div>
+
+<!-- CONFIRM DELETE MODAL -->
+<div class="modal-wrap" id="confirm-modal">
+  <div class="modal">
+    <h3>Excluir lembrete?</h3>
+    <p id="confirm-msg">Essa ação não pode ser desfeita.</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" style="flex:1" onclick="closeConfirm()">Cancelar</button>
+      <button id="confirm-ok-btn" class="btn-save" style="flex:1;background:var(--red);color:white" onclick="confirmDelete()">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHEET MODAL -->
+<div class="modal-wrap" id="sheet-modal">
+  <div class="modal">
+    <h3>Nova planilha</h3>
+    <p>Adicione um atalho para qualquer planilha do Google Sheets.</p>
+    <div class="field"><label>Nome</label><input id="sheet-name-inp" class="inp" type="text" placeholder="Ex: Contatos Médicos, Estudos..."></div>
+    <div style="margin-bottom:1rem">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);margin-bottom:8px">Ícone</div>
+      <div class="emoji-grid" id="emoji-grid"></div>
+    </div>
+    <div class="field"><label>Link da planilha</label><input id="sheet-url-inp" class="inp" type="url" placeholder="https://docs.google.com/spreadsheets/..."></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" style="flex:1" onclick="closeSheetModal()">Cancelar</button>
+      <button class="btn-save" style="flex:1" onclick="saveSheet()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CAT MODAL -->
+<div class="modal-wrap" id="cat-modal">
+  <div class="modal">
+    <h3>Nova categoria</h3>
+    <p>Escolha um nome e cor para a sua categoria.</p>
+    <div class="field" style="margin-bottom:1rem"><label>Nome</label><input id="new-cat-name" class="inp" type="text" placeholder="Ex: Viagens, Estudos..."></div>
+    <div style="margin-bottom:1.5rem">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);margin-bottom:10px">Cor</div>
+      <div id="color-picker" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" style="flex:1" onclick="closeCatModal()">Cancelar</button>
+      <button class="btn-save" style="flex:1" onclick="saveNewCat()">Criar</button>
+    </div>
+  </div>
+</div>
+
+<!-- COMPLETE CONFIRM MODAL -->
+<div class="complete-modal-wrap" id="complete-modal">
+  <div class="complete-modal">
+    <div class="complete-modal-icon">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h3>Tarefa Concluída?</h3>
+    <p id="complete-modal-msg">Você concluiu esta tarefa?</p>
+    <div class="complete-modal-btns">
+      <button class="btn-complete-no" onclick="closeCompleteModal()">Não, manter</button>
+      <button class="btn-complete-yes" onclick="confirmComplete()">Sim, concluída!</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT REMINDER MODAL -->
+<div class="modal-wrap" id="edit-modal">
+  <div class="modal">
+    <h3>Editar lembrete</h3>
+    <div class="field"><label>Título</label>
+      <div class="inp-voice-wrap">
+        <input id="e-title" class="inp" type="text" style="padding-right:38px">
+        <button class="inp-mic" id="inp-mic-edit" onclick="toggleInpVoice('e-title','inp-mic-edit')" title="Usar voz">
+          <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="field"><label>Detalhes</label><textarea id="e-desc" class="inp" rows="3"></textarea></div>
+    <div class="field">
+      <label>Foto</label>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="file" id="e-photo" accept="image/*" capture="environment" style="display:none" onchange="previewPhoto('e-photo','e-photo-preview','e-photo-wrap')">
+        <button type="button" class="photo-btn" onclick="document.getElementById('e-photo').click()">
+          <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Trocar foto
+        </button>
+        <button type="button" id="e-photo-remove-btn" onclick="removePhoto('e-photo','e-photo-preview','e-photo-wrap',null)" style="display:none;background:none;border:none;color:var(--red);font-size:12px;cursor:pointer">Remover foto</button>
+      </div>
+      <div id="e-photo-wrap" style="display:none;position:relative;margin-top:8px">
+        <img id="e-photo-preview" style="width:100%;max-height:200px;object-fit:cover;border-radius:var(--r-sm);border:1px solid var(--border)" src="" alt="Foto do lembrete">
+        <button type="button" onclick="removePhoto('e-photo','e-photo-preview','e-photo-wrap',null)" style="position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.6);border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1">&times;</button>
+      </div>
+    </div>
+    <div class="form-row" style="margin-bottom:1rem">
+      <select id="e-cat" class="inp"></select>
+      <select id="e-prio" class="inp">
+        <option value="normal">Prioridade normal</option>
+        <option value="alta">🔴 Alta prioridade</option>
+        <option value="baixa">Baixa prioridade</option>
+      </select>
+    </div>
+    <div class="form-row" style="margin-bottom:1rem">
+      <input id="e-date" class="inp" type="date">
+      <input id="e-time" class="inp" type="time">
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" style="flex:1" onclick="closeEditModal()">Cancelar</button>
+      <button class="btn-save" style="flex:1" onclick="saveEdit()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MOVER LEMBRETE PARA AGENDA MODAL -->
+<div class="to-agenda-modal-wrap" id="to-agenda-modal">
+  <div class="modal">
+    <h3>Incluir na Agenda</h3>
+    <p id="to-agenda-msg">Defina data e hora para incluir este lembrete nos seus compromissos.</p>
+    <div class="form-row" style="margin-bottom:1rem">
+      <input id="ta-date" class="inp" type="date">
+      <input id="ta-time" class="inp" type="time">
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" style="flex:1" onclick="closeToAgendaModal()">Cancelar</button>
+      <button class="btn-save" style="flex:1" onclick="confirmToAgenda()">Incluir na Agenda</button>
+    </div>
+  </div>
+</div>
+
+<!-- ASSISTENTE DE IA MODAL -->
+<div class="ai-modal-wrap" id="ai-modal">
+  <div class="ai-modal">
+    <div class="ai-modal-hdr">
+      <div class="ai-modal-title">
+        <div class="ai-avatar">
+          <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/></svg>
+        </div>
+        <span>Assistente Lembra</span>
+      </div>
+      <button class="ai-close" onclick="closeAI()">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="ai-messages" id="ai-messages"></div>
+    <div class="ai-suggestions" id="ai-suggestions">
+      <button class="ai-sug" onclick="sendAISuggestion(this)">O que tenho hoje?</button>
+      <button class="ai-sug" onclick="sendAISuggestion(this)">Lembretes pendentes</button>
+      <button class="ai-sug" onclick="sendAISuggestion(this)">Compromissos amanhã</button>
+      <button class="ai-sug" onclick="sendAISuggestion(this)">Resumo da semana</button>
+      <button class="ai-sug" onclick="sendAISuggestion(this)">Enviar e-mail</button>
+    </div>
+    <div class="ai-input-area">
+      <button class="ai-mic-btn" id="ai-mic-btn" onclick="toggleAIVoice()" title="Usar voz">
+        <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      </button>
+      <textarea class="ai-input" id="ai-input" placeholder="Pergunte sobre sua agenda, lembretes..." rows="1" onkeydown="aiInputKeydown(event)" oninput="autoResizeAI(this)"></textarea>
+      <button class="ai-send" onclick="sendAIMessage()">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const USERS_KEY='lembra_users';
+const DATA_KEY=e=>'lembra_v4_'+e;
+const SESSION_KEY='lembra_session';
+const CATS_KEY=e=>'lembra_cats_'+e;
+const SHEETS_KEY=e=>'lembra_sheets_'+e;
+const INT_KEY=e=>'lembra_int_'+e;
+
+let user=null,reminders=[],view='hoje',recur='nenhuma',recognition=null,isListening=false,notifTimers=[],digestTimer=null;
+let userCats=[],userSheets=[],integrations={};
+let pendingDeleteId=null,editingId=null,selectedEmoji='📊',selectedColor='#60A5FA';
+let pendingToAgendaId=null;
+
+const defaultCats=[
+  {id:'trabalho',label:'Trabalho',color:'#60A5FA',bg:'rgba(96,165,250,0.12)'},
+  {id:'pessoal',label:'Pessoal',color:'#C084FC',bg:'rgba(192,132,252,0.12)'},
+  {id:'saude',label:'Saúde',color:'#F87171',bg:'rgba(248,113,113,0.12)'},
+  {id:'financeiro',label:'Financeiro',color:'#FBBF24',bg:'rgba(251,191,36,0.12)'},
+  {id:'outro',label:'Outro',color:'#9BA39D',bg:'rgba(155,163,157,0.12)'}
+];
+const colorOptions=['#60A5FA','#C084FC','#F87171','#FBBF24','#4ADE80','#F97316','#E879F9','#34D399','#FB7185','#A78BFA'];
+const emojiOptions=['📊','🏥','💊','📚','💰','✈️','🏠','👥','📋','🎯','🛒','🏋️','📅','🎓','💼','🌱','🎵','📌','🔬','🏆'];
+const catColors={},catBg={},catLbl={};
+function syncCatMaps(){userCats.forEach(c=>{catColors[c.id]=c.color;catBg[c.id]=c.bg;catLbl[c.id]=c.label})}
+
+function toggleTheme(){
+  const isLight=document.documentElement.getAttribute('data-theme')==='light';
+  const next=isLight?'dark':'light';
+  applyTheme(next);
+  localStorage.setItem('lembra_theme',next);
+}
+function applyTheme(t){
+  if(t==='light'){document.documentElement.setAttribute('data-theme','light');document.getElementById('theme-icon-moon').style.display='none';document.getElementById('theme-icon-sun').style.display='block';}
+  else{document.documentElement.removeAttribute('data-theme');document.getElementById('theme-icon-moon').style.display='block';document.getElementById('theme-icon-sun').style.display='none';}
+}
+(function(){const saved=localStorage.getItem('lembra_theme');if(saved==='light')applyTheme('light');})();
+function getUsers(){return JSON.parse(localStorage.getItem(USERS_KEY)||'{}')}
+function saveUsers(u){localStorage.setItem(USERS_KEY,JSON.stringify(u))}
+function loadReminders(){return JSON.parse(localStorage.getItem(DATA_KEY(user.email))||'[]')}
+function persist(){localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders))}
+function loadCats(){userCats=JSON.parse(localStorage.getItem(CATS_KEY(user.email))||'null')||[...defaultCats]}
+function saveCats(){localStorage.setItem(CATS_KEY(user.email),JSON.stringify(userCats))}
+function loadSheets(){userSheets=JSON.parse(localStorage.getItem(SHEETS_KEY(user.email))||'[]')}
+function saveSheets(){localStorage.setItem(SHEETS_KEY(user.email),JSON.stringify(userSheets))}
+function loadInt(){integrations=JSON.parse(localStorage.getItem(INT_KEY(user.email))||'{}')}
+function saveInt(){localStorage.setItem(INT_KEY(user.email),JSON.stringify(integrations))}
+function today(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().split('T')[0]}
+function tomorrow(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());d.setDate(d.getDate()+1);return d.toISOString().split('T')[0]}
+function fmtTime(dt){if(!dt)return'';const d=new Date(dt);if(isNaN(d))return dt.slice(11,16)||'';return d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/Sao_Paulo'})}
+function fmtDateLocal(dt){if(!dt)return'';const d=new Date(dt);if(isNaN(d))return dt.split('T')[0]||'';return d.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'})}
+function initials(n){return n.trim().split(/\s+/).map(x=>x[0]).join('').toUpperCase().slice(0,2)}
+function fmtDate(d){const p=d.split('-');return`${p[2]}/${p[1]}/${p[0]}`}
+
+// AUTH
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((x,i)=>x.classList.toggle('active',i===(t==='login'?0:1)));
+  document.getElementById('login-form').style.display=t==='login'?'block':'none';
+  document.getElementById('signup-form').style.display=t==='signup'?'block':'none';
+  document.getElementById('auth-err').style.display='none';
+}
+function showErr(m){const e=document.getElementById('auth-err');e.textContent=m;e.style.display='block'}
+function doLogin(){
+  const email=document.getElementById('l-email').value.trim(),pass=document.getElementById('l-pass').value;
+  if(!email||!pass)return showErr('Preencha todos os campos');
+  const users=getUsers();
+  if(!users[email])return showErr('Email não encontrado');
+  if(users[email].pass!==btoa(pass))return showErr('Senha incorreta');
+  startSession(users[email]);
+}
+function doSignup(){
+  const name=document.getElementById('s-name').value.trim(),email=document.getElementById('s-email').value.trim(),pass=document.getElementById('s-pass').value;
+  if(!name||!email||!pass)return showErr('Preencha todos os campos');
+  if(pass.length<6)return showErr('Senha deve ter ao menos 6 caracteres');
+  if(!/\S+@\S+\.\S+/.test(email))return showErr('Email inválido');
+  const users=getUsers();
+  if(users[email])return showErr('Este email já está cadastrado');
+  users[email]={name,email,pass:btoa(pass)};
+  saveUsers(users);
+  startSession(users[email]);
+}
+function startSession(u){
+  user=u;
+  localStorage.setItem(SESSION_KEY,JSON.stringify(u));
+  reminders=loadReminders();
+  loadCats();syncCatMaps();loadSheets();loadInt();
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app-screen').style.display='flex';
+  document.getElementById('hdr-nm').textContent=u.name.split(' ')[0];
+  document.getElementById('hdr-av').textContent=initials(u.name);
+  const d=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('view-meta').textContent=d.charAt(0).toUpperCase()+d.slice(1);
+  document.getElementById('f-date').value=today();
+  renderSidebar();renderCatSelect();renderSheets();updateIntUI();render();scheduleNotifs();scheduleDigest();
+  // Solicitar permissão de notificações e iniciar monitoramento
+  requestNotifPermission();
+  // Renovar tokens silenciosamente após 2s (aguardar carregamento dos SDKs)
+  setTimeout(()=>{
+    silentReauthGoogle();
+    silentReauthOutlook();
+  },2000);
+  loadFromSupabase().then(found=>{if(found){render();scheduleNotifs();notify('Sincronizado','✓ Lembretes sincronizados da nuvem!')}});
+}
+function doLogout(){
+  localStorage.removeItem(SESSION_KEY);user=null;reminders=[];
+  if(digestTimer)clearInterval(digestTimer);
+  document.getElementById('app-screen').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+  notifTimers.forEach(clearTimeout);notifTimers=[];
+}
+
+// NOTIFICATIONS
+function notify(title,msg){
+  const bar=document.getElementById('notif-bar'),el=document.createElement('div');
+  el.className='notif';el.innerHTML=`<div class="notif-ttl">${title}</div>${msg}`;
+  bar.appendChild(el);
+  setTimeout(()=>{el.style.cssText='opacity:0;transform:translateX(20px);transition:all 0.3s';setTimeout(()=>el.remove(),300)},5000);
+}
+function sysNotif(title,body){
+  if('Notification' in window&&Notification.permission==='granted')new Notification(title,{body,icon:'/icon.svg'});
+  notify(title,body);
+}
+
+// DIGEST
+function scheduleDigest(){
+  if(digestTimer)clearInterval(digestTimer);
+  if(!integrations.digest)return;
+  digestTimer=setInterval(()=>{
+    const h=new Date().getHours(),m=new Date().getMinutes();
+    if(h===6&&m===0)sendDigest('hoje');
+    if(h===20&&m===0)sendDigest('amanha');
+  },60000);
+}
+function sendDigest(tipo){
+  const d=tipo==='hoje'?today():tomorrow();
+  const evts=(integrations.calendarEvents||[]).filter(e=>(e.start?.dateTime||e.start?.date||'').startsWith(d));
+  const rems=reminders.filter(r=>!r.done&&r.date===d);
+  const all=[...evts.map(e=>({t:fmtTime(e.start?.dateTime),n:e.summary})),...rems.map(r=>({t:r.time,n:r.title}))];
+  if(!all.length){sysNotif(tipo==='hoje'?'☀️ Bom dia!':'🌙 Boa noite!',tipo==='hoje'?'Sua agenda de hoje está livre!':'Sua agenda de amanhã está livre!');return}
+  sysNotif(tipo==='hoje'?`☀️ Agenda de hoje (${all.length})`:`🌙 Agenda de amanhã (${all.length})`,all.map(e=>`${e.t?e.t+' — ':''}${e.n}`).join('\n'));
+}
+function toggleDigest(){
+  integrations.digest=!integrations.digest;saveInt();updateIntUI();scheduleDigest();
+  notify('Resumo diário',integrations.digest?'Ativado! Você receberá avisos às 6h e 20h.':'Desativado.');
+}
+
+// INTEGRATIONS
+const GCAL_CLIENT_ID='126747406308-eestcpeb8n5jhmt7t7vfpfnjq60jo5k3.apps.googleusercontent.com';
+const GCAL_SCOPES='https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email';
+const OUTLOOK_CLIENT_ID='3cda6425-e947-4dec-9cdf-742a50ea8aec';
+const OUTLOOK_SCOPES=['Calendars.ReadWrite','User.Read','offline_access'];
+let msalApp=null;
+let outlookToken=null;
+let gcalToken=null;
+
+// Renovação silenciosa de tokens ao iniciar o app
+async function silentReauthGoogle(){
+  if(!integrations.googleConnected)return;
+  if(typeof google==='undefined'||!google.accounts)return;
+  try{
+    await new Promise((resolve,reject)=>{
+      google.accounts.oauth2.initTokenClient({
+        client_id:GCAL_CLIENT_ID,
+        scope:GCAL_SCOPES,
+        prompt:'',
+        callback:(r)=>{
+          if(r.error){reject(r);return;}
+          gcalToken=r.access_token;
+          resolve(r);
+        }
+      }).requestAccessToken();
+    });
+    // Buscar eventos frescos silenciosamente
+    await fetchGoogleCalendarEvents();
+  } catch(e){console.warn('Google silent reauth:',e);}
+}
+async function silentReauthOutlook(){
+  if(!integrations.outlookConnected)return;
+  try{
+    const loaded=await loadMSAL();
+    if(!loaded)return;
+    const app=getMsalApp();
+    if(!app)return;
+    const accounts=app.getAllAccounts();
+    if(!accounts.length)return;
+    const resp=await app.acquireTokenSilent({scopes:OUTLOOK_SCOPES,account:accounts[0]});
+    outlookToken=resp.accessToken;
+    // Buscar eventos frescos silenciosamente
+    await fetchOutlookCalendarEvents();
+  } catch(e){console.warn('Outlook silent reauth:',e);}
+}
+function getMsalApp(){
+  if(!msalApp&&typeof msal!=='undefined'){
+    msalApp=new msal.PublicClientApplication({
+      auth:{clientId:OUTLOOK_CLIENT_ID,authority:'https://login.microsoftonline.com/common',redirectUri:window.location.origin},
+      cache:{cacheLocation:'localStorage',storeAuthStateInCookie:false}
+    });
+  }
+  return msalApp;
+}
+
+function connectGoogle(){
+  if(typeof google !== 'undefined' && google.accounts){
+    google.accounts.oauth2.initTokenClient({
+      client_id: GCAL_CLIENT_ID,
+      scope: GCAL_SCOPES,
+      callback:(resp)=>{
+        if(resp.error){notify('Erro','Não foi possível conectar ao Google.');return;}
+        gcalToken=resp.access_token;
+        integrations.googleConnected=true;
+        integrations.googleEmail=user.email;
+        saveInt();updateIntUI();
+        fetchGoogleCalendarEvents();
+      }
+    }).requestAccessToken();
+  } else {
+    integrations.googleConnected=true;
+    integrations.googleEmail=user.email;
+    saveInt();updateIntUI();loadMockGoogleEvents();
+  }
+}
+
+async function fetchGoogleCalendarEvents(){
+  if(!gcalToken){updateBadges();return;}
+  try{
+    // Buscar e-mail do usuário Google
+    const uRes=await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+gcalToken}});
+    if(uRes.ok){const uData=await uRes.json();if(uData.email)integrations.googleEmail=uData.email;}
+    // Usar Edge Function do Supabase para buscar eventos
+    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+    const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({provider:'google',token:gcalToken})
+    });
+    if(!res.ok)throw new Error('Edge Function HTTP '+res.status);
+    const data=await res.json();
+    if(data.erro)throw new Error(data.erro);
+    const outlookEvts=(integrations.calendarEvents||[]).filter(e=>e.source==='outlook');
+    const googleEvts=(data.eventos||[]).map(e=>({...e,source:'google'}));
+    integrations.calendarEvents=[...googleEvts,...outlookEvts];
+    saveInt();
+    const emailInfo=integrations.googleEmail?` (${integrations.googleEmail})`:''
+    notify('Google Agenda',`✓ ${googleEvts.length} evento(s) carregado(s)${emailInfo}`);
+    updateBadges();
+    if(view==='compromissos-hoje')loadCompromissosDia('hoje');
+    if(view==='compromissos-amanha')loadCompromissosDia('amanha');
+  } catch(err){
+    console.error('Erro Google Calendar:',err);
+    notify('Google Agenda','Erro ao buscar eventos: '+err.message);
+  }
+}
+// CRIAR EVENTO NO GOOGLE CALENDAR (via Edge Function Supabase)
+async function createGoogleCalendarEvent(title,date,time,desc){
+  if(!gcalToken)return false;
+  try{
+    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+    const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({provider:'google',token:gcalToken,action:'create',event:{title,date,time,desc}})
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    if(data.erro)throw new Error(data.erro);
+    return true;
+  }catch(e){console.error('Erro criar evento Google:',e);return false;}
+}
+// CRIAR EVENTO NO OUTLOOK (via Edge Function Supabase)
+async function createOutlookCalendarEvent(title,date,time,desc){
+  if(!outlookToken)return false;
+  try{
+    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+    const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({provider:'outlook',token:outlookToken,action:'create',event:{title,date,time,desc}})
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    if(data.erro)throw new Error(data.erro);
+    return true;
+  }catch(e){console.error('Erro criar evento Outlook:',e);return false;}
+}
+function disconnectGoogle(){
+  integrations.googleConnected=false;gcalToken=null;
+  if(integrations.calendarEvents)integrations.calendarEvents=integrations.calendarEvents.filter(e=>e.source!=='google');
+  saveInt();updateIntUI();updateBadges();
+  if(view==='compromissos-hoje')loadCompromissosDia('hoje');
+  if(view==='compromissos-amanha')loadCompromissosDia('amanha');
+}
+async function loadMSAL(){
+  if(typeof msal!=='undefined')return true;
+  return new Promise((resolve)=>{
+    const s=document.createElement('script');
+    s.src='https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js';
+    s.onload=()=>resolve(true);
+    s.onerror=()=>resolve(false);
+    document.head.appendChild(s);
+  });
+}
+async function connectOutlook(){
+  const loaded=await loadMSAL();
+  if(!loaded){notify('Erro','Não foi possível carregar a biblioteca Microsoft. Verifique sua conexão.');return;}
+  const app=getMsalApp();
+  if(!app){notify('Erro','Biblioteca Microsoft não inicializada. Tente recarregar a página.');return;}
+  try{
+    const resp=await app.loginPopup({scopes:OUTLOOK_SCOPES});
+    outlookToken=resp.accessToken;
+    integrations.outlookConnected=true;
+    integrations.outlookEmail=resp.account.username||resp.account.name||user.email;
+    saveInt();updateIntUI();
+    await fetchOutlookCalendarEvents();
+  } catch(err){
+    if(err.errorCode==='user_cancelled')return;
+    console.error('Erro MSAL:',err);
+    notify('Erro Outlook','Não foi possível conectar. Verifique o domínio autorizado no Azure.');
+  }
+}
+async function fetchOutlookCalendarEvents(){
+  if(!outlookToken){return;}
+  try{
+    // Usar Edge Function do Supabase para buscar eventos do Outlook
+    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+    const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({provider:'outlook',token:outlookToken})
+    });
+    if(!res.ok)throw new Error('Edge Function HTTP '+res.status);
+    const data=await res.json();
+    if(data.erro)throw new Error(data.erro);
+    const outlookEvts=(data.eventos||[]).map(e=>({...e,source:'outlook'}));
+    const googleEvts=(integrations.calendarEvents||[]).filter(e=>e.source==='google');
+    integrations.calendarEvents=[...googleEvts,...outlookEvts];
+    saveInt();
+    const emailInfo=integrations.outlookEmail?` (${integrations.outlookEmail})`:''
+    notify('Outlook',`✓ ${outlookEvts.length} evento(s) carregado(s)${emailInfo}`);
+    updateBadges();
+    if(view==='compromissos-hoje')loadCompromissosDia('hoje');
+    if(view==='compromissos-amanha')loadCompromissosDia('amanha');
+  } catch(err){
+    console.error('Erro Outlook Calendar:',err);
+    notify('Outlook','Erro ao buscar eventos: '+err.message);
+  }
+}
+function disconnectOutlook(){
+  integrations.outlookConnected=false;
+  outlookToken=null;
+  if(integrations.calendarEvents)integrations.calendarEvents=integrations.calendarEvents.filter(e=>e.source!=='outlook');
+  saveInt();updateIntUI();updateBadges();
+  if(view==='compromissos-hoje')loadCompromissosDia('hoje');
+  if(view==='compromissos-amanha')loadCompromissosDia('amanha');
+}
+async function refreshAllCalendars(){
+  const btn=document.querySelector('[onclick="refreshAllCalendars()"]');
+  if(btn){btn.disabled=true;btn.textContent='Atualizando...';}
+  let updated=0;
+  try{
+    // Tentar reautenticar silenciosamente com Google se conectado mas sem token
+    if(integrations.googleConnected&&!gcalToken){
+      try{
+        const tokenResp=await new Promise((resolve,reject)=>{
+          google.accounts.oauth2.initTokenClient({
+            client_id:GOOGLE_CLIENT_ID,
+            scope:GOOGLE_SCOPES,
+            prompt:'',
+            callback:(r)=>r.error?reject(r):resolve(r)
+          }).requestAccessToken();
+        });
+        gcalToken=tokenResp.access_token;
+      } catch(e){console.warn('Silent Google reauth failed',e);}
+    }
+    if(integrations.googleConnected&&gcalToken){
+      await fetchGoogleCalendarEvents();
+      updated++;
+    } else if(integrations.googleConnected&&!gcalToken){
+      // Mostrar eventos já salvos mesmo sem token
+      updated++;
+    }
+    // Tentar reautenticar Outlook silenciosamente
+    if(integrations.outlookConnected&&!outlookToken){
+      try{
+        const loaded=await loadMSAL();
+        if(loaded){
+          const app=getMsalApp();
+          if(app){
+            const accounts=app.getAllAccounts();
+            if(accounts.length>0){
+              const silentResp=await app.acquireTokenSilent({scopes:OUTLOOK_SCOPES,account:accounts[0]});
+              outlookToken=silentResp.accessToken;
+            }
+          }
+        }
+      } catch(e){console.warn('Silent Outlook reauth failed',e);}
+    }
+    if(integrations.outlookConnected&&outlookToken){
+      await fetchOutlookCalendarEvents();
+      updated++;
+    } else if(integrations.outlookConnected&&!outlookToken){
+      updated++;
+    }
+    if(updated===0){
+      notify('Atualizar','Nenhuma integração ativa. Conecte Google Agenda ou Outlook em Configurações.');
+    } else {
+      // Atualizar as views com os dados já salvos
+      renderAgendaDashboard();
+      if(view==='compromissos-hoje')loadCompromissosDia('hoje');
+      if(view==='compromissos-amanha')loadCompromissosDia('amanha');
+    }
+  } finally{
+    if(btn){btn.disabled=false;btn.textContent='Atualizar';}
+  }
+}
+function loadMockGoogleEvents(){
+  if(!integrations.calendarEvents)integrations.calendarEvents=[];
+  saveInt();
+  notify('Google Agenda','✓ Conectado! Buscando eventos da sua agenda...');
+  updateBadges();
+  if(view==='compromissos-hoje')loadCompromissosDia('hoje');
+  if(view==='compromissos-amanha')loadCompromissosDia('amanha');
+  if(view==='agenda')renderAgendaDashboard();
+}
+function updateIntUI(){
+  const gc=integrations.googleConnected;
+  document.getElementById('google-badge').textContent=gc?'✓ Conectado':'Não conectado';
+  document.getElementById('google-badge').className='status-badge '+(gc?'on':'off');
+  document.getElementById('google-connect-area').style.display=gc?'none':'block';
+  document.getElementById('google-connected-area').style.display=gc?'block':'none';
+  if(gc)document.getElementById('google-email-lbl').textContent=integrations.googleEmail||'';
+  const oc=integrations.outlookConnected;
+  document.getElementById('outlook-badge').textContent=oc?'✓ Conectado':'Não conectado';
+  document.getElementById('outlook-badge').className='status-badge '+(oc?'on':'off');
+  document.getElementById('outlook-connect-area').style.display=oc?'none':'block';
+  document.getElementById('outlook-connected-area').style.display=oc?'block':'none';
+  if(oc)document.getElementById('outlook-email-lbl').textContent=integrations.outlookEmail||'';
+  const d=integrations.digest;
+  document.getElementById('digest-badge').textContent=d?'✓ Ativo':'Desativado';
+  document.getElementById('digest-badge').className='status-badge '+(d?'on':'off');
+  document.getElementById('digest-btn').textContent=d?'Desativar resumo diário':'Ativar resumo diário';
+  // Atualizar chips do header
+  updateHeaderChips();
+}
+function updateHeaderChips(){
+  const gc=integrations.googleConnected;
+  const oc=integrations.outlookConnected;
+  // Google Agenda chip
+  const chipGoogle=document.getElementById('hdr-chip-google');
+  if(chipGoogle){
+    chipGoogle.style.display=gc?'flex':'none';
+    const lbl=document.getElementById('hdr-chip-google-lbl');
+    if(lbl)lbl.textContent=integrations.googleEmail?integrations.googleEmail.split('@')[0]:'Google';
+  }
+  // Gmail chip
+  const chipGmail=document.getElementById('hdr-chip-gmail');
+  if(chipGmail){
+    chipGmail.style.display=gc?'flex':'none';
+    const lbl=document.getElementById('hdr-chip-gmail-lbl');
+    if(lbl)lbl.textContent='Gmail';
+  }
+  // Outlook chip
+  const chipOutlook=document.getElementById('hdr-chip-outlook');
+  if(chipOutlook){
+    chipOutlook.style.display=oc?'flex':'none';
+    const lbl=document.getElementById('hdr-chip-outlook-lbl');
+    if(lbl)lbl.textContent=integrations.outlookEmail?integrations.outlookEmail.split('@')[0]:'Outlook';
+  }
+  // Compromissos Hoje/Amanhã chips - sempre visíveis
+  const t=today(),tom=tomorrow();
+  const calEvts=integrations.calendarEvents||[];
+  const nHoje=reminders.filter(r=>!r.done&&r.date===t).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t).length;
+  const nAmanha=reminders.filter(r=>!r.done&&r.date===tom).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===tom).length;
+  // Nota: reminders.filter(!r.done&&r.date===t) já inclui inAgenda=true e inAgenda=false
+  const elHojeN=document.getElementById('hdr-chip-hoje-n');
+  const elAmanhaN=document.getElementById('hdr-chip-amanha-n');
+  if(elHojeN)elHojeN.textContent=nHoje;
+  if(elAmanhaN)elAmanhaN.textContent=nAmanha;
+}
+
+// SHEETS
+function renderSheets(){
+  const g=document.getElementById('sheets-grid');
+  let html=userSheets.map((s,i)=>`<a href="${s.url}" target="_blank" class="sheet-card"><div class="sheet-ico">${s.emoji||'📊'}</div><div class="sheet-name">${s.name}</div></a>`).join('');
+  html+=`<div class="sheet-add" onclick="openSheetModal()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>Adicionar planilha</span></div>`;
+  g.innerHTML=html;
+}
+function openSheetModal(){
+  selectedEmoji='📊';
+  document.getElementById('sheet-modal').classList.add('open');
+  document.getElementById('sheet-name-inp').value='';
+  document.getElementById('sheet-url-inp').value='';
+  renderEmojiGrid();
+}
+function closeSheetModal(){document.getElementById('sheet-modal').classList.remove('open')}
+function renderEmojiGrid(){
+  document.getElementById('emoji-grid').innerHTML=emojiOptions.map(e=>`<div class="emoji-opt${e===selectedEmoji?' sel':''}" onclick="selectedEmoji='${e}';renderEmojiGrid()">${e}</div>`).join('');
+}
+function saveSheet(){
+  const name=document.getElementById('sheet-name-inp').value.trim();
+  const url=document.getElementById('sheet-url-inp').value.trim();
+  if(!name||!url)return;
+  userSheets.push({name,url,emoji:selectedEmoji});
+  saveSheets();renderSheets();closeSheetModal();
+}
+
+// CATEGORIES
+function toggleTiposSection(){
+  const sec=document.getElementById('tipos-section');
+  const toggle=document.getElementById('tipos-toggle');
+  sec.classList.toggle('open');
+  toggle.classList.toggle('open');
+}
+function toggleCatsSection(){
+  const sec=document.getElementById('cats-section');
+  const toggle=document.getElementById('cats-toggle');
+  sec.classList.toggle('open');
+  toggle.classList.toggle('open');
+}
+function renderSidebar(){
+  const c=document.getElementById('sidebar-cats');
+  c.innerHTML=userCats.map(cat=>`<button class="nav-btn${view==='cat-'+cat.id?' active':''}" onclick="setView('cat-${cat.id}',this)" style="padding-left:26px"><span class="cat-dot" style="background:${cat.color}"></span>${cat.label}<span class="nbadge" id="b-${cat.id}">0</span></button>`).join('')+
+  `<button class="nav-btn" onclick="openCatModal()" style="color:var(--text3);font-size:12px;padding-left:26px"><svg class="nav-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova categoria</button>`;
+}
+function renderCatSelect(){
+  const s=document.getElementById('f-cat'),cur=s.value;
+  s.innerHTML=userCats.map(c=>`<option value="${c.id}"${c.id===cur?' selected':''}>${c.label}</option>`).join('');
+  const e=document.getElementById('e-cat');
+  if(e)e.innerHTML=s.innerHTML;
+}
+function openCatModal(){document.getElementById('cat-modal').classList.add('open');document.getElementById('new-cat-name').value='';selectedColor=colorOptions[0];renderColorPicker()}
+function closeCatModal(){document.getElementById('cat-modal').classList.remove('open')}
+function renderColorPicker(){
+  document.getElementById('color-picker').innerHTML=colorOptions.map(c=>`<div onclick="selectedColor='${c}';renderColorPicker()" style="width:26px;height:26px;border-radius:50%;background:${c};cursor:pointer;border:3px solid ${c===selectedColor?'white':'transparent'};transition:border 0.15s"></div>`).join('');
+}
+function saveNewCat(){
+  const name=document.getElementById('new-cat-name').value.trim();if(!name)return;
+  const id='cat_'+Date.now(),hex=selectedColor;
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  userCats.push({id,label:name,color:hex,bg:`rgba(${r},${g},${b},0.12)`});
+  saveCats();syncCatMaps();closeCatModal();renderSidebar();renderCatSelect();render();
+}
+
+// REMINDERS
+function toggleForm(){
+  const f=document.getElementById('input-form');f.classList.toggle('open');
+  if(f.classList.contains('open')){
+    document.getElementById('f-title').focus();
+    renderCatSelect();
+    // Expandir Tipos > Categorias na sidebar
+    const tiposSec=document.getElementById('tipos-section');
+    const tiposToggle=document.getElementById('tipos-toggle');
+    if(tiposSec&&!tiposSec.classList.contains('open')){tiposSec.classList.add('open');if(tiposToggle)tiposToggle.classList.add('open');}
+    const catSec=document.getElementById('cats-section');
+    const catToggle=document.getElementById('cats-toggle');
+    if(catSec&&!catSec.classList.contains('open')){catSec.classList.add('open');if(catToggle)catToggle.classList.add('open');}
+  }
+}
+function selRecur(btn,val){document.querySelectorAll('.rchip').forEach(x=>x.classList.remove('sel'));btn.classList.add('sel');recur=val}
+function saveReminder(){
+  const title=document.getElementById('f-title').value.trim();if(!title)return;
+  const photoPreview=document.getElementById('f-photo-preview');
+  const photo=photoPreview&&photoPreview.src&&photoPreview.src.startsWith('data:')?photoPreview.src:null;
+  const r={id:Date.now(),title,desc:document.getElementById('f-desc').value.trim(),cat:document.getElementById('f-cat').value,prio:document.getElementById('f-prio').value,date:document.getElementById('f-date').value,time:document.getElementById('f-time').value,recur,done:false,created:Date.now(),inAgenda:false,photo};
+  reminders.unshift(r);persist();
+  document.getElementById('f-title').value='';document.getElementById('f-desc').value='';document.getElementById('f-time').value='';document.getElementById('f-date').value=today();
+  document.querySelectorAll('.rchip').forEach(x=>x.classList.remove('sel'));document.querySelector('.rchip').classList.add('sel');recur='nenhuma';
+  // Limpar foto
+  removePhoto('f-photo','f-photo-preview','f-photo-wrap','f-photo-name');
+  toggleForm();render();scheduleNotifs();
+}
+
+// COMPLETE CONFIRM
+let pendingCompleteId=null;
+function toggleDone(id,e){
+  e.stopPropagation();
+  const r=reminders.find(x=>x.id===id);
+  if(!r)return;
+  if(r.done){r.done=false;persist();render();return;}
+  pendingCompleteId=id;
+  document.getElementById('complete-modal-msg').textContent=`"${r.title}" — deseja marcar como concluída?`;
+  document.getElementById('complete-modal').classList.add('open');
+}
+function closeCompleteModal(){
+  document.getElementById('complete-modal').classList.remove('open');
+  pendingCompleteId=null;
+}
+function confirmComplete(){
+  if(!pendingCompleteId)return;
+  const r=reminders.find(x=>x.id===pendingCompleteId);
+  if(r){
+    r.done=true;persist();
+    notify('✓ Tarefa concluída',`"${r.title}" movida para Concluídos.`);
+    render();
+  }
+  closeCompleteModal();
+}
+
+// MOVER LEMBRETE PARA AGENDA
+function openToAgendaModal(id,e){
+  e.stopPropagation();
+  pendingToAgendaId=id;
+  const r=reminders.find(x=>x.id===id);
+  if(!r)return;
+  document.getElementById('to-agenda-msg').textContent=`"${r.title}" — defina quando incluir na agenda:`;
+  document.getElementById('ta-date').value=r.date||today();
+  document.getElementById('ta-time').value=r.time||'';
+  document.getElementById('to-agenda-modal').classList.add('open');
+}
+function closeToAgendaModal(){
+  document.getElementById('to-agenda-modal').classList.remove('open');
+  pendingToAgendaId=null;
+}
+async function confirmToAgenda(){
+  if(!pendingToAgendaId)return;
+  const r=reminders.find(x=>x.id===pendingToAgendaId);
+  if(r){
+    r.date=document.getElementById('ta-date').value||r.date;
+    r.time=document.getElementById('ta-time').value||r.time;
+    r.inAgenda=true;
+    persist();
+    updateBadges();
+    closeToAgendaModal();
+
+    // Tentar reautenticar silenciosamente se não tiver token
+    if(integrations.googleConnected&&!gcalToken){
+      try{
+        await new Promise((resolve,reject)=>{
+          if(typeof google==='undefined'||!google.accounts){reject('no-google-sdk');return;}
+          google.accounts.oauth2.initTokenClient({
+            client_id:GCAL_CLIENT_ID,scope:GCAL_SCOPES,prompt:'',
+            callback:(resp)=>resp.error?reject(resp):resolve(resp)
+          }).requestAccessToken();
+        }).then(resp=>{gcalToken=resp.access_token;});
+      }catch(e){console.warn('Silent Google reauth for agenda:',e);}
+    }
+    if(integrations.outlookConnected&&!outlookToken){
+      try{
+        const loaded=await loadMSAL();
+        if(loaded){
+          const app=getMsalApp();
+          if(app){
+            const accounts=app.getAllAccounts();
+            if(accounts.length>0){
+              const sr=await app.acquireTokenSilent({scopes:OUTLOOK_SCOPES,account:accounts[0]});
+              outlookToken=sr.accessToken;
+            }
+          }
+        }
+      }catch(e){console.warn('Silent Outlook reauth for agenda:',e);}
+    }
+
+    // Criar evento nas agendas reais
+    let criados=[],semToken=[];
+    if(integrations.googleConnected&&gcalToken){
+      const ok=await createGoogleCalendarEvent(r.title,r.date,r.time,r.desc);
+      if(ok)criados.push('Google Agenda');
+      else semToken.push('Google Agenda (erro ao criar)');
+    } else if(integrations.googleConnected&&!gcalToken){
+      semToken.push('Google Agenda (sessão expirada — reconecte em Integrações)');
+    }
+    if(integrations.outlookConnected&&outlookToken){
+      const ok=await createOutlookCalendarEvent(r.title,r.date,r.time,r.desc);
+      if(ok)criados.push('Outlook');
+      else semToken.push('Outlook (erro ao criar)');
+    } else if(integrations.outlookConnected&&!outlookToken){
+      semToken.push('Outlook (sessão expirada — reconecte em Integrações)');
+    }
+
+    // Atualizar eventos do calendário para refletir o novo evento
+    if(integrations.googleConnected&&gcalToken)fetchGoogleCalendarEvents();
+    if(integrations.outlookConnected&&outlookToken)fetchOutlookCalendarEvents();
+
+    if(criados.length>0){
+      notify('✓ Incluído na Agenda',`"${r.title}" criado em: ${criados.join(' e ')}.`);
+    } else if(!integrations.googleConnected&&!integrations.outlookConnected){
+      notify('✓ Incluído na Agenda',`"${r.title}" salvo nos compromissos do app. Conecte Google Agenda ou Outlook em Integrações para sincronizar com sua agenda real.`);
+    } else {
+      notify('⚠️ Atenção',`"${r.title}" salvo no app, mas não foi possível criar na agenda externa. ${semToken.join('; ')}`);
+    }
+
+    // Navegar para a tela de compromissos do dia correspondente
+    const targetDate=r.date;
+    const t=today(),tom=tomorrow();
+    if(targetDate===t){
+      view='compromissos-hoje';
+      allViews.forEach(id=>document.getElementById(id).style.display='none');
+      document.getElementById('view-compromissos-hoje').style.display='flex';
+      loadCompromissosDia('hoje');
+      updateSidebarActive('compromissos-hoje');
+    } else if(targetDate===tom){
+      view='compromissos-amanha';
+      allViews.forEach(id=>document.getElementById(id).style.display='none');
+      document.getElementById('view-compromissos-amanha').style.display='flex';
+      loadCompromissosDia('amanha');
+      updateSidebarActive('compromissos-amanha');
+    } else {
+      view='agenda';
+      allViews.forEach(id=>document.getElementById(id).style.display='none');
+      document.getElementById('view-agenda').style.display='flex';
+      renderAgendaDashboard();
+      updateSidebarActive('agenda');
+    }
+    render();
+  } else {
+    closeToAgendaModal();
+  }
+}
+function updateSidebarActive(v){
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  // encontrar o botão correto pelo onclick
+  document.querySelectorAll('.nav-btn').forEach(btn=>{
+    const oc=btn.getAttribute('onclick')||'';
+    if(oc.includes("'"+v+"'")||oc.includes('"'+v+'"'))btn.classList.add('active');
+  });
+}
+
+// STATUS
+function getReminderStatus(r){
+  if(!r.date||!r.time)return 'normal';
+  const now=new Date();
+  const dt=new Date(r.date+'T'+r.time);
+  const diff=dt-now;
+  if(diff<0)return 'overdue';
+  if(diff<=30*60*1000)return 'now';
+  return 'normal';
+}
+function askDelete(id,e){
+  e.stopPropagation();
+  pendingDeleteId=id;
+  const r=reminders.find(x=>x.id===id);
+  document.getElementById('confirm-msg').textContent=`Excluir "${r?.title}"? Esta ação não pode ser desfeita.`;
+  document.getElementById('confirm-modal').classList.add('open');
+}
+function closeConfirm(){document.getElementById('confirm-modal').classList.remove('open');pendingDeleteId=null}
+function confirmDelete(){
+  if(pendingDeleteId){reminders=reminders.filter(x=>x.id!==pendingDeleteId);persist();render()}
+  closeConfirm();
+}
+function openEdit(id,e){
+  e.stopPropagation();
+  const r=reminders.find(x=>x.id===id);if(!r)return;
+  editingId=id;
+  document.getElementById('e-title').value=r.title;
+  document.getElementById('e-desc').value=r.desc||'';
+  document.getElementById('e-date').value=r.date||'';
+  document.getElementById('e-time').value=r.time||'';
+  document.getElementById('e-prio').value=r.prio||'normal';
+  renderCatSelect();
+  document.getElementById('e-cat').value=r.cat;
+  // Carregar foto existente
+  const eWrap=document.getElementById('e-photo-wrap');
+  const ePrev=document.getElementById('e-photo-preview');
+  const eRemBtn=document.getElementById('e-photo-remove-btn');
+  if(r.photo){
+    ePrev.src=r.photo;eWrap.style.display='block';
+    if(eRemBtn)eRemBtn.style.display='inline-block';
+  }else{
+    ePrev.src='';eWrap.style.display='none';
+    if(eRemBtn)eRemBtn.style.display='none';
+  }
+  document.getElementById('edit-modal').classList.add('open');
+}
+function closeEditModal(){document.getElementById('edit-modal').classList.remove('open');editingId=null}
+function saveEdit(){
+  const r=reminders.find(x=>x.id===editingId);if(!r)return;
+  r.title=document.getElementById('e-title').value.trim()||r.title;
+  r.desc=document.getElementById('e-desc').value.trim();
+  r.cat=document.getElementById('e-cat').value;
+  r.prio=document.getElementById('e-prio').value;
+  r.date=document.getElementById('e-date').value;
+  r.time=document.getElementById('e-time').value;
+  // Salvar foto editada
+  const ePrev=document.getElementById('e-photo-preview');
+  const eWrap=document.getElementById('e-photo-wrap');
+  if(eWrap.style.display!=='none'&&ePrev.src&&ePrev.src.startsWith('data:')){
+    r.photo=ePrev.src;
+  }else if(eWrap.style.display==='none'){
+    r.photo=null;
+  }
+  persist();render();closeEditModal();
+  if(view==='compromissos-hoje')loadCompromissosDia('hoje');
+  if(view==='compromissos-amanha')loadCompromissosDia('amanha');
+}
+
+// FOTO NOS LEMBRETES
+function previewPhoto(inputId,previewId,wrapId){
+  const file=document.getElementById(inputId).files[0];
+  if(!file)return;
+  // Comprimir imagem antes de salvar (max 800px, qualidade 0.7)
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const img=new Image();
+    img.onload=function(){
+      const canvas=document.createElement('canvas');
+      const MAX=800;
+      let w=img.width,h=img.height;
+      if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      const dataUrl=canvas.toDataURL('image/jpeg',0.72);
+      const prev=document.getElementById(previewId);
+      const wrap=document.getElementById(wrapId);
+      if(prev)prev.src=dataUrl;
+      if(wrap)wrap.style.display='block';
+      const nameEl=document.getElementById(inputId.replace('photo','photo-name'));
+      if(nameEl)nameEl.textContent=file.name;
+      const remBtn=document.getElementById('e-photo-remove-btn');
+      if(remBtn&&inputId==='e-photo')remBtn.style.display='inline-block';
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function removePhoto(inputId,previewId,wrapId,nameId){
+  const inp=document.getElementById(inputId);
+  const prev=document.getElementById(previewId);
+  const wrap=document.getElementById(wrapId);
+  if(inp)inp.value='';
+  if(prev)prev.src='';
+  if(wrap)wrap.style.display='none';
+  if(nameId){const n=document.getElementById(nameId);if(n)n.textContent='';}
+  const remBtn=document.getElementById('e-photo-remove-btn');
+  if(remBtn&&inputId==='e-photo')remBtn.style.display='none';
+}
+function openPhotoLightbox(src,e){
+  if(e)e.stopPropagation();
+  const lb=document.createElement('div');
+  lb.className='photo-lightbox';
+  lb.innerHTML=`<img src="${src}" alt="Foto"><button class="photo-lightbox-close" onclick="this.parentElement.remove()">&times;</button>`;
+  lb.onclick=function(ev){if(ev.target===lb)lb.remove();};
+  document.body.appendChild(lb);
+}
+
+// NOTIFICAÇÕES POPUP (Web Notifications API)
+let notifPermission='default';
+let notifCheckInterval=null;
+const notifFired=new Set(); // evitar duplicatas
+
+async function requestNotifPermission(){
+  if(!('Notification' in window))return;
+  if(Notification.permission==='granted'){notifPermission='granted';startNotifCheck();return;}
+  if(Notification.permission!=='denied'){
+    const perm=await Notification.requestPermission();
+    notifPermission=perm;
+    if(perm==='granted')startNotifCheck();
+  }
+}
+
+function startNotifCheck(){
+  if(notifCheckInterval)clearInterval(notifCheckInterval);
+  checkUpcomingNotifs(); // checar imediatamente
+  notifCheckInterval=setInterval(checkUpcomingNotifs,60000); // a cada 1 minuto
+}
+
+function checkUpcomingNotifs(){
+  if(Notification.permission!=='granted')return;
+  const now=new Date();
+  const todayStr=today();
+  // Verificar lembretes
+  reminders.filter(r=>!r.done&&r.date&&r.time).forEach(r=>{
+    const dt=new Date(r.date+'T'+r.time);
+    const diff=Math.round((dt-now)/60000); // minutos
+    const key=`r-${r.id}-${r.date}-${r.time}`;
+    if((diff===0||diff===10||diff===5)&&!notifFired.has(key)){
+      notifFired.add(key);
+      const msg=diff===0?'Agora!':diff===5?'Em 5 minutos':'Em 10 minutos';
+      const n=new Notification(`⏰ ${r.title}`,{
+        body:`${msg} • ${r.time}${r.desc?' • '+r.desc:''}`,
+        icon:'/icon.svg',
+        requireInteraction:true,
+        tag:key
+      });
+      n.onclick=()=>{window.focus();n.close();};
+    }
+  });
+  // Verificar eventos do calendário
+  (integrations.calendarEvents||[]).forEach(e=>{
+    const dtStr=e.start?.dateTime||e.start?.date;
+    if(!dtStr)return;
+    const dt=new Date(dtStr);
+    const diff=Math.round((dt-now)/60000);
+    const key=`e-${e.id}-${dtStr}`;
+    if((diff===0||diff===10||diff===5)&&!notifFired.has(key)){
+      notifFired.add(key);
+      const msg=diff===0?'Agora!':diff===5?'Em 5 minutos':'Em 10 minutos';
+      const src=e.source==='google'?'🗓️ Google':'📧 Outlook';
+      const n=new Notification(`📅 ${e.summary||'Compromisso'}`,{
+        body:`${msg} • ${src}`,
+        icon:'/icon.svg',
+        requireInteraction:true,
+        tag:key
+      });
+      n.onclick=()=>{window.focus();n.close();};
+    }
+  });
+}
+
+// VOICE UNIVERSAL
+let aiVoiceRec=null,aiVoiceOn=false;
+let inpVoiceRec=null,inpVoiceOn=false,inpVoiceTargetId=null,inpVoiceBtnId=null;
+
+function toggleAIVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){notify('Voz','Use o Chrome para reconhecimento de voz');return;}
+  const btn=document.getElementById('ai-mic-btn');
+  if(aiVoiceOn){if(aiVoiceRec)aiVoiceRec.stop();return;}
+  aiVoiceRec=new SR();aiVoiceRec.lang='pt-BR';aiVoiceRec.interimResults=true;
+  aiVoiceRec.onstart=()=>{aiVoiceOn=true;if(btn){btn.classList.add('on');btn.title='Ouvindo... (clique para parar)';}};
+  let aiVoiceSilenceTimer=null;
+  aiVoiceRec.onresult=e=>{
+    let t='';
+    for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;
+    const inp=document.getElementById('ai-input');
+    if(inp)inp.value=t;
+    // Aguardar 1.5s de silêncio antes de enviar
+    if(aiVoiceSilenceTimer)clearTimeout(aiVoiceSilenceTimer);
+    if(e.results[e.results.length-1].isFinal){
+      aiVoiceSilenceTimer=setTimeout(()=>{
+        if(aiVoiceRec)aiVoiceRec.stop();
+        sendAIMessage();
+      },1500);
+    }
+  };
+  aiVoiceRec.onend=()=>{aiVoiceOn=false;if(btn){btn.classList.remove('on');btn.title='Usar voz';}};
+  aiVoiceRec.start();
+}
+
+function toggleInpVoice(inputId,btnId){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){notify('Voz','Use o Chrome para reconhecimento de voz');return;}
+  const btn=document.getElementById(btnId);
+  if(inpVoiceOn&&inpVoiceTargetId===inputId){if(inpVoiceRec)inpVoiceRec.stop();return;}
+  if(inpVoiceOn){if(inpVoiceRec)inpVoiceRec.stop();}
+  inpVoiceTargetId=inputId;inpVoiceBtnId=btnId;
+  inpVoiceRec=new SR();inpVoiceRec.lang='pt-BR';inpVoiceRec.interimResults=true;
+  inpVoiceRec.onstart=()=>{inpVoiceOn=true;if(btn)btn.classList.add('on');};
+  inpVoiceRec.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;const inp=document.getElementById(inputId);if(inp)inp.value=t;};
+  inpVoiceRec.onend=()=>{inpVoiceOn=false;if(btn)btn.classList.remove('on');};
+  inpVoiceRec.start();
+}
+
+// VOICE (lembrete - mantém compatibilidade)
+function toggleVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR)return notify('Voz','Use o Chrome para reconhecimento de voz');
+  if(isListening){recognition.stop();return}
+  recognition=new SR();recognition.lang='pt-BR';recognition.interimResults=true;
+  recognition.onstart=()=>{isListening=true;const b=document.getElementById('voice-btn');b.classList.add('on');b.innerHTML='<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Ouvindo...'};
+  recognition.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;document.getElementById('voice-tx').textContent=t;if(e.results[e.results.length-1].isFinal){document.getElementById('f-title').value=t;document.getElementById('voice-tx').textContent=''}};
+  recognition.onend=()=>{isListening=false;const b=document.getElementById('voice-btn');b.classList.remove('on');b.innerHTML='<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Usar voz'};
+  recognition.start();
+}
+
+// RENDER LEMBRETES
+const viewLbl={hoje:'Hoje',todos:'Todos os lembretes',feitos:'Concluídos'};
+function getFiltered(){
+  const t=today();
+  // Na view lembretes, NÃO mostrar itens que foram movidos para agenda (inAgenda=true)
+  if(view==='hoje')return reminders.filter(r=>!r.done&&r.date===t&&!r.inAgenda);
+  if(view==='todos')return reminders.filter(r=>!r.done&&!r.inAgenda);
+  if(view==='feitos')return reminders.filter(r=>r.done);
+  if(view.startsWith('cat-'))return reminders.filter(r=>!r.done&&r.cat===view.slice(4)&&!r.inAgenda);
+  return reminders;
+}
+
+function render(){
+  updateBadges();
+  const list=getFiltered(),c=document.getElementById('list-container');
+  const t=today();
+
+  if(!list.length){
+    c.innerHTML=`<div class="empty-state"><div class="empty-ico"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><p style="font-size:14px;line-height:1.7">Nenhum lembrete aqui.<br>Clique em <strong>Novo lembrete</strong>.</p></div>`;
+    return;
+  }
+
+  const groups={};
+  list.forEach(r=>{const k=r.date||'z-sem-data';if(!groups[k])groups[k]=[];groups[k].push(r)});
+  const sorted=Object.keys(groups).sort();
+  let html='';
+  const now=new Date();
+  sorted.forEach(k=>{
+    const dk=k==='z-sem-data'?'sem-data':k;
+    let lbl=dk==='sem-data'?'Sem data':dk===t?'Hoje':fmtDate(dk);
+    if(dk>t&&dk!=='sem-data'){const d=new Date(dk+'T12:00');lbl=d.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'short'});lbl=lbl.charAt(0).toUpperCase()+lbl.slice(1)}
+    html+=`<div><div class="section-lbl">${lbl}</div><div class="reminders-list">`;
+    const sorted2=groups[k].slice().sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+    sorted2.forEach(r=>{
+      const pc=r.prio==='alta'?'#F87171':'transparent';
+      const st=r.done?'':getReminderStatus(r);
+      const stClass=st==='now'?' status-now':st==='overdue'?' status-overdue':'';
+      const stPill=st==='now'?'<span class="status-pill now">Agora</span>':st==='overdue'?'<span class="status-pill overdue">Atrasado</span>':'';
+      // Botão "Incluir na Agenda" apenas para lembretes não concluídos e não já na agenda
+      const toAgendaBtn=!r.done&&!r.inAgenda
+        ?`<button class="btn-to-agenda" onclick="openToAgendaModal(${r.id},event)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg> Incluir na Agenda</button>`
+        :'';
+      html+=`<div class="rcard${r.done?' done':''}${stClass}" onclick="openEdit(${r.id},event)">
+        <div class="pbar" style="background:${pc}"></div>
+        <button class="chk" onclick="toggleDone(${r.id},event)"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button>
+        <div class="r-body">
+          <div class="r-title">${r.title}</div>
+          ${r.desc?`<div class="r-desc">${r.desc}</div>`:''}
+          ${r.photo?`<img class="rcard-photo" src="${r.photo}" alt="Foto" onclick="openPhotoLightbox('${r.photo}',event)">`  :''}
+          <div class="r-meta">
+            <span class="r-tag" style="background:${catBg[r.cat]||'rgba(155,163,157,0.12)'};color:${catColors[r.cat]||'#9BA39D'}">${catLbl[r.cat]||r.cat||''}</span>
+            ${r.time?`<span class="r-time">${r.time}</span>`:''}
+            ${stPill}
+            ${r.recur&&r.recur!=='nenhuma'?`<span class="r-recur">↻ ${r.recur}</span>`:''}
+            ${r.done?`<span style="font-size:11px;color:var(--accent);background:var(--accent-dim);padding:2px 7px;border-radius:var(--r-full)">✓ Concluído</span>`:''}
+            ${toAgendaBtn}
+          </div>
+        </div>
+        <div class="r-acts">
+          ${!r.done?`<button class="r-act" onclick="openEdit(${r.id},event)"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>`:''}
+          <button class="r-act del" onclick="askDelete(${r.id},event)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+        </div>
+      </div>`;
+    });
+    html+='</div></div>';
+  });
+  c.innerHTML=html;
+}
+
+function updateBadges(){
+  const t=today(),tom=tomorrow();
+  const a=reminders.filter(r=>!r.done&&!r.inAgenda);
+  document.getElementById('b-hoje').textContent=a.filter(r=>r.date===t).length;
+  document.getElementById('b-todos').textContent=a.length;
+  userCats.forEach(c=>{const el=document.getElementById('b-'+c.id);if(el)el.textContent=a.filter(r=>r.cat===c.id).length});
+  // Badges compromissos: lembretes na agenda + lembretes normais do dia + eventos do calendário
+  const calEvts=integrations.calendarEvents||[];
+  const remAgendaHoje=reminders.filter(r=>!r.done&&r.inAgenda&&r.date===t).length;
+  const remAgendaAmanha=reminders.filter(r=>!r.done&&r.inAgenda&&r.date===tom).length;
+  const remNormHoje=reminders.filter(r=>!r.done&&!r.inAgenda&&r.date===t).length;
+  const remNormAmanha=reminders.filter(r=>!r.done&&!r.inAgenda&&r.date===tom).length;
+  const calHoje=calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t).length;
+  const calAmanha=calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===tom).length;
+  const bCompHoje=remAgendaHoje+remNormHoje+calHoje;
+  const bCompAmanha=remAgendaAmanha+remNormAmanha+calAmanha;
+  const elCH=document.getElementById('b-comp-hoje');if(elCH)elCH.textContent=bCompHoje;
+  const elCA=document.getElementById('b-comp-amanha');if(elCA)elCA.textContent=bCompAmanha;
+  // Sincronizar chips do header
+  updateHeaderChips();
+}
+
+// ── MEUS COMPROMISSOS (Hoje / Amanhã) ──────────────────────────────
+function loadCompromissosDia(dia){
+  const isHoje=dia==='hoje';
+  const targetDate=isHoje?today():tomorrow();
+  const containerId=isHoje?'comp-hoje-container':'comp-amanha-container';
+  const metaId=isHoje?'comp-hoje-meta':'comp-amanha-meta';
+  const c=document.getElementById(containerId);
+  const meta=document.getElementById(metaId);
+
+  // Lembretes com inAgenda=true (foram incluídos na agenda) com data de hoje ou amanhã
+  const agendaItems=reminders.filter(r=>!r.done&&r.inAgenda&&r.date===targetDate).map(r=>({
+    id:r.id,
+    title:r.title,
+    time:r.time||'',
+    source:'lembrete-agenda',
+    sourceLabel:'Na Agenda',
+    sourceColor:'#4ADE80',
+    cat:r.cat,
+    isReminderAgenda:true,
+    isReminder:false,
+    done:r.done
+  }));
+
+  // Lembretes normais do dia (inAgenda=false) — aparecem como lembretes pendentes
+  const lembreteItems=reminders.filter(r=>!r.done&&!r.inAgenda&&r.date===targetDate).map(r=>({
+    id:r.id,
+    title:r.title,
+    time:r.time||'',
+    source:'lembrete',
+    sourceLabel:'Lembrete',
+    sourceColor:'#4ADE80',
+    cat:r.cat,
+    isReminderAgenda:false,
+    isReminder:true,
+    done:r.done
+  }));
+
+  // Eventos do calendário (somente das integrações ativas)
+  const calItems=(integrations.calendarEvents||[]).filter(e=>{
+    // Filtrar por integração ativa
+    if(e.source==='google'&&!integrations.googleConnected)return false;
+    if(e.source==='outlook'&&!integrations.outlookConnected)return false;
+    const d=e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||'').split('T')[0];
+    return d===targetDate;
+  }).map(e=>({
+    id:'gcal_'+(e.id||Math.random()),
+    title:e.summary||'(sem título)',
+    time:fmtTime(e.start?.dateTime)||'',
+    source:e.source||'google',
+    sourceLabel:e.source==='google'?'Google Agenda':'Outlook',
+    sourceColor:e.source==='google'?'#60A5FA':'#0078d4',
+    sourceEmail:e.source==='google'?(integrations.googleEmail||''):(integrations.outlookEmail||''),
+    isReminderAgenda:false,
+    isReminder:false,
+    done:false
+  }));
+
+  const all=[...agendaItems,...calItems,...lembreteItems].sort((a,b)=>a.time.localeCompare(b.time));
+
+  // Atualizar badge (conta agenda + cal + lembretes do dia)
+  document.getElementById(isHoje?'b-comp-hoje':'b-comp-amanha').textContent=all.length;
+
+  // Sem nada — mostrar tela com e-mails conectados (imagem 4)
+  if(!all.length){
+    const nomeDia=isHoje?'hoje':'amanhã';
+    let emailInfoHtml='';
+    if(integrations.googleConnected&&integrations.googleEmail){
+      emailInfoHtml+=`<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);margin-top:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 12px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Google Agenda: <strong style="color:var(--text)">${integrations.googleEmail}</strong>
+      </div>`;
+    }
+    if(integrations.outlookConnected&&integrations.outlookEmail){
+      emailInfoHtml+=`<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);margin-top:6px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 12px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        Outlook: <strong style="color:var(--text)">${integrations.outlookEmail}</strong>
+      </div>`;
+    }
+    if(!integrations.googleConnected&&!integrations.outlookConnected){
+      emailInfoHtml=`<div style="font-size:12px;color:var(--text3);margin-top:10px">Conecte sua <strong>Google Agenda</strong> ou <strong>Outlook</strong> em <strong>Integrações</strong> para ver seus compromissos.</div>`;
+    }
+    c.innerHTML=`<div class="empty-state"><div class="empty-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><p style="font-size:14px;line-height:1.7">Nenhum compromisso ${nomeDia}! 🎉</p>${emailInfoHtml}</div>`;
+    meta.textContent='Agenda livre';
+    return;
+  }
+
+  const nomeDia=isHoje?'Hoje, '+new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'}):
+    'Amanhã, '+new Date(targetDate+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+  meta.textContent=nomeDia+' · '+all.length+' compromisso'+(all.length!==1?'s':'');
+
+  // Separar em 3 seções: eventos do calendário, lembretes incluídos na agenda, lembretes normais do dia
+  const calSection=all.filter(x=>!x.isReminder&&!x.isReminderAgenda);
+  const agendaSection=all.filter(x=>x.isReminderAgenda);
+  const lembreteSection=all.filter(x=>x.isReminder&&!x.isReminderAgenda);
+
+  let html='';
+  const now=new Date();
+
+  // SEÇÃO: COMPROMISSOS DO CALENDÁRIO (Google / Outlook)
+  if(calSection.length){
+    html+=`<div class="compromissos-section-hdr">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span>Agenda</span>
+      <span class="csec-badge">${calSection.length}</span>
+    </div>`;
+    calSection.forEach(item=>{
+      const timeStr=item.time?`<span style="font-size:12px;color:var(--text3);min-width:42px;flex-shrink:0">${item.time}</span>`:'';      const emailRight=item.sourceEmail
+        ?`<span style="font-size:10px;color:var(--text3);margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;flex-shrink:0" title="${item.sourceEmail}">${item.sourceEmail}</span>`
+        :'';
+      html+=`<div class="rcard" style="margin-bottom:8px;cursor:default">
+        <div class="pbar" style="background:${item.sourceColor}"></div>
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin:0 4px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${item.sourceColor}" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div class="r-body">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            ${timeStr}
+            <span class="r-title" style="margin-bottom:0;flex:1;min-width:0">${item.title}</span>
+            ${emailRight}
+          </div>
+          <div style="margin-top:4px">
+            <span style="font-size:10px;padding:2px 7px;border-radius:var(--r-full);background:rgba(0,0,0,0.2);color:${item.sourceColor}">${item.sourceLabel}</span>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  // SEÇÃO: LEMBRETES INCLUÍDOS NA AGENDA (inAgenda=true)
+  if(agendaSection.length){
+    html+=`<div class="compromissos-section-hdr" style="margin-top:${calSection.length?'1rem':'0'}">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      <span>Incluídos na Agenda</span>
+      <span class="csec-badge">${agendaSection.length}</span>
+    </div>`;
+    agendaSection.forEach(item=>{
+      let statusClass='',statusPill='';
+      if(item.time){
+        const dt=new Date(targetDate+'T'+item.time);
+        const diff=dt-now;
+        if(diff<0){statusClass=' status-overdue';statusPill='<span class="status-pill overdue">Atrasado</span>';}
+        else if(diff<=30*60*1000){statusClass=' status-now';statusPill='<span class="status-pill now">Agora</span>';}
+      }
+      const timeStr=item.time?`<span style="font-size:12px;color:var(--text3);min-width:42px">${item.time}</span>`:'';
+      html+=`<div class="rcard${statusClass}" style="margin-bottom:8px">
+        <div class="pbar" style="background:${item.sourceColor}"></div>
+        <button class="chk" onclick="toggleDone(${item.id},event)"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button>
+        <div class="r-body">
+          <div class="r-title">${item.title}</div>
+          <div class="r-meta" style="gap:6px;flex-wrap:wrap">
+            ${timeStr}
+            <span style="font-size:10px;padding:2px 7px;border-radius:var(--r-full);background:var(--accent-dim);color:var(--accent)">Lembrete</span>
+            ${statusPill}
+            <span class="r-tag" style="background:${catBg[item.cat]||'rgba(155,163,157,0.12)'};color:${catColors[item.cat]||'#9BA39D'}">${catLbl[item.cat]||item.cat||''}</span>
+          </div>
+        </div>
+        <div class="r-acts">
+          <button class="r-act del" onclick="askDelete(${item.id},event)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+        </div>
+      </div>`;
+    });
+  }
+
+  // SEÇÃO: LEMBRETES DO DIA (inAgenda=false, apenas com data de hoje/amanhã)
+  if(lembreteSection.length){
+    const hasAbove=calSection.length||agendaSection.length;
+    html+=`<div class="compromissos-section-hdr" style="margin-top:${hasAbove?'1rem':'0'}">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      <span>Lembretes</span>
+      <span class="csec-badge">${lembreteSection.length}</span>
+    </div>`;
+    lembreteSection.forEach(item=>{
+      let statusClass='',statusPill='';
+      if(item.time){
+        const dt=new Date(targetDate+'T'+item.time);
+        const diff=dt-now;
+        if(diff<0){statusClass=' status-overdue';statusPill='<span class="status-pill overdue">Atrasado</span>';}
+        else if(diff<=30*60*1000){statusClass=' status-now';statusPill='<span class="status-pill now">Agora</span>';}
+      }
+      const timeStr=item.time?`<span style="font-size:12px;color:var(--text3);min-width:42px">${item.time}</span>`:'';
+      html+=`<div class="rcard${statusClass}" style="margin-bottom:8px">
+        <div class="pbar" style="background:${item.sourceColor}"></div>
+        <button class="chk" onclick="toggleDone(${item.id},event)"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button>
+        <div class="r-body">
+          <div class="r-title">${item.title}</div>
+          <div class="r-meta" style="gap:6px;flex-wrap:wrap">
+            ${timeStr}
+            <span style="font-size:10px;padding:2px 7px;border-radius:var(--r-full);background:var(--accent-dim);color:var(--accent)">Lembrete</span>
+            ${statusPill}
+            <span class="r-tag" style="background:${catBg[item.cat]||'rgba(155,163,157,0.12)'};color:${catColors[item.cat]||'#9BA39D'}">${catLbl[item.cat]||item.cat||''}</span>
+            <button class="btn-to-agenda" onclick="openToAgendaModal(${item.id},event)" style="margin-left:auto"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg> Incluir na Agenda</button>
+          </div>
+        </div>
+        <div class="r-acts">
+          <button class="r-act del" onclick="askDelete(${item.id},event)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+        </div>
+      </div>`;
+    });
+  }
+
+  // Se não tem integração ativa E não tem lembretes, mostrar aviso
+  if(!integrations.googleConnected&&!integrations.outlookConnected&&!agendaSection.length&&!lembreteSection.length){
+    html+=`<div style="background:var(--surface);border:1px dashed var(--border);border-radius:var(--r);padding:1rem;text-align:center;margin-top:8px">
+      <div style="font-size:13px;color:var(--text3);line-height:1.6">Conecte sua <strong style="color:var(--text)">Google Agenda</strong> ou <strong style="color:var(--text)">Outlook</strong> em <strong style="color:var(--text)">Integrações</strong> para ver seus eventos do calendário aqui.</div>
+    </div>`;
+  }
+
+  c.innerHTML=html;
+}
+
+const allViews=['view-reminders','view-agenda','view-compromissos-hoje','view-compromissos-amanha','view-planilhas','view-integracoes'];
+function setView(v,btn){
+  view=v;
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  allViews.forEach(id=>document.getElementById(id).style.display='none');
+  // Mobile: adicionar classe para mostrar apenas o conteúdo (sem sidebar)
+  const layout=document.querySelector('.layout');
+  if(layout)layout.classList.add('mob-view-active');
+  if(v==='agenda'){document.getElementById('view-agenda').style.display='flex';renderAgendaDashboard();}
+  else if(v==='compromissos-hoje'){document.getElementById('view-compromissos-hoje').style.display='flex';loadCompromissosDia('hoje');}
+  else if(v==='compromissos-amanha'){document.getElementById('view-compromissos-amanha').style.display='flex';loadCompromissosDia('amanha');}
+  else if(v==='planilhas'){document.getElementById('view-planilhas').style.display='flex';renderSheets()}
+  else if(v==='integracoes'){document.getElementById('view-integracoes').style.display='flex'}
+  else{document.getElementById('view-reminders').style.display='flex';document.getElementById('view-title').textContent=viewLbl[v]||catLbl[v.replace('cat-','')]||v;render()}
+}
+function goHome(){
+  // Voltar para Lembretes Hoje e mostrar sidebar no mobile
+  const layout=document.querySelector('.layout');
+  if(layout)layout.classList.remove('mob-view-active');
+  view='hoje';
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  const btnHoje=document.querySelector('.nav-btn[onclick*="setView(\'hoje"]');
+  if(btnHoje)btnHoje.classList.add('active');
+  allViews.forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('view-reminders').style.display='flex';
+  document.getElementById('view-title').textContent='Hoje';
+  render();
+}
+function renderAgendaDashboard(){
+  const t=today(),tom=tomorrow();
+  const calEvts=integrations.calendarEvents||[];
+  const nHoje=reminders.filter(r=>!r.done&&r.date===t).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t).length;
+  const nAmanha=reminders.filter(r=>!r.done&&r.date===tom).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===tom).length;
+  // Atualizar subtextos e badges dos cards
+  const subHoje=document.getElementById('minha-agenda-hoje-sub');
+  if(subHoje)subHoje.textContent=nHoje>0?nHoje+' compromisso'+(nHoje!==1?'s':'')+' hoje':'Nenhum compromisso';
+  const badgeHoje=document.getElementById('dash-badge-hoje');
+  if(badgeHoje){badgeHoje.textContent=nHoje;badgeHoje.style.display=nHoje>0?'flex':'none';}
+  const subAmanha=document.getElementById('minha-agenda-amanha-sub');
+  if(subAmanha)subAmanha.textContent=nAmanha>0?nAmanha+' compromisso'+(nAmanha!==1?'s':'')+' amanhã':'Nenhum compromisso';
+  const badgeAmanha=document.getElementById('dash-badge-amanha');
+  if(badgeAmanha){badgeAmanha.textContent=nAmanha;badgeAmanha.style.display=nAmanha>0?'flex':'none';}
+  // E-mail nos cards Gmail/Outlook e Agenda Gmail/Outlook
+  const gc=integrations.googleConnected;
+  const oc=integrations.outlookConnected;
+  const subGmail=document.getElementById('dash-sub-gmail');
+  if(subGmail)subGmail.textContent=gc?(integrations.googleEmail||'Abrir e-mails'):'Abrir e-mails';
+  const subOutlook=document.getElementById('dash-sub-outlook');
+  if(subOutlook)subOutlook.textContent=oc?(integrations.outlookEmail||'Abrir e-mails'):'Abrir e-mails';
+  const subAgendaGmail=document.getElementById('dash-sub-agenda-gmail');
+  if(subAgendaGmail)subAgendaGmail.textContent=gc?(integrations.googleEmail||'Google Calendar'):'Google Calendar';
+  const subAgendaOutlook=document.getElementById('dash-sub-agenda-outlook');
+  if(subAgendaOutlook)subAgendaOutlook.textContent=oc?(integrations.outlookEmail||'Outlook Calendar'):'Outlook Calendar';
+}
+function mobActive(btn){document.querySelectorAll('.mob-btn').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}
+
+function scheduleNotifs(){
+  notifTimers.forEach(clearTimeout);notifTimers=[];
+  const now=new Date();
+  reminders.filter(r=>!r.done&&r.date&&r.time).forEach(r=>{
+    const dt=new Date(`${r.date}T${r.time}`),diff=dt-now;
+    if(diff>0&&diff<86400000)notifTimers.push(setTimeout(()=>sysNotif('Lembrete',r.title),diff));
+  });
+}
+
+// ── ASSISTENTE DE IA ────────────────────────────────────────────────
+let aiMessages=[];
+let aiTyping=false;
+
+function openAI(){
+  document.getElementById('ai-modal').classList.add('open');
+  if(!aiMessages.length){
+    addAIMessage('assistant','Olá! Como posso ajudar?');
+  }
+}
+function closeAI(){
+  document.getElementById('ai-modal').classList.remove('open');
+}
+function addAIMessage(role,text){
+  aiMessages.push({role,text});
+  const container=document.getElementById('ai-messages');
+  const div=document.createElement('div');
+  div.className='ai-msg '+role;
+  const avatarText=role==='assistant'?'IA':initials(user?.name||'U');
+  div.innerHTML=`<div class="ai-msg-avatar">${avatarText}</div><div class="ai-bubble">${text}</div>`;
+  container.appendChild(div);
+  container.scrollTop=container.scrollHeight;
+}
+function showAITyping(){
+  const container=document.getElementById('ai-messages');
+  const div=document.createElement('div');
+  div.className='ai-msg assistant';
+  div.id='ai-typing-indicator';
+  div.innerHTML=`<div class="ai-msg-avatar">IA</div><div class="ai-bubble"><div class="ai-typing"><span></span><span></span><span></span></div></div>`;
+  container.appendChild(div);
+  container.scrollTop=container.scrollHeight;
+}
+function removeAITyping(){
+  const el=document.getElementById('ai-typing-indicator');
+  if(el)el.remove();
+}
+function sendAISuggestion(btn){
+  const text=btn.textContent;
+  document.getElementById('ai-input').value=text;
+  sendAIMessage();
+}
+function aiInputKeydown(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAIMessage();}
+}
+function autoResizeAI(el){
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,120)+'px';
+}
+async function sendAIMessage(){
+  const input=document.getElementById('ai-input');
+  const text=input.value.trim();
+  if(!text||aiTyping)return;
+  input.value='';
+  input.style.height='auto';
+  addAIMessage('user',text);
+  aiTyping=true;
+  showAITyping();
+  // Ocultar sugestões após primeira mensagem
+  document.getElementById('ai-suggestions').style.display='none';
+  try{
+    const context=buildAIContext();
+    const response=await callAI(text,context);
+    removeAITyping();
+    addAIMessage('assistant',response);
+  } catch(err){
+    removeAITyping();
+    addAIMessage('assistant','Desculpe, ocorreu um erro ao processar sua pergunta. Tente novamente.');
+    console.error('AI error:',err);
+  }
+  aiTyping=false;
+}
+
+function buildAIContext(){
+  const t=today(),tom=tomorrow();
+  const pendingReminders=reminders.filter(r=>!r.done&&!r.inAgenda);
+  const agendaReminders=reminders.filter(r=>!r.done&&r.inAgenda);
+  const doneReminders=reminders.filter(r=>r.done);
+  const calEvts=integrations.calendarEvents||[];
+
+  const remindersText=pendingReminders.length
+    ?pendingReminders.map(r=>`- "${r.title}" [${r.date||'sem data'}${r.time?' '+r.time:''}] cat:${catLbl[r.cat]||r.cat||'?'} prio:${r.prio}`).join('\n')
+    :'(nenhum lembrete pendente)';
+
+  const agendaText=agendaReminders.length
+    ?agendaReminders.map(r=>`- "${r.title}" [${r.date||'sem data'}${r.time?' '+r.time:''}]`).join('\n')
+    :'(nenhum lembrete na agenda)';
+
+  const calText=calEvts.length
+    ?calEvts.map(e=>`- "${e.summary}" [${e.start?.dateTime?fmtDateLocal(e.start.dateTime)+' '+fmtTime(e.start.dateTime):(e.start?.date||'')}] fonte:${e.source}`).join('\n')
+    :'(nenhum evento do calendário)';
+
+  const integText=`Google: ${integrations.googleConnected?'conectado ('+integrations.googleEmail+')':'não conectado'}, Outlook: ${integrations.outlookConnected?'conectado ('+integrations.outlookEmail+')':'não conectado'}`;
+
+  return `Data de hoje: ${t} (${new Date().toLocaleDateString('pt-BR',{weekday:'long'})})
+Data de amanhã: ${tom}
+Usuário: ${user?.name||''}
+
+LEMBRETES PENDENTES:
+${remindersText}
+
+LEMBRETES NA AGENDA:
+${agendaText}
+
+EVENTOS DO CALENDÁRIO:
+${calText}
+
+INTEGRAÇÕES: ${integText}
+
+CATEGORIAS: ${userCats.map(c=>c.label).join(', ')}`;
+}
+
+async function callAI(userMessage,context){
+  // URL da Edge Function do Supabase
+  const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+  const SUPABASE_ANON_KEY=''; // Não necessária para funções públicas com CORS
+  const edgeFnUrl=SUPABASE_URL+'/functions/v1/ai-chat';
+
+  // Montar contexto estruturado para a IA
+  const t=today(),tom=tomorrow();
+  const calEvts=integrations.calendarEvents||[];
+  const lembretes=reminders.map(r=>({
+    title:r.title,date:r.date,time:r.time,done:r.done,cat:catLbl[r.cat]||r.cat,prio:r.prio,inAgenda:r.inAgenda
+  }));
+  const eventos=calEvts.map(e=>({
+    summary:e.summary,start:e.start,end:e.end,origem:e.source==='google'?'Google Agenda':'Outlook'
+  }));
+
+  // Histórico das últimas 8 mensagens
+  const historico=aiMessages.slice(-8).map(m=>({role:m.role,content:m.text}));
+
+  try{
+    const res=await fetch(edgeFnUrl,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        mensagem:userMessage,
+        historico,
+        contexto:{lembretes,eventos}
+      })
+    });
+    if(!res.ok){
+      console.warn('Edge Function retornou erro:',res.status);
+      return processLocalAI(userMessage,context);
+    }
+    const data=await res.json();
+    if(data.erro){
+      console.warn('Erro da IA:',data.erro);
+      return processLocalAI(userMessage,context);
+    }
+    return data.resposta||processLocalAI(userMessage,context);
+  } catch(e){
+    console.warn('Erro ao chamar Edge Function:',e);
+    return processLocalAI(userMessage,context);
+  }
+}
+
+function processLocalAI(msg,context){
+  // Processamento local inteligente sem API externa
+  const msgLower=msg.toLowerCase();
+  const t=today(),tom=tomorrow();
+  const calEvts=integrations.calendarEvents||[];
+  const pendingRem=reminders.filter(r=>!r.done);
+
+  // Detectar data mencionada na mensagem
+  const dateMatch=msg.match(/(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?/);
+  let targetDate=null;
+  if(dateMatch){
+    const day=dateMatch[1].padStart(2,'0');
+    const month=dateMatch[2].padStart(2,'0');
+    const year=dateMatch[3]?(dateMatch[3].length===2?'20'+dateMatch[3]:dateMatch[3]):new Date().getFullYear();
+    targetDate=`${year}-${month}-${day}`;
+  }
+
+  // Consultas sobre hoje
+  if(msgLower.includes('hoje')||msgLower.includes('dia de hoje')){
+    const remHoje=pendingRem.filter(r=>r.date===t);
+    const calHoje=calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t);
+    const total=remHoje.length+calHoje.length;
+    if(!total)return `Você não tem nenhum compromisso ou lembrete para hoje (${fmtDate(t)}). Sua agenda está livre! 🎉`;
+    let resp=`Para hoje (${fmtDate(t)}) você tem **${total} item(ns)**:\n\n`;
+    if(remHoje.length){resp+=`📌 **Lembretes (${remHoje.length}):**\n`;remHoje.forEach(r=>resp+=`• ${r.title}${r.time?' às '+r.time:''}\n`);}
+    if(calHoje.length){resp+=`\n📅 **Agenda (${calHoje.length}):**\n`;calHoje.forEach(e=>resp+=`• ${e.summary}${e.start?.dateTime?' às '+fmtTime(e.start.dateTime):''} (${e.source==='google'?'Google':'Outlook'})\n`);}
+    return resp;
+  }
+
+  // Consultas sobre amanhã
+  if(msgLower.includes('amanhã')||msgLower.includes('amanha')){
+    const remAmanha=pendingRem.filter(r=>r.date===tom);
+    const calAmanha=calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===tom);
+    const total=remAmanha.length+calAmanha.length;
+    if(!total)return `Você não tem nenhum compromisso para amanhã (${fmtDate(tom)}). Agenda livre! 🎉`;
+    let resp=`Para amanhã (${fmtDate(tom)}) você tem **${total} item(ns)**:\n\n`;
+    if(remAmanha.length){resp+=`📌 **Lembretes (${remAmanha.length}):**\n`;remAmanha.forEach(r=>resp+=`• ${r.title}${r.time?' às '+r.time:''}\n`);}
+    if(calAmanha.length){resp+=`\n📅 **Agenda (${calAmanha.length}):**\n`;calAmanha.forEach(e=>resp+=`• ${e.summary}${e.start?.dateTime?' às '+fmtTime(e.start.dateTime):''} (${e.source==='google'?'Google':'Outlook'})\n`);}
+    return resp;
+  }
+
+  // Consulta por data específica
+  if(targetDate){
+    const remData=pendingRem.filter(r=>r.date===targetDate);
+    const calData=calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===targetDate);
+    const total=remData.length+calData.length;
+    if(!total)return `Não encontrei nenhum compromisso para o dia ${fmtDate(targetDate)}. Agenda livre! 🎉`;
+    let resp=`Para ${fmtDate(targetDate)} você tem **${total} item(ns)**:\n\n`;
+    if(remData.length){resp+=`📌 **Lembretes (${remData.length}):**\n`;remData.forEach(r=>resp+=`• ${r.title}${r.time?' às '+r.time:''}\n`);}
+    if(calData.length){resp+=`\n📅 **Agenda (${calData.length}):**\n`;calData.forEach(e=>resp+=`• ${e.summary}${e.start?.dateTime?' às '+fmtTime(e.start.dateTime):''}\n`);}
+    return resp;
+  }
+
+  // Consultas sobre lembretes
+  if(msgLower.includes('lembrete')||msgLower.includes('pendente')){
+    const pend=reminders.filter(r=>!r.done&&!r.inAgenda);
+    if(!pend.length)return 'Você não tem lembretes pendentes no momento. 👍';
+    let resp=`Você tem **${pend.length} lembrete(s) pendente(s)**:\n\n`;
+    pend.slice(0,10).forEach(r=>resp+=`• ${r.title}${r.date?' — '+fmtDate(r.date):''}\n`);
+    if(pend.length>10)resp+=`\n...e mais ${pend.length-10} lembrete(s).`;
+    return resp;
+  }
+
+  // Enviar e-mail via mailto
+  if(msgLower.includes('e-mail')||msgLower.includes('email')||msgLower.includes('enviar')||msgLower.includes('mandar')||msgLower.includes('escrever para')||msgLower.includes('escrever um e')){
+    // Tentar extrair destinatário, assunto e corpo da mensagem
+    let para='',assunto='',corpo='';
+    // Detectar e-mail na mensagem
+    const emailMatch=msg.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/);
+    if(emailMatch)para=emailMatch[0];
+    // Detectar assunto após "assunto:", "sobre:", "com assunto"
+    const assuntoMatch=msg.match(/(?:assunto|sobre|subject)[:\s]+([^,\.\n]+)/i);
+    if(assuntoMatch)assunto=assuntoMatch[1].trim();
+    // Detectar corpo após "dizendo", "falando", "com o texto", "mensagem:"
+    const corpoMatch=msg.match(/(?:dizendo|falando|com o texto|mensagem|corpo)[:\s]+(.+)/i);
+    if(corpoMatch)corpo=corpoMatch[1].trim();
+    // Se não encontrou e-mail, pedir ao usuário
+    if(!para){
+      return `Para enviar um e-mail, me informe:
+
+• **Para quem?** (endereço de e-mail)
+• **Assunto?**
+• **O que dizer?**
+
+Exemplo: *"Enviar e-mail para joao@empresa.com, assunto: Reunião, dizendo: Confirmo presença na reunião de amanhã"*`;
+    }
+    // Montar URL mailto e abrir
+    const mailtoUrl='mailto:'+encodeURIComponent(para)+(assunto?'?subject='+encodeURIComponent(assunto):'')+(corpo?(assunto?'&':'?')+'body='+encodeURIComponent(corpo):'');
+    setTimeout(()=>window.open(mailtoUrl,'_self'),500);
+    return `Abrindo seu cliente de e-mail para enviar mensagem para **${para}**${assunto?' com assunto "'+assunto+'"':''}. Basta clicar em **Enviar** quando estiver pronto! 📧`;
+  }
+
+  // Adicionar/agendar compromisso na agenda Google
+  if(msgLower.includes('incluir na agenda google')||msgLower.includes('agenda google')||msgLower.includes('google agenda')||msgLower.includes('calendário google')){
+    if(!integrations.googleConnected)return 'Para incluir na Google Agenda, primeiro conecte sua conta em **Integrações**.';
+    // Tentar extrair título, data e hora da mensagem
+    const titleMatch=msg.match(/(?:reunião|compromisso|evento|consulta|aula|encontro|call|meeting)[:\s]+([^,\.\n]+)/i);
+    const title=titleMatch?titleMatch[1].trim():msg.replace(/(?:incluir|adicionar|criar|agendar|na agenda google|agenda google|google agenda|calendário google)/gi,'').trim();
+    const dateStr=targetDate?fmtDate(targetDate):'data não especificada';
+    const timeMatch=msg.match(/(\d{1,2})[h:](\d{0,2})/);
+    const timeStr=timeMatch?(timeMatch[1].padStart(2,'0')+':'+(timeMatch[2]||'00')):'horário não especificado';
+    // Abrir Google Agenda com evento pré-preenchido
+    const gcalBase='https://calendar.google.com/calendar/r/eventedit';
+    let gcalUrl=gcalBase+'?text='+encodeURIComponent(title||'Novo compromisso');
+    if(targetDate)gcalUrl+='&dates='+targetDate.replace(/-/g,'')+'T'+(timeMatch?(timeMatch[1].padStart(2,'0')+(timeMatch[2]||'00')+'00'):'090000')+'/'+(targetDate.replace(/-/g,''))+'T'+(timeMatch?(String(parseInt(timeMatch[1])+1).padStart(2,'0')+(timeMatch[2]||'00')+'00'):'100000');
+    setTimeout(()=>window.open(gcalUrl,'_blank'),500);
+    return `Abrindo a **Google Agenda** com o evento pré-preenchido:📅\n\n• **Título:** ${title||'Novo compromisso'}\n• **Data:** ${dateStr}\n• **Hora:** ${timeStr}\n\nRevise e clique em **Salvar** na Google Agenda!`;
+  }
+
+  // Adicionar lembrete/compromisso geral
+  if(msgLower.includes('adicionar')||msgLower.includes('incluir')||msgLower.includes('criar')||msgLower.includes('agendar')){
+    // Tentar extrair informações do pedido
+    const timeMatch=msg.match(/(\d{1,2})[h:](\d{0,2})/);
+    const timeStr=timeMatch?(timeMatch[1].padStart(2,'0')+':'+(timeMatch[2]||'00')):null;
+    const dateStr=targetDate?fmtDate(targetDate):null;
+    // Remover palavras de comando para extrair o título
+    const cleanMsg=msg.replace(/(?:adicionar|incluir|criar|agendar|um|uma|lembrete|compromisso|para|mim|me|na agenda|no calendário)/gi,'').replace(/\d{1,2}[h:]\d{0,2}/g,'').replace(/\d{1,2}[\/-]\d{1,2}(?:[\/-]\d{2,4})?/g,'').trim();
+    if(cleanMsg.length>3){
+      return `Entendido! Para criar o lembrete **"${cleanMsg}"**${dateStr?' para '+dateStr:''}${timeStr?' às '+timeStr:''}, clique em **Novo lembrete** na tela de Lembretes e preencha os campos. Depois use **Incluir na Agenda** para mover para seus compromissos.\n\nOu, se quiser incluir direto na **Google Agenda**, me diga: *"incluir na agenda Google: ${cleanMsg}"*`;
+    }
+    return `Para adicionar um compromisso, clique em **"Novo lembrete"** na tela de Lembretes. Depois use o botão **"Incluir na Agenda"** para mover para seus compromissos.\n\nPosso também abrir a **Google Agenda** diretamente — é só me dizer o nome, data e hora do evento!`;
+  }
+
+  // Resumo geral
+  if(msgLower.includes('resumo')||msgLower.includes('semana')||msgLower.includes('tudo')){
+    const pend=reminders.filter(r=>!r.done&&!r.inAgenda).length;
+    const agenda=reminders.filter(r=>!r.done&&r.inAgenda).length;
+    const cal=calEvts.length;
+    const hoje=pendingRem.filter(r=>r.date===t).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t).length;
+    return `Aqui está seu resumo:\n\n📌 **${pend}** lembrete(s) pendente(s)\n📅 **${agenda}** lembrete(s) na agenda\n🗓️ **${cal}** evento(s) do calendário sincronizados\n⏰ **${hoje}** compromisso(s) para hoje\n\nIntegrações ativas: ${integrations.googleConnected?'Google ✓':''}${integrations.outlookConnected?' Outlook ✓':''}${!integrations.googleConnected&&!integrations.outlookConnected?'Nenhuma (conecte em Integrações)':''}`;
+  }
+
+  // Resposta genérica inteligente: tenta interpretar a mensagem como consulta de data
+  // Se a mensagem parece uma pergunta sobre agenda sem data específica
+  if(msgLower.includes('tenho')||msgLower.includes('agenda')||msgLower.includes('compromisso')||msgLower.includes('próximo')||msgLower.includes('proximo')){
+    const pend=reminders.filter(r=>!r.done&&!r.inAgenda);
+    const agenda=reminders.filter(r=>!r.done&&r.inAgenda);
+    const hojeItems=pend.filter(r=>r.date===t);
+    const amanhaItems=pend.filter(r=>r.date===tom);
+    const calHoje=calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t);
+    const calAmanha=calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===tom);
+    let resp=`Aqui está uma visão geral da sua agenda:\n\n`;
+    const totalHoje=hojeItems.length+calHoje.length;
+    const totalAmanha=amanhaItems.length+calAmanha.length;
+    if(totalHoje>0){resp+=`⏰ **Hoje:** ${totalHoje} compromisso(s)\n`;}
+    else{resp+=`⏰ **Hoje:** agenda livre\n`;}
+    if(totalAmanha>0){resp+=`📅 **Amanhã:** ${totalAmanha} compromisso(s)\n`;}
+    else{resp+=`📅 **Amanhã:** agenda livre\n`;}
+    if(agenda.length>0){resp+=`📌 **Lembretes na agenda:** ${agenda.length}\n`;}
+    if(pend.length>0){resp+=`📝 **Lembretes pendentes:** ${pend.length}\n`;}
+    resp+='\nQuer detalhes de algum dia específico?';
+    return resp;
+  }
+
+  // Resposta conversacional genérica
+  // Tenta entender a intenção da mensagem
+  const pend=reminders.filter(r=>!r.done&&!r.inAgenda);
+  const calHoje=calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t);
+  const totalHoje=pendingRem.filter(r=>r.date===t).length+calHoje.length;
+  if(totalHoje>0){
+    return `Hoje você tem **${totalHoje} compromisso(s)**. Quer que eu liste os detalhes?`;
+  }
+  if(pend.length>0){
+    return `Você tem **${pend.length} lembrete(s) pendente(s)**. Posso listar, buscar por data ou ajudar com qualquer outra coisa.`;
+  }
+  return `Não encontrei nada relacionado. Pode me perguntar sobre seus lembretes, compromissos de hoje ou amanhã, ou pedir para enviar um e-mail.`;
+}
+
+window.onload=()=>{
+  const s=localStorage.getItem(SESSION_KEY);
+  if(s){const u=JSON.parse(s);if(getUsers()[u.email])startSession(u)}
+};
+</script>
+<!-- Supabase -->
+<script src="supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ─── SUPABASE SYNC ───
+let supabaseClient = null;
+
+function initSupabase(){
+  try {
+    if(typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL !== 'COLE_SEU_PROJECT_URL_AQUI'){
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      console.log('Supabase conectado!');
+      supabaseClient.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          const u = session.user;
+          const users = getUsers();
+          if (!users[u.email]) {
+            users[u.email] = {
+              name: u.user_metadata.full_name || u.email.split('@')[0],
+              email: u.email,
+              googleAuth: true,
+              pass: btoa('google_' + u.id)
+            };
+            saveUsers(users);
+          }
+          startSession(users[u.email]);
+        }
+      });
+    }
+  } catch(e){ console.log('Supabase não configurado:', e) }
+}
+
+async function syncToSupabase(){
+  if(!supabaseClient||!user)return;
+  try {
+    await supabaseClient.from('reminders').upsert(
+      reminders.map(r=>({
+        id: r.id,
+        title: r.title,
+        descricao: r.desc,
+        cat: r.cat,
+        prio: r.prio,
+        date: r.date,
+        time: r.time,
+        recur: r.recur,
+        done: r.done,
+        in_agenda: r.inAgenda||false,
+        user_email: user.email,
+        updated_at: new Date().toISOString(),
+        created: r.created
+      })),
+      {onConflict: 'id'}
+    );
+  } catch(e){ console.log('Erro ao sincronizar:', e) }
+}
+
+async function loadFromSupabase(){
+  if(!supabaseClient||!user)return false;
+  try {
+    const {data,error}=await supabaseClient.from('reminders').select('*').eq('user_email',user.email).order('created',{ascending:false});
+    if(error)throw error;
+    if(data&&data.length>0){
+      reminders=data.map(r=>({
+        id: r.id,
+        title: r.title,
+        desc: r.descricao,
+        cat: r.cat,
+        prio: r.prio,
+        date: r.date,
+        time: r.time,
+        recur: r.recur,
+        done: r.done,
+        inAgenda: r.in_agenda||false,
+        created: r.created
+      }));
+      localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders));
+      return true;
+    }
+  } catch(e){ console.log('Erro ao carregar do Supabase:', e) }
+  return false;
+}
+
+// Override persist to also sync
+const _origPersist = persist;
+function persist(){
+  localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders));
+  syncToSupabase();
+}
+
+// Carregar chave de IA do ambiente (se disponível)
+(async function(){
+  try{
+    const r=await fetch('/api/ai-key');
+    if(r.ok){const d=await r.json();window.__AI_KEY=d.key||'';}
+  }catch(e){}
+})();
+
+initSupabase();
+</script>
+<!-- Firebase -->
+<script src="firebase-config.js"></script>
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+  import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  window.firebaseLoginWithGoogle = async function() {
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const u = result.user;
+      const users = getUsers();
+      if(!users[u.email]){
+        users[u.email] = {name: u.displayName, email: u.email, googleAuth: true, pass: btoa('google_'+u.uid)};
+        saveUsers(users);
+      }
+      startSession(users[u.email]);
+    } catch(e) {
+      console.error(e);
+      document.getElementById('auth-err').textContent = 'Erro ao entrar com Google. Tente novamente.';
+      document.getElementById('auth-err').style.display = 'block';
+    }
+  };
+
+  window.firebaseLogout = async function() {
+    await signOut(auth);
+  };
+</script>
+<script>
+async function loginWithGoogle() {
+  if (!supabaseClient) {
+    alert('Erro: Conexão com o banco de dados não estabelecida.');
+    return;
+  }
+  const { data, error } = await supabaseClient.auth.signInWithOAuth({
+    provider: 'google',
+    options: { queryParams: { prompt: 'select_account' } }
+  });
+  if (error) {
+    console.error('Erro ao entrar com Google:', error.message);
+    alert('Erro ao entrar com Google: ' + error.message);
+  }
+}
+</script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=9');</script>
+</body>
+</html>
