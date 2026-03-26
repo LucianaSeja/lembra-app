@@ -6,50 +6,38 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Retorna data/hora no fuso de Brasília (UTC-3) no formato YYYY-MM-DD
+// Retorna data no fuso de Brasília (UTC-3) no formato YYYY-MM-DD
 function toBrasiliaDate(isoString: string): string {
   const d = new Date(isoString);
-  // Ajusta para UTC-3
   const offset = -3 * 60;
   const local = new Date(d.getTime() + offset * 60000);
   return local.toISOString().split("T")[0];
 }
 
-// Retorna HH:MM no fuso de Brasília
-function toBrasiliaTime(isoString: string): string {
-  const d = new Date(isoString);
-  const offset = -3 * 60;
-  const local = new Date(d.getTime() + offset * 60000);
-  return local.toISOString().substring(11, 16);
-}
-
-// Normaliza dateTime do Outlook para YYYY-MM-DDTHH:MM:SS no fuso de Brasília (UTC-3)
-// Comportamento do Microsoft 365 corporativo:
-//   - Com header Prefer: retorna com fuso explícito (ex: 2026-03-25T18:00:00-03:00)
-//   - Sem header Prefer: retorna sem fuso (ex: 2026-03-25T18:00:00) = já é horário local
-// Comportamento do Outlook pessoal (hotmail/live):
-//   - Retorna com 'Z' (UTC) e precisa converter para BRT
-function toBrasiliaDatetime(rawDatetime: string): string {
+// Normaliza qualquer dateTime do Outlook para UTC com sufixo Z
+// O Microsoft Graph retorna datas em 3 formatos possíveis:
+//   1. '2026-03-26T21:00:00Z'         → UTC explícito (hotmail/live pessoal)
+//   2. '2026-03-26T18:00:00-03:00'    → offset explícito (com header Prefer)
+//   3. '2026-03-26T21:00:00'          → sem fuso = UTC implícito (M365 corporativo sem Prefer)
+// Estratégia: converter TUDO para UTC com Z, o frontend exibe em BRT via timeZone:'America/Sao_Paulo'
+function toUTCWithZ(rawDatetime: string): string {
   if (!rawDatetime) return rawDatetime;
-  // Se tem 'Z' no final = UTC explícito, converter para BRT
-  if (rawDatetime.endsWith('Z')) {
+
+  // Caso 1: já tem Z = UTC explícito, retornar como está
+  if (rawDatetime.endsWith("Z")) {
     const d = new Date(rawDatetime);
-    if (isNaN(d.getTime())) return rawDatetime;
-    const offset = -3 * 60; // UTC-3 (Brasília)
-    const local = new Date(d.getTime() + offset * 60000);
-    return local.toISOString().replace('Z', '').substring(0, 19);
+    return isNaN(d.getTime()) ? rawDatetime : d.toISOString();
   }
-  // Se tem offset explícito (+HH:MM ou -HH:MM), converter para BRT
+
+  // Caso 2: tem offset explícito (+HH:MM ou -HH:MM), converter para UTC
   if (/[+-]\d{2}:\d{2}$/.test(rawDatetime)) {
     const d = new Date(rawDatetime);
-    if (isNaN(d.getTime())) return rawDatetime;
-    const offset = -3 * 60;
-    const local = new Date(d.getTime() + offset * 60000);
-    return local.toISOString().replace('Z', '').substring(0, 19);
+    return isNaN(d.getTime()) ? rawDatetime : d.toISOString();
   }
-  // Sem indicador de fuso = Microsoft 365 corporativo já retornou no horário local
-  // Não converter, apenas normalizar o formato
-  return rawDatetime.substring(0, 19);
+
+  // Caso 3: sem indicador de fuso = M365 corporativo retorna UTC sem Z
+  // Adicionar Z para que o browser interprete como UTC
+  return rawDatetime.substring(0, 19) + "Z";
 }
 
 serve(async (req) => {
@@ -123,6 +111,7 @@ serve(async (req) => {
         amanhaDate.setDate(amanhaDate.getDate() + 1);
         const amanhaStr = toBrasiliaDate(amanhaDate.toISOString());
 
+        // Usar offset explícito -03:00 para que a API do Google respeite o fuso
         const timeMin = `${hojeStr}T00:00:00-03:00`;
         const timeMax = `${amanhaStr}T23:59:59-03:00`;
 
@@ -141,6 +130,8 @@ serve(async (req) => {
         }
 
         const data = await res.json();
+        // Google retorna datas com fuso explícito (ex: 2026-03-26T18:00:00-03:00)
+        // Retornar como está — o frontend usa fmtTime com timeZone:'America/Sao_Paulo'
         const eventos = (data.items || []).map((e: any) => ({
           id: e.id,
           summary: e.summary || "(sem título)",
@@ -209,22 +200,25 @@ serve(async (req) => {
         // Buscar eventos do Outlook (hoje + amanhã) com fuso de Brasília correto
         const agora = new Date();
         const hojeStr = toBrasiliaDate(agora.toISOString());
-        const amanhaDate = new Date(agora);
-        amanhaDate.setDate(amanhaDate.getDate() + 1);
-        const amanhaStr = toBrasiliaDate(amanhaDate.toISOString());
 
-        // calendarView usa UTC — passar intervalo em UTC que cobre o dia inteiro em Brasília
-        // Brasília é UTC-3, então hoje 00:00 BRT = hoje 03:00 UTC
-        // amanhã 23:59 BRT = depois de amanhã 02:59 UTC
+        // Calcular depois de amanhã para cobrir amanhã inteiro em BRT
+        // hoje 00:00 BRT = hoje 03:00 UTC → startUTC = hojeStr + T03:00:00Z
+        // amanhã 23:59 BRT = depois de amanhã 02:59 UTC → endUTC = depoisAmanhaStr + T02:59:59Z
+        const depoisAmanhaDate = new Date(agora);
+        depoisAmanhaDate.setDate(depoisAmanhaDate.getDate() + 2);
+        const depoisAmanhaStr = toBrasiliaDate(depoisAmanhaDate.toISOString());
+
         const startUTC = `${hojeStr}T03:00:00Z`;
-        const endUTC = `${amanhaStr}T02:59:59Z`;
+        const endUTC = `${depoisAmanhaStr}T02:59:59Z`;
 
+        // NÃO usar header Prefer: outlook.timezone para evitar comportamento inconsistente
+        // Sem o header, o M365 corporativo retorna sem Z (UTC implícito)
+        // A função toUTCWithZ adiciona Z em todos os casos para padronizar
         const url = `https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=${encodeURIComponent(startUTC)}&endDateTime=${encodeURIComponent(endUTC)}&$orderby=start/dateTime&$top=100&$select=id,subject,start,end,bodyPreview,organizer,isAllDay`;
 
         const res = await fetch(url, {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Prefer": `outlook.timezone="E. South America Standard Time"`,
           },
         });
 
@@ -238,18 +232,17 @@ serve(async (req) => {
 
         const data = await res.json();
         const eventos = (data.value || []).map((e: any) => {
-          // Normalizar datas do Outlook para horário de Brasília (UTC-3)
-          // Contas Microsoft 365 corporativas ignoram o header Prefer e retornam sem 'Z'
-          // A função toBrasiliaDatetime trata ambos os casos (com e sem Z)
+          // Normalizar todas as datas para UTC com Z
+          // O frontend usa fmtTime com timeZone:'America/Sao_Paulo' para exibir corretamente
           const rawStart = e.start?.dateTime || "";
           const rawEnd = e.end?.dateTime || "";
-          const startBRT = rawStart ? toBrasiliaDatetime(rawStart) : "";
-          const endBRT = rawEnd ? toBrasiliaDatetime(rawEnd) : "";
+          const startUTCNorm = rawStart ? toUTCWithZ(rawStart) : "";
+          const endUTCNorm = rawEnd ? toUTCWithZ(rawEnd) : "";
           return {
             id: e.id,
             summary: e.subject || "(sem título)",
-            start: { dateTime: startBRT || rawStart },
-            end: { dateTime: endBRT || rawEnd },
+            start: { dateTime: startUTCNorm || rawStart },
+            end: { dateTime: endUTCNorm || rawEnd },
             description: e.bodyPreview || "",
             origem: "Outlook",
             source: "outlook",
