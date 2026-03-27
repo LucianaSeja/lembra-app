@@ -1059,8 +1059,8 @@ function loadInt(){
 function saveInt(){localStorage.setItem(INT_KEY(user.email),JSON.stringify(integrations))}
 function today(){return new Date().toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'})}
 function tomorrow(){const d=new Date();d.setDate(d.getDate()+1);return d.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'})}
-function fmtTime(dt){if(!dt)return'';const s=String(dt).replace(/(\.[0-9]{3})[0-9]+/,'$1');const d=new Date(s);if(isNaN(d))return s.slice(11,16)||'';return d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/Sao_Paulo'})}
-function fmtDateLocal(dt){if(!dt)return'';const s=String(dt).replace(/(\.[0-9]{3})[0-9]+/,'$1');const d=new Date(s);if(isNaN(d))return s.split('T')[0]||'';return d.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'})}
+function fmtTime(dt){if(!dt)return'';const s=dt.replace(/(\.\d{3})\d+/,'$1');const d=new Date(s);if(isNaN(d))return s.slice(11,16)||'';return d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/Sao_Paulo'})}
+function fmtDateLocal(dt){if(!dt)return'';const s=dt.replace(/(\.\d{3})\d+/,'$1');const d=new Date(s);if(isNaN(d))return s.split('T')[0]||'';return d.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'})}
 function initials(n){return n.trim().split(/\s+/).map(x=>x[0]).join('').toUpperCase().slice(0,2)}
 function fmtDate(d){const p=d.split('-');return`${p[2]}/${p[1]}/${p[0]}`}
 
@@ -1073,17 +1073,12 @@ function switchTab(t){
 }
 function showErr(m){const e=document.getElementById('auth-err');e.textContent=m;e.style.display='block'}
 function doLogin(){
-  const email=document.getElementById('l-email').value.trim().toLowerCase(),pass=document.getElementById('l-pass').value;
+  const email=document.getElementById('l-email').value.trim(),pass=document.getElementById('l-pass').value;
   if(!email||!pass)return showErr('Preencha todos os campos');
   const users=getUsers();
-  // Tentar chave exata primeiro, depois busca case-insensitive
-  let userKey=email;
-  if(!users[email]){
-    const found=Object.keys(users).find(k=>k.toLowerCase()===email);
-    if(found)userKey=found; else return showErr('Email não encontrado');
-  }
-  if(users[userKey].pass!==btoa(pass))return showErr('Senha incorreta');
-  startSession(users[userKey]);
+  if(!users[email])return showErr('Email não encontrado');
+  if(users[email].pass!==btoa(pass))return showErr('Senha incorreta');
+  startSession(users[email]);
 }
 function doSignup(){
   const name=document.getElementById('s-name').value.trim(),email=document.getElementById('s-email').value.trim(),pass=document.getElementById('s-pass').value;
@@ -1239,9 +1234,9 @@ async function silentCalendarSync(){
   }catch(e){console.warn('[AutoSync] Outlook2:',e);}
 }
 // INTEGRATIONS
-// Constantes globais Supabase (usadas em todas as funções de calendário e IA)
-if(typeof SUPABASE_ANON_KEY==='undefined')var SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96aXFmamF3aHFneXhzdXprd3h5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDM2NTIsImV4cCI6MjA4OTUxOTY1Mn0.vwO13Gzvztz4XdvELGPriGy_U497kMXM5GKjkcuZaAc';
+// Guards globais — evitam conflito com supabase-config.js (que usa var)
 if(typeof SUPABASE_URL==='undefined')var SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+if(typeof SUPABASE_ANON_KEY==='undefined')var SUPABASE_ANON_KEY='';
 const GCAL_CLIENT_ID='126747406308-eestcpeb8n5jhmt7t7vfpfnjq60jo5k3.apps.googleusercontent.com';
 const GCAL_SCOPES='https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/gmail.readonly';
 const OUTLOOK_CLIENT_ID='3cda6425-e947-4dec-9cdf-742a50ea8aec';
@@ -1250,6 +1245,8 @@ let msalApp=null;
 let outlookToken=null;   // conta principal (hotmail/pessoal)
 let outlookToken2=null;  // segunda conta (sejadigital/corporativa)
 let gcalToken=null;
+let gcalTokenClient=null; // singleton GIS token client — criado UMA vez
+let _gcalTokenCb=null;    // callback por-requisição delegado pelo singleton
 
 // Restaurar gcalToken do localStorage ao iniciar (token Google persiste ~1h)
 function restoreGcalToken(){
@@ -1265,46 +1262,21 @@ function restoreGcalToken(){
 // Renovação silenciosa de tokens ao iniciar o app
 async function silentReauthGoogle(){
   if(!integrations.googleConnected)return;
-  // Se já temos token (restaurado do storage), tentar buscar eventos direto
+  // Garante que o singleton já existe (GIS pode ainda estar carregando)
+  _ensureGcalClient();
+  // Se já temos token restaurado do storage, tentar usar direto
   if(gcalToken){
-    try{
-      await fetchGoogleCalendarEvents();
-      return;
-    }catch(e){
-      console.warn('Google fetch com token salvo falhou:',e);
-      gcalToken=null;
-      delete integrations.gcalToken;
-    }
+    try{await fetchGoogleCalendarEvents();}
+    catch(e){console.warn('[Sync] Google com token salvo:',e);}
+    return;
   }
-  // Tentar renovar token silenciosamente via Google SDK
-  // IMPORTANTE: prompt:'' só funciona se houver sessão Google ativa no browser.
-  // Se não houver, o GIS pode abrir popup ou falhar. Por isso usamos um timeout
-  // curto e não exibimos nenhum erro ao usuário — ele precisará clicar em Sincronizar.
-  if(typeof google==='undefined'||!google.accounts)return;
-  try{
-    const tokenPromise=new Promise((resolve,reject)=>{
-      const client=google.accounts.oauth2.initTokenClient({
-        client_id:GCAL_CLIENT_ID,
-        scope:GCAL_SCOPES,
-        prompt:'none', // NUNCA abrir popup no auto-reauth
-        callback:(r)=>{
-          if(r.error){reject(r);return;}
-          gcalToken=r.access_token;
-          integrations.gcalToken=gcalToken;
-          saveInt();
-          resolve(r);
-        }
-      });
-      client.requestAccessToken();
-    });
-    // Timeout de 5s para não travar o app
-    await Promise.race([tokenPromise,new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),5000))]);
-    // Buscar eventos frescos silenciosamente
-    await fetchGoogleCalendarEvents();
-  } catch(e){
-    // Falha silenciosa — usuário precisará clicar em Sincronizar ou Conectar Google
-    console.warn('Google silent reauth (sem popup):',e.message||e);
+  // Tentar renovar silenciosamente — só funciona se há sessão Google ativa no browser
+  const ok=await renewGcalToken();
+  if(ok){
+    try{await fetchGoogleCalendarEvents();}
+    catch(e){console.warn('[Sync] Google pós-reauth:',e);}
   }
+  // Se falhou: silencioso — usuário clica em "Conectar Google" manualmente
 }
 async function silentReauthOutlook(){
   if(!integrations.outlookConnected)return;
@@ -1333,25 +1305,36 @@ function getMsalApp(){
   return msalApp;
 }
 
+// Inicializa o GIS token client UMA única vez (singleton).
+// Recria somente se a biblioteca ainda não carregou.
+function _ensureGcalClient(){
+  if(gcalTokenClient)return;
+  if(typeof google==='undefined'||!google.accounts)return;
+  gcalTokenClient=google.accounts.oauth2.initTokenClient({
+    client_id:GCAL_CLIENT_ID,
+    scope:GCAL_SCOPES,
+    callback:(resp)=>{
+      // Delega para o callback registrado pela chamada corrente
+      if(_gcalTokenCb){const cb=_gcalTokenCb;_gcalTokenCb=null;cb(resp);}
+    }
+  });
+}
+
 function connectGoogle(){
-  if(typeof google !== 'undefined' && google.accounts){
-    // Usar popup mode explícito para garantir que o callback seja chamado
-    const client=google.accounts.oauth2.initTokenClient({
-      client_id: GCAL_CLIENT_ID,
-      scope: GCAL_SCOPES,
-      prompt: 'select_account', // forçar seleção de conta e garantir callback
-      callback:(resp)=>{
-        if(resp.error){notify('Erro','Não foi possível conectar ao Google: '+resp.error);return;}
-        gcalToken=resp.access_token;
-        integrations.googleConnected=true;
-        integrations.gcalToken=gcalToken;
-        saveInt();updateIntUI();
-        fetchGoogleCalendarEvents();
-        scheduleAutoSync();
-      }
-    });
-    client.requestAccessToken();
+  _ensureGcalClient();
+  if(gcalTokenClient){
+    _gcalTokenCb=(resp)=>{
+      if(resp.error){notify('Erro','Não foi possível conectar ao Google: '+resp.error);return;}
+      gcalToken=resp.access_token;
+      integrations.googleConnected=true;
+      integrations.gcalToken=gcalToken;
+      saveInt();updateIntUI();
+      fetchGoogleCalendarEvents();
+      scheduleAutoSync();
+    };
+    gcalTokenClient.requestAccessToken({prompt:'select_account'});
   } else {
+    // GIS não carregado — modo offline/mock
     integrations.googleConnected=true;
     integrations.googleEmail=user.email;
     saveInt();updateIntUI();loadMockGoogleEvents();
@@ -1359,17 +1342,14 @@ function connectGoogle(){
 }
 
 async function renewGcalToken(){
-  // Renovar token Google silenciosamente (sem popup)
-  if(typeof google==='undefined'||!google.accounts)return false;
+  // Renovação silenciosa (sem popup) — só funciona se há sessão Google ativa no browser
+  _ensureGcalClient();
+  if(!gcalTokenClient)return false;
   try{
     const r=await Promise.race([
       new Promise((resolve,reject)=>{
-        google.accounts.oauth2.initTokenClient({
-          client_id:GCAL_CLIENT_ID,
-          scope:GCAL_SCOPES,
-          prompt:'none', // sem popup
-          callback:(resp)=>resp.error?reject(resp):resolve(resp)
-        }).requestAccessToken();
+        _gcalTokenCb=(resp)=>resp.error?reject(resp):resolve(resp);
+        gcalTokenClient.requestAccessToken({prompt:'none'});
       }),
       new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),5000))
     ]);
@@ -1377,23 +1357,14 @@ async function renewGcalToken(){
     integrations.gcalToken=gcalToken;
     saveInt();
     return true;
-  }catch(e){console.warn('Google token renewal failed:',e.message||e);return false;}
+  }catch(e){
+    _gcalTokenCb=null; // limpar callback pendente
+    console.warn('Google token renewal failed:',e.error||e.message||e);
+    return false;
+  }
 }
 async function fetchGoogleCalendarEvents(){
-  // Se não há token, tentar renovar silenciosamente; se falhar, abrir popup de reconexão
-  if(!gcalToken){
-    if(integrations.googleConnected){
-      // Tentar renovação silenciosa primeiro
-      const renewed=await renewGcalToken();
-      if(!renewed){
-        // Renovação silenciosa falhou — abrir popup de reconexão
-        connectGoogle();
-        return;
-      }
-    } else {
-      updateBadges();return;
-    }
-  }
+  if(!gcalToken){updateBadges();return;}
   try{
     // Verificar se token ainda é válido
     const uRes=await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+gcalToken}});
@@ -1405,19 +1376,18 @@ async function fetchGoogleCalendarEvents(){
       const uData=await uRes.json();if(uData.email)integrations.googleEmail=uData.email;
     }
     // Usar Edge Function do Supabase para buscar eventos
-
+    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
     const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
       body:JSON.stringify({provider:'google',token:gcalToken})
     });
     if(!res.ok){
-      // 401 da Edge Function = SUPABASE_ANON_KEY inválida (não é token Google)
-      // 400 da Edge Function = token Google inválido/expirado
-      if(res.status===400){
-        // Token Google expirado — tentar renovar silenciosamente
+      if(res.status===401){
+        // Tentar renovar o token Google (pode ter expirado entre a verificação userinfo e a chamada)
         const renewed=await renewGcalToken();
         if(renewed){
+          // Tentar novamente com novo token
           const res2=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
             method:'POST',
             headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
@@ -1439,14 +1409,13 @@ async function fetchGoogleCalendarEvents(){
             }
           }
         }
-        // Não foi possível renovar — pedir reconexão
+        // Token Google expirado e renovação falhou — pedir reconexão
         gcalToken=null;delete integrations.gcalToken;saveInt();updateIntUI();
-        notify('Google Agenda','Token expirado. Clique em "Conectar Google" para reconectar.');
+        notify('Google Agenda','Sessão expirada. Clique em “Conectar Google” para reconectar.');
         return;
       }
-      if(res.status===401){
-        // Erro de autenticação Supabase (não é o token Google)
-        console.error('[Google] Edge Function 401 — verificar SUPABASE_ANON_KEY');
+      if(res.status===400){
+        // Erro de servidor (não é token expirado) — manter token e avisar
         notify('Google Agenda','Erro ao buscar eventos. Tente sincronizar novamente.');
         return;
       }
@@ -1473,7 +1442,7 @@ async function fetchGoogleCalendarEvents(){
 async function createGoogleCalendarEvent(title,date,time,desc){
   if(!gcalToken)return false;
   try{
-
+    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
     const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
@@ -1489,7 +1458,7 @@ async function createGoogleCalendarEvent(title,date,time,desc){
 async function createOutlookCalendarEvent(title,date,time,desc){
   if(!outlookToken)return false;
   try{
-
+    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
     const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
@@ -1541,35 +1510,21 @@ async function connectOutlook(){
 async function fetchOutlookCalendarEvents(){
   if(!outlookToken){return;}
   try{
-    // Chamar Microsoft Graph diretamente (sem Edge Function) para evitar bug de fuso
-    const agora=new Date();
-    const hoje=agora.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'});
-    const depoisAmanha=new Date(agora);depoisAmanha.setDate(depoisAmanha.getDate()+2);
-    const depoisAmanhaStr=depoisAmanha.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'});
-    const startUTC=hoje+'T03:00:00Z';
-    const endUTC=depoisAmanhaStr+'T02:59:59Z';
-    const url=`https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=${encodeURIComponent(startUTC)}&endDateTime=${encodeURIComponent(endUTC)}&$orderby=start/dateTime&$top=100&$select=id,subject,start,end,bodyPreview,isAllDay`;
-    const res=await fetch(url,{headers:{Authorization:'Bearer '+outlookToken}});
-    if(!res.ok){const e=await res.text();throw new Error('Graph API '+res.status+': '+e.substring(0,120));}
+    // Usar Edge Function do Supabase para buscar eventos do Outlook
+    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+    const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
+      body:JSON.stringify({provider:'outlook',token:outlookToken})
+    });
+    if(!res.ok)throw new Error('Edge Function HTTP '+res.status);
     const data=await res.json();
-    // Normalizar datas: Graph retorna UTC sem Z para M365, ou com Z para hotmail
-    const norm=raw=>{
-      if(!raw)return raw;
-      if(raw.endsWith('Z')){const d=new Date(raw);return isNaN(d)?raw:d.toISOString();}
-      if(/[+-]\d{2}:\d{2}$/.test(raw)){const d=new Date(raw);return isNaN(d)?raw:d.toISOString();}
-      return raw.substring(0,19)+'Z'; // sem fuso = UTC implícito
-    };
-    const outlookEvts=(data.value||[]).map(e=>({
-      id:e.id,summary:e.subject||'(sem título)',
-      start:{dateTime:norm(e.start?.dateTime||'')},
-      end:{dateTime:norm(e.end?.dateTime||'')},
-      description:e.bodyPreview||'',origem:'Outlook',source:'outlook',
-      accountId:'primary',isAllDay:e.isAllDay||false
-    }));
+    if(data.erro)throw new Error(data.erro);
+    const outlookEvts=(data.eventos||[]).map(e=>({...e,source:'outlook'}));
     const nonOutlookEvts=(integrations.calendarEvents||[]).filter(e=>e.source!=='outlook');
     integrations.calendarEvents=[...nonOutlookEvts,...outlookEvts];
     saveInt();
-    const emailInfo=integrations.outlookEmail?` (${integrations.outlookEmail})`:'';
+    const emailInfo=integrations.outlookEmail?` (${integrations.outlookEmail})`:''
     notify('Outlook',`✓ ${outlookEvts.length} evento(s) carregado(s)${emailInfo}`);
     updateBadges();
     if(view==='compromissos-hoje')loadCompromissosDia('hoje');
@@ -1645,34 +1600,21 @@ async function connectOutlook2(){
 async function fetchOutlookCalendarEvents2(){
   if(!outlookToken2)return;
   try{
-    // Chamar Microsoft Graph diretamente (sem Edge Function) para evitar bug de fuso
-    const agora=new Date();
-    const hoje=agora.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'});
-    const depoisAmanha=new Date(agora);depoisAmanha.setDate(depoisAmanha.getDate()+2);
-    const depoisAmanhaStr=depoisAmanha.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'});
-    const startUTC=hoje+'T03:00:00Z';
-    const endUTC=depoisAmanhaStr+'T02:59:59Z';
-    const url=`https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=${encodeURIComponent(startUTC)}&endDateTime=${encodeURIComponent(endUTC)}&$orderby=start/dateTime&$top=100&$select=id,subject,start,end,bodyPreview,isAllDay`;
-    const res=await fetch(url,{headers:{Authorization:'Bearer '+outlookToken2}});
-    if(!res.ok){const e=await res.text();throw new Error('Graph API '+res.status+': '+e.substring(0,120));}
+    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+    const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
+      body:JSON.stringify({provider:'outlook',token:outlookToken2,accountId:'outlook2'})
+    });
+    if(!res.ok)throw new Error('Edge Function HTTP '+res.status);
     const data=await res.json();
-    const norm=raw=>{
-      if(!raw)return raw;
-      if(raw.endsWith('Z')){const d=new Date(raw);return isNaN(d)?raw:d.toISOString();}
-      if(/[+-]\d{2}:\d{2}$/.test(raw)){const d=new Date(raw);return isNaN(d)?raw:d.toISOString();}
-      return raw.substring(0,19)+'Z';
-    };
-    const outlook2Evts=(data.value||[]).map(e=>({
-      id:e.id,summary:e.subject||'(sem título)',
-      start:{dateTime:norm(e.start?.dateTime||'')},
-      end:{dateTime:norm(e.end?.dateTime||'')},
-      description:e.bodyPreview||'',origem:'Outlook',source:'outlook2',
-      accountId:'outlook2',isAllDay:e.isAllDay||false
-    }));
+    if(data.erro)throw new Error(data.erro);
+    const outlook2Evts=(data.eventos||[]).map(e=>({...e,source:'outlook2'}));
+    // Manter eventos das outras fontes, substituir apenas outlook2
     const outros=(integrations.calendarEvents||[]).filter(e=>e.source!=='outlook2');
     integrations.calendarEvents=[...outros,...outlook2Evts];
     saveInt();
-    const emailInfo=integrations.outlook2Email?` (${integrations.outlook2Email})`:'';
+    const emailInfo=integrations.outlook2Email?` (${integrations.outlook2Email})`:''
     notify('Outlook 2ª conta',`✓ ${outlook2Evts.length} evento(s) carregado(s)${emailInfo}`);
     updateBadges();
     if(view==='compromissos-hoje')loadCompromissosDia('hoje');
@@ -1685,7 +1627,7 @@ async function fetchOutlookCalendarEvents2(){
 async function createOutlookCalendarEvent2(title,date,time,desc){
   if(!outlookToken2)return false;
   try{
-
+    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
     const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -1727,23 +1669,10 @@ async function refreshAllCalendars(){
   if(btn){btn.disabled=true;btn.textContent='Atualizando...';}
   let updated=0;
   try{
-    // Tentar reautenticar silenciosamente com Google se conectado mas sem token
+    // Tentar renovar token Google silenciosamente se conectado mas sem token
     if(integrations.googleConnected&&!gcalToken){
       try{
-        const tokenResp=await Promise.race([
-          new Promise((resolve,reject)=>{
-            google.accounts.oauth2.initTokenClient({
-              client_id:GCAL_CLIENT_ID,
-              scope:GCAL_SCOPES,
-              prompt:'none', // sem popup
-              callback:(r)=>r.error?reject(r):resolve(r)
-            }).requestAccessToken();
-          }),
-          new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),5000))
-        ]);
-        gcalToken=tokenResp.access_token;
-        integrations.gcalToken=gcalToken;
-        saveInt();
+        await renewGcalToken();
       } catch(e){console.warn('Silent Google reauth failed',e.message||e);}
     }
     if(integrations.googleConnected&&gcalToken){
@@ -2027,17 +1956,9 @@ async function confirmToAgenda(){
     updateBadges();
     closeToAgendaModal();
 
-    // Tentar reautenticar silenciosamente se não tiver token
+    // Tentar renovar token Google silenciosamente se não tiver token
     if(integrations.googleConnected&&!gcalToken){
-      try{
-        await new Promise((resolve,reject)=>{
-          if(typeof google==='undefined'||!google.accounts){reject('no-google-sdk');return;}
-          google.accounts.oauth2.initTokenClient({
-            client_id:GCAL_CLIENT_ID,scope:GCAL_SCOPES,prompt:'',
-            callback:(resp)=>resp.error?reject(resp):resolve(resp)
-          }).requestAccessToken();
-        }).then(resp=>{gcalToken=resp.access_token;});
-      }catch(e){console.warn('Silent Google reauth for agenda:',e);}
+      await renewGcalToken();
     }
     if(integrations.outlookConnected&&!outlookToken){
       try{
@@ -2969,6 +2890,8 @@ CATEGORIAS: ${userCats.map(c=>c.label).join(', ')}`;
 
 async function callAI(userMessage,context){
   // URL da Edge Function do Supabase
+  const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+  const SUPABASE_ANON_KEY=''; // Não necessária para funções públicas com CORS
   const edgeFnUrl=SUPABASE_URL+'/functions/v1/ai-chat';
 
   // Montar contexto estruturado para a IA
@@ -3368,6 +3291,6 @@ async function loginWithGoogle() {
   }
 }
 </script>
-<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=24');</script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=20');</script>
 </body>
 </html>
