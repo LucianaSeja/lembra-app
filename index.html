@@ -1073,12 +1073,17 @@ function switchTab(t){
 }
 function showErr(m){const e=document.getElementById('auth-err');e.textContent=m;e.style.display='block'}
 function doLogin(){
-  const email=document.getElementById('l-email').value.trim(),pass=document.getElementById('l-pass').value;
+  const email=document.getElementById('l-email').value.trim().toLowerCase(),pass=document.getElementById('l-pass').value;
   if(!email||!pass)return showErr('Preencha todos os campos');
   const users=getUsers();
-  if(!users[email])return showErr('Email não encontrado');
-  if(users[email].pass!==btoa(pass))return showErr('Senha incorreta');
-  startSession(users[email]);
+  // Tentar chave exata primeiro, depois busca case-insensitive
+  let userKey=email;
+  if(!users[email]){
+    const found=Object.keys(users).find(k=>k.toLowerCase()===email);
+    if(found)userKey=found; else return showErr('Email não encontrado');
+  }
+  if(users[userKey].pass!==btoa(pass))return showErr('Senha incorreta');
+  startSession(users[userKey]);
 }
 function doSignup(){
   const name=document.getElementById('s-name').value.trim(),email=document.getElementById('s-email').value.trim(),pass=document.getElementById('s-pass').value;
@@ -1330,20 +1335,22 @@ function getMsalApp(){
 
 function connectGoogle(){
   if(typeof google !== 'undefined' && google.accounts){
-    google.accounts.oauth2.initTokenClient({
+    // Usar popup mode explícito para garantir que o callback seja chamado
+    const client=google.accounts.oauth2.initTokenClient({
       client_id: GCAL_CLIENT_ID,
       scope: GCAL_SCOPES,
+      prompt: 'select_account', // forçar seleção de conta e garantir callback
       callback:(resp)=>{
-        if(resp.error){notify('Erro','Não foi possível conectar ao Google.');return;}
+        if(resp.error){notify('Erro','Não foi possível conectar ao Google: '+resp.error);return;}
         gcalToken=resp.access_token;
         integrations.googleConnected=true;
-        integrations.gcalToken=gcalToken; // persistir token
-        // googleEmail será preenchido por fetchGoogleCalendarEvents via userinfo
+        integrations.gcalToken=gcalToken;
         saveInt();updateIntUI();
         fetchGoogleCalendarEvents();
         scheduleAutoSync();
       }
-    }).requestAccessToken();
+    });
+    client.requestAccessToken();
   } else {
     integrations.googleConnected=true;
     integrations.googleEmail=user.email;
@@ -3361,6 +3368,6 @@ async function loginWithGoogle() {
   }
 }
 </script>
-<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=23');</script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=24');</script>
 </body>
 </html>
