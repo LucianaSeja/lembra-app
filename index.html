@@ -1059,8 +1059,8 @@ function loadInt(){
 function saveInt(){localStorage.setItem(INT_KEY(user.email),JSON.stringify(integrations))}
 function today(){return new Date().toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'})}
 function tomorrow(){const d=new Date();d.setDate(d.getDate()+1);return d.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'})}
-function fmtTime(dt){if(!dt)return'';const d=new Date(dt);if(isNaN(d))return dt.slice(11,16)||'';return d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/Sao_Paulo'})}
-function fmtDateLocal(dt){if(!dt)return'';const d=new Date(dt);if(isNaN(d))return dt.split('T')[0]||'';return d.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'})}
+function fmtTime(dt){if(!dt)return'';const s=String(dt).replace(/(\.[0-9]{3})[0-9]+/,'$1');const d=new Date(s);if(isNaN(d))return s.slice(11,16)||'';return d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/Sao_Paulo'})}
+function fmtDateLocal(dt){if(!dt)return'';const s=String(dt).replace(/(\.[0-9]{3})[0-9]+/,'$1');const d=new Date(s);if(isNaN(d))return s.split('T')[0]||'';return d.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'})}
 function initials(n){return n.trim().split(/\s+/).map(x=>x[0]).join('').toUpperCase().slice(0,2)}
 function fmtDate(d){const p=d.split('-');return`${p[2]}/${p[1]}/${p[0]}`}
 
@@ -1234,6 +1234,9 @@ async function silentCalendarSync(){
   }catch(e){console.warn('[AutoSync] Outlook2:',e);}
 }
 // INTEGRATIONS
+// Constantes globais Supabase (usadas em todas as funções de calendário e IA)
+if(typeof SUPABASE_ANON_KEY==='undefined')var SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96aXFmamF3aHFneXhzdXprd3h5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDM2NTIsImV4cCI6MjA4OTUxOTY1Mn0.vwO13Gzvztz4XdvELGPriGy_U497kMXM5GKjkcuZaAc';
+if(typeof SUPABASE_URL==='undefined')var SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
 const GCAL_CLIENT_ID='126747406308-eestcpeb8n5jhmt7t7vfpfnjq60jo5k3.apps.googleusercontent.com';
 const GCAL_SCOPES='https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/gmail.readonly';
 const OUTLOOK_CLIENT_ID='3cda6425-e947-4dec-9cdf-742a50ea8aec';
@@ -1382,19 +1385,19 @@ async function fetchGoogleCalendarEvents(){
       const uData=await uRes.json();if(uData.email)integrations.googleEmail=uData.email;
     }
     // Usar Edge Function do Supabase para buscar eventos
-    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+
     const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
       body:JSON.stringify({provider:'google',token:gcalToken})
     });
     if(!res.ok){
-      if(res.status===401||res.status===400){
-        // Token expirado — Google não suporta renovação silenciosa sem interação
-        // Tentar renovar via popup silencioso (sem prompt)
+      // 401 da Edge Function = SUPABASE_ANON_KEY inválida (não é token Google)
+      // 400 da Edge Function = token Google inválido/expirado
+      if(res.status===400){
+        // Token Google expirado — tentar renovar silenciosamente
         const renewed=await renewGcalToken();
         if(renewed){
-          // Tentar novamente com novo token
           const res2=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
             method:'POST',
             headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
@@ -1418,7 +1421,13 @@ async function fetchGoogleCalendarEvents(){
         }
         // Não foi possível renovar — pedir reconexão
         gcalToken=null;delete integrations.gcalToken;saveInt();updateIntUI();
-        notify('Google Agenda','Sessão expirada. Clique em “Conectar Google” para reconectar.');
+        notify('Google Agenda','Token expirado. Clique em "Conectar Google" para reconectar.');
+        return;
+      }
+      if(res.status===401){
+        // Erro de autenticação Supabase (não é o token Google)
+        console.error('[Google] Edge Function 401 — verificar SUPABASE_ANON_KEY');
+        notify('Google Agenda','Erro ao buscar eventos. Tente sincronizar novamente.');
         return;
       }
       throw new Error('Edge Function HTTP '+res.status);
@@ -1444,7 +1453,7 @@ async function fetchGoogleCalendarEvents(){
 async function createGoogleCalendarEvent(title,date,time,desc){
   if(!gcalToken)return false;
   try{
-    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+
     const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
@@ -1460,7 +1469,7 @@ async function createGoogleCalendarEvent(title,date,time,desc){
 async function createOutlookCalendarEvent(title,date,time,desc){
   if(!outlookToken)return false;
   try{
-    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+
     const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
@@ -1513,7 +1522,7 @@ async function fetchOutlookCalendarEvents(){
   if(!outlookToken){return;}
   try{
     // Usar Edge Function do Supabase para buscar eventos do Outlook
-    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+
     const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
@@ -1602,7 +1611,7 @@ async function connectOutlook2(){
 async function fetchOutlookCalendarEvents2(){
   if(!outlookToken2)return;
   try{
-    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+
     const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
@@ -1629,7 +1638,7 @@ async function fetchOutlookCalendarEvents2(){
 async function createOutlookCalendarEvent2(title,date,time,desc){
   if(!outlookToken2)return false;
   try{
-    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+
     const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -2913,8 +2922,6 @@ CATEGORIAS: ${userCats.map(c=>c.label).join(', ')}`;
 
 async function callAI(userMessage,context){
   // URL da Edge Function do Supabase
-  const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
-  const SUPABASE_ANON_KEY=''; // Não necessária para funções públicas com CORS
   const edgeFnUrl=SUPABASE_URL+'/functions/v1/ai-chat';
 
   // Montar contexto estruturado para a IA
@@ -3314,6 +3321,6 @@ async function loginWithGoogle() {
   }
 }
 </script>
-<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=20');</script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=21');</script>
 </body>
 </html>
