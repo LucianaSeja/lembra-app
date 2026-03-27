@@ -659,7 +659,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
             <div class="main-title">Compromissos Hoje</div>
             <div class="main-meta" id="comp-hoje-meta">Carregando...</div>
           </div>
-          <button class="add-btn" onclick="loadCompromissosDia('hoje')">
+          <button class="add-btn" onclick="refreshAllCalendars()">
             <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--accent-text);fill:none;stroke-width:2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             Atualizar
           </button>
@@ -678,7 +678,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
             <div class="main-title">Compromissos Amanhã</div>
             <div class="main-meta" id="comp-amanha-meta">Carregando...</div>
           </div>
-          <button class="add-btn" onclick="loadCompromissosDia('amanha')">
+          <button class="add-btn" onclick="refreshAllCalendars()">
             <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--accent-text);fill:none;stroke-width:2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             Atualizar
           </button>
@@ -984,7 +984,7 @@ const CATS_KEY=e=>'lembra_cats_'+e;
 const SHEETS_KEY=e=>'lembra_sheets_'+e;
 const INT_KEY=e=>'lembra_int_'+e;
 
-let user=null,reminders=[],view='hoje',recur='nenhuma',recognition=null,isListening=false,notifTimers=[],digestTimer=null;
+let user=null,reminders=[],view='hoje',recur='nenhuma',recognition=null,isListening=false,notifTimers=[],digestTimer=null,autoSyncTimer=null;
 let userCats=[],userSheets=[],integrations={};
 let pendingDeleteId=null,editingId=null,selectedEmoji='📊',selectedColor='#60A5FA';
 let pendingToAgendaId=null;
@@ -1024,8 +1024,8 @@ function loadSheets(){userSheets=JSON.parse(localStorage.getItem(SHEETS_KEY(user
 function saveSheets(){localStorage.setItem(SHEETS_KEY(user.email),JSON.stringify(userSheets))}
 function loadInt(){integrations=JSON.parse(localStorage.getItem(INT_KEY(user.email))||'{}')}
 function saveInt(){localStorage.setItem(INT_KEY(user.email),JSON.stringify(integrations))}
-function today(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().split('T')[0]}
-function tomorrow(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());d.setDate(d.getDate()+1);return d.toISOString().split('T')[0]}
+function today(){return new Date().toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'})}
+function tomorrow(){const d=new Date();d.setDate(d.getDate()+1);return d.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'})}
 function fmtTime(dt){if(!dt)return'';const d=new Date(dt);if(isNaN(d))return dt.slice(11,16)||'';return d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/Sao_Paulo'})}
 function fmtDateLocal(dt){if(!dt)return'';const d=new Date(dt);if(isNaN(d))return dt.split('T')[0]||'';return d.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'})}
 function initials(n){return n.trim().split(/\s+/).map(x=>x[0]).join('').toUpperCase().slice(0,2)}
@@ -1086,12 +1086,15 @@ function startSession(u){
     silentReauthGoogle();
     silentReauthOutlook();
     silentReauthOutlook2();
+    // Iniciar sincronização automática a cada 5 minutos
+    scheduleAutoSync();
   },2000);
   loadFromSupabase().then(found=>{if(found){render();scheduleNotifs();notify('Sincronizado','✓ Lembretes sincronizados da nuvem!')}});
 }
 function doLogout(){
   localStorage.removeItem(SESSION_KEY);user=null;reminders=[];
   if(digestTimer)clearInterval(digestTimer);
+  if(autoSyncTimer){clearInterval(autoSyncTimer);autoSyncTimer=null;}
   document.getElementById('app-screen').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
   notifTimers.forEach(clearTimeout);notifTimers=[];
@@ -1163,7 +1166,40 @@ function toggleDigest(){
   integrations.digest=!integrations.digest;saveInt();updateIntUI();scheduleDigest();
   notify('Resumo diário',integrations.digest?'Ativado! Você receberá avisos às 6h e 20h.':'Desativado.');
 }
-
+// AUTO SYNC
+function scheduleAutoSync(){
+  if(autoSyncTimer)clearInterval(autoSyncTimer);
+  const hasIntegration=integrations.googleConnected||integrations.outlookConnected||integrations.outlook2Connected;
+  if(!hasIntegration)return;
+  // Sincronizar imediatamente
+  silentCalendarSync();
+  // Depois a cada 5 minutos
+  autoSyncTimer=setInterval(()=>silentCalendarSync(),5*60*1000);
+}
+async function silentCalendarSync(){
+  try{
+    if(integrations.googleConnected&&gcalToken)await fetchGoogleCalendarEvents();
+    else if(integrations.googleConnected&&!gcalToken)await silentReauthGoogle();
+  }catch(e){console.warn('[AutoSync] Google:',e);}
+  try{
+    if(integrations.outlookConnected){
+      if(!outlookToken){
+        const loaded=await loadMSAL();
+        if(loaded){const app=getMsalApp();if(app){const accs=app.getAllAccounts();if(accs.length>0){const r=await app.acquireTokenSilent({scopes:OUTLOOK_SCOPES,account:accs[0]}).catch(()=>null);if(r){outlookToken=r.accessToken;}}}}
+      }
+      if(outlookToken)await fetchOutlookCalendarEvents();
+    }
+  }catch(e){console.warn('[AutoSync] Outlook:',e);}
+  try{
+    if(integrations.outlook2Connected){
+      if(!outlookToken2){
+        const loaded=await loadMSAL();
+        if(loaded){const app2=getMsalApp2();if(app2){const accs=app2.getAllAccounts();if(accs.length>0){const r=await app2.acquireTokenSilent({scopes:OUTLOOK_SCOPES,account:accs[0]}).catch(()=>null);if(r){outlookToken2=r.accessToken;}}}}
+      }
+      if(outlookToken2)await fetchOutlookCalendarEvents2();
+    }
+  }catch(e){console.warn('[AutoSync] Outlook2:',e);}
+}
 // INTEGRATIONS
 const GCAL_CLIENT_ID='126747406308-eestcpeb8n5jhmt7t7vfpfnjq60jo5k3.apps.googleusercontent.com';
 const GCAL_SCOPES='https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email';
@@ -1259,6 +1295,7 @@ function connectGoogle(){
         // googleEmail será preenchido por fetchGoogleCalendarEvents via userinfo
         saveInt();updateIntUI();
         fetchGoogleCalendarEvents();
+        scheduleAutoSync();
       }
     }).requestAccessToken();
   } else {
@@ -1418,6 +1455,7 @@ async function connectOutlook(){
     integrations.outlookEmail=resp.account.username||resp.account.name||user.email;
     saveInt();updateIntUI();
     await fetchOutlookCalendarEvents();
+    scheduleAutoSync();
   } catch(err){
     if(err.errorCode==='user_cancelled')return;
     console.error('Erro MSAL:',err);
@@ -1486,6 +1524,7 @@ async function connectOutlook2(){
     integrations.outlook2Email=resp.account.username||resp.account.name||'';
     saveInt();updateIntUI();
     await fetchOutlookCalendarEvents2();
+    scheduleAutoSync();
   } catch(err){
     if(err.errorCode==='user_cancelled')return;
     console.error('Erro MSAL conta 2:',err);
@@ -1500,6 +1539,7 @@ async function connectOutlook2(){
         integrations.outlook2Email=resp2.account.username||resp2.account.name||'';
         saveInt();updateIntUI();
         await fetchOutlookCalendarEvents2();
+        scheduleAutoSync();
         return;
       }
     }catch(e2){console.error('Retry MSAL2:',e2);}
@@ -1696,9 +1736,8 @@ function updateIntUI(){
   if(elO2ConnectedArea)elO2ConnectedArea.style.display=oc2?'block':'none';
   if(oc2&&elO2EmailLbl)elO2EmailLbl.textContent=integrations.outlook2Email||'';
   const d=integrations.digest;
-  document.getElementById('digest-badge').textContent=d?'✓ Ativo':'Desativado';
-  document.getElementById('digest-badge').className='status-badge '+(d?'on':'off');
-  document.getElementById('digest-btn').textContent=d?'Desativar resumo diário':'Ativar resumo diário';
+  const db=document.getElementById('digest-badge');if(db){db.textContent=d?'✓ Ativo':'Desativado';db.className='status-badge '+(d?'on':'off');}
+  const dbt=document.getElementById('digest-btn');if(dbt)dbt.textContent=d?'Desativar resumo diário':'Ativar resumo diário';
   // Atualizar chips do header
   updateHeaderChips();
 }
@@ -3150,6 +3189,6 @@ async function loginWithGoogle() {
   }
 }
 </script>
-<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=16');</script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=19');</script>
 </body>
 </html>
