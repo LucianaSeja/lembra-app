@@ -1373,7 +1373,20 @@ async function renewGcalToken(){
   }catch(e){console.warn('Google token renewal failed:',e.message||e);return false;}
 }
 async function fetchGoogleCalendarEvents(){
-  if(!gcalToken){updateBadges();return;}
+  // Se não há token, tentar renovar silenciosamente; se falhar, abrir popup de reconexão
+  if(!gcalToken){
+    if(integrations.googleConnected){
+      // Tentar renovação silenciosa primeiro
+      const renewed=await renewGcalToken();
+      if(!renewed){
+        // Renovação silenciosa falhou — abrir popup de reconexão
+        connectGoogle();
+        return;
+      }
+    } else {
+      updateBadges();return;
+    }
+  }
   try{
     // Verificar se token ainda é válido
     const uRes=await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+gcalToken}});
@@ -1521,21 +1534,35 @@ async function connectOutlook(){
 async function fetchOutlookCalendarEvents(){
   if(!outlookToken){return;}
   try{
-    // Usar Edge Function do Supabase para buscar eventos do Outlook
-
-    const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
-      body:JSON.stringify({provider:'outlook',token:outlookToken})
-    });
-    if(!res.ok)throw new Error('Edge Function HTTP '+res.status);
+    // Chamar Microsoft Graph diretamente (sem Edge Function) para evitar bug de fuso
+    const agora=new Date();
+    const hoje=agora.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'});
+    const depoisAmanha=new Date(agora);depoisAmanha.setDate(depoisAmanha.getDate()+2);
+    const depoisAmanhaStr=depoisAmanha.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'});
+    const startUTC=hoje+'T03:00:00Z';
+    const endUTC=depoisAmanhaStr+'T02:59:59Z';
+    const url=`https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=${encodeURIComponent(startUTC)}&endDateTime=${encodeURIComponent(endUTC)}&$orderby=start/dateTime&$top=100&$select=id,subject,start,end,bodyPreview,isAllDay`;
+    const res=await fetch(url,{headers:{Authorization:'Bearer '+outlookToken}});
+    if(!res.ok){const e=await res.text();throw new Error('Graph API '+res.status+': '+e.substring(0,120));}
     const data=await res.json();
-    if(data.erro)throw new Error(data.erro);
-    const outlookEvts=(data.eventos||[]).map(e=>({...e,source:'outlook'}));
+    // Normalizar datas: Graph retorna UTC sem Z para M365, ou com Z para hotmail
+    const norm=raw=>{
+      if(!raw)return raw;
+      if(raw.endsWith('Z')){const d=new Date(raw);return isNaN(d)?raw:d.toISOString();}
+      if(/[+-]\d{2}:\d{2}$/.test(raw)){const d=new Date(raw);return isNaN(d)?raw:d.toISOString();}
+      return raw.substring(0,19)+'Z'; // sem fuso = UTC implícito
+    };
+    const outlookEvts=(data.value||[]).map(e=>({
+      id:e.id,summary:e.subject||'(sem título)',
+      start:{dateTime:norm(e.start?.dateTime||'')},
+      end:{dateTime:norm(e.end?.dateTime||'')},
+      description:e.bodyPreview||'',origem:'Outlook',source:'outlook',
+      accountId:'primary',isAllDay:e.isAllDay||false
+    }));
     const nonOutlookEvts=(integrations.calendarEvents||[]).filter(e=>e.source!=='outlook');
     integrations.calendarEvents=[...nonOutlookEvts,...outlookEvts];
     saveInt();
-    const emailInfo=integrations.outlookEmail?` (${integrations.outlookEmail})`:''
+    const emailInfo=integrations.outlookEmail?` (${integrations.outlookEmail})`:'';
     notify('Outlook',`✓ ${outlookEvts.length} evento(s) carregado(s)${emailInfo}`);
     updateBadges();
     if(view==='compromissos-hoje')loadCompromissosDia('hoje');
@@ -1611,21 +1638,34 @@ async function connectOutlook2(){
 async function fetchOutlookCalendarEvents2(){
   if(!outlookToken2)return;
   try{
-
-    const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
-      body:JSON.stringify({provider:'outlook',token:outlookToken2,accountId:'outlook2'})
-    });
-    if(!res.ok)throw new Error('Edge Function HTTP '+res.status);
+    // Chamar Microsoft Graph diretamente (sem Edge Function) para evitar bug de fuso
+    const agora=new Date();
+    const hoje=agora.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'});
+    const depoisAmanha=new Date(agora);depoisAmanha.setDate(depoisAmanha.getDate()+2);
+    const depoisAmanhaStr=depoisAmanha.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'});
+    const startUTC=hoje+'T03:00:00Z';
+    const endUTC=depoisAmanhaStr+'T02:59:59Z';
+    const url=`https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=${encodeURIComponent(startUTC)}&endDateTime=${encodeURIComponent(endUTC)}&$orderby=start/dateTime&$top=100&$select=id,subject,start,end,bodyPreview,isAllDay`;
+    const res=await fetch(url,{headers:{Authorization:'Bearer '+outlookToken2}});
+    if(!res.ok){const e=await res.text();throw new Error('Graph API '+res.status+': '+e.substring(0,120));}
     const data=await res.json();
-    if(data.erro)throw new Error(data.erro);
-    const outlook2Evts=(data.eventos||[]).map(e=>({...e,source:'outlook2'}));
-    // Manter eventos das outras fontes, substituir apenas outlook2
+    const norm=raw=>{
+      if(!raw)return raw;
+      if(raw.endsWith('Z')){const d=new Date(raw);return isNaN(d)?raw:d.toISOString();}
+      if(/[+-]\d{2}:\d{2}$/.test(raw)){const d=new Date(raw);return isNaN(d)?raw:d.toISOString();}
+      return raw.substring(0,19)+'Z';
+    };
+    const outlook2Evts=(data.value||[]).map(e=>({
+      id:e.id,summary:e.subject||'(sem título)',
+      start:{dateTime:norm(e.start?.dateTime||'')},
+      end:{dateTime:norm(e.end?.dateTime||'')},
+      description:e.bodyPreview||'',origem:'Outlook',source:'outlook2',
+      accountId:'outlook2',isAllDay:e.isAllDay||false
+    }));
     const outros=(integrations.calendarEvents||[]).filter(e=>e.source!=='outlook2');
     integrations.calendarEvents=[...outros,...outlook2Evts];
     saveInt();
-    const emailInfo=integrations.outlook2Email?` (${integrations.outlook2Email})`:''
+    const emailInfo=integrations.outlook2Email?` (${integrations.outlook2Email})`:'';
     notify('Outlook 2ª conta',`✓ ${outlook2Evts.length} evento(s) carregado(s)${emailInfo}`);
     updateBadges();
     if(view==='compromissos-hoje')loadCompromissosDia('hoje');
@@ -3321,6 +3361,6 @@ async function loginWithGoogle() {
   }
 }
 </script>
-<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=21');</script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=23');</script>
 </body>
 </html>
