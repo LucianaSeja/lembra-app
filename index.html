@@ -2573,11 +2573,11 @@ function loadCompromissosDia(dia){
     'Amanhã, '+new Date(targetDate+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
   meta.textContent=nomeDia+' · '+all.length+' compromisso'+(all.length!==1?'s':'');
 
-  // Separar em 2 seções: eventos do calendário e lembretes do dia
-  // Lembretes com inAgenda=true são tratados como eventos normais (não têm seção separada)
-  const calSection=all.filter(x=>!x.isReminder);
+  // Separar em 2 seções: eventos reais do calendário e lembretes do dia
+  // isReminderAgenda=true são lembretes que foram incluidos na agenda — vão para seção Lembretes
+  const calSection=all.filter(x=>!x.isReminder&&!x.isReminderAgenda);
   const agendaSection=[];
-  const lembreteSection=all.filter(x=>x.isReminder);
+  const lembreteSection=all.filter(x=>x.isReminder||x.isReminderAgenda);
 
   let html='';
   const now=new Date();
