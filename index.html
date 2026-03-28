@@ -2533,11 +2533,9 @@ function loadCompromissosDia(dia){
     seenCalKeys.add(key);
     return true;
   });
-  // Remover eventos do calendário que são duplicatas de lembretes inAgenda
-  // (quando um lembrete é adicionado à agenda, ele sincroniza de volta como evento do cal)
-  const agendaTitles=new Set(agendaItems.map(a=>(a.title||'').toLowerCase().trim()));
-  const calItemsFinal=calItemsDedup.filter(e=>!agendaTitles.has((e.title||'').toLowerCase().trim()));
-  const all=[...agendaItems,...calItemsFinal,...lembreteItems].sort((a,b)=>a.time.localeCompare(b.time));
+  // Não remover eventos do calendário por título — cada fonte é independente
+  // Deduplicar apenas eventos EXATAMENTE iguais (mesmo título + hora + fonte)
+  const all=[...agendaItems,...calItemsDedup,...lembreteItems].sort((a,b)=>a.time.localeCompare(b.time));
 
   // Atualizar badge (conta agenda + cal + lembretes do dia)
   document.getElementById(isHoje?'b-comp-hoje':'b-comp-amanha').textContent=all.length;
@@ -2576,11 +2574,12 @@ function loadCompromissosDia(dia){
     'Amanhã, '+new Date(targetDate+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
   meta.textContent=nomeDia+' · '+all.length+' compromisso'+(all.length!==1?'s':'');
 
-  // Separar em 2 seções: eventos reais do calendário e lembretes do dia
-  // isReminderAgenda=true são lembretes que foram incluidos na agenda — vão para seção Lembretes
-  const calSection=all.filter(x=>!x.isReminder&&!x.isReminderAgenda);
+  // Separar em 2 seções:
+  // AGENDA = eventos do calendário (google/outlook) + lembretes incluídos na agenda (isReminderAgenda)
+  // LEMBRETES = lembretes normais do dia (isReminder=true, inAgenda=false)
+  const calSection=all.filter(x=>!x.isReminder);
   const agendaSection=[];
-  const lembreteSection=all.filter(x=>x.isReminder||x.isReminderAgenda);
+  const lembreteSection=all.filter(x=>x.isReminder);
 
   let html='';
   const now=new Date();
