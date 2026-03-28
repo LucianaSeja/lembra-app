@@ -170,7 +170,7 @@ main{overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;gap:1.25r
 .btn-to-agenda:hover{background:rgba(251,191,36,0.2);border-color:var(--amber)}
 .btn-to-agenda svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2}
 /* FORM */
-.input-form{background:#242424;border:1px solid #303030;border-radius:var(--r);padding:1.25rem;display:none;flex-direction:column;gap:0.875rem;animation:fadeUp 0.2s ease}
+.input-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;display:none;flex-direction:column;gap:0.875rem;animation:fadeUp 0.2s ease}
 .input-form.open{display:flex}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:500px){.form-row{grid-template-columns:1fr}}
@@ -197,9 +197,9 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .btn-save{padding:8px 18px;border-radius:var(--r-sm);border:none;background:var(--accent);color:var(--accent-text);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
 .btn-save:hover{opacity:0.88}
 /* CARDS */
-.section-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:#E5E5E5;padding-bottom:8px;border-bottom:1px solid #2A2A2A;margin-bottom:10px}
+.section-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text2);padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:10px}
 .reminders-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1.5rem}
-.rcard{background:#242424;border:1px solid #303030;border-radius:var(--r);padding:1rem 1.125rem;display:flex;align-items:flex-start;gap:12px;transition:border-color 0.2s,box-shadow 0.15s;position:relative;overflow:hidden;cursor:pointer}
+.rcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.125rem;display:flex;align-items:flex-start;gap:12px;transition:border-color 0.2s,box-shadow 0.15s;position:relative;overflow:hidden;cursor:pointer}
 .rcard:hover{border-color:rgba(240,237,230,0.16)}
 .rcard.done{opacity:0.4}
 .rcard.done .r-title{text-decoration:line-through;color:var(--text3)}
