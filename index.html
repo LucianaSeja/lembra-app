@@ -3223,7 +3223,7 @@ async function syncToSupabase(){
         time: r.time,
         recur: r.recur,
         done: r.done,
-        in_agenda: r.inAgenda||false,
+        include_agenda: r.inAgenda||false,
         image_url: (r.photo&&!r.photo.startsWith('data:'))?r.photo:null,
         user_email: user.email,
         updated_at: new Date().toISOString(),
@@ -3250,7 +3250,7 @@ async function loadFromSupabase(){
         time: r.time,
         recur: r.recur,
         done: r.done,
-        inAgenda: r.in_agenda||false,
+        inAgenda: r.include_agenda||false,
         photo: r.image_url||null,
         created: r.created
       }));
