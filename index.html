@@ -3202,9 +3202,9 @@ async function uploadPhotoToStorage(dataUrl){
     const blob=await res.blob();
     const ext=blob.type.includes('png')?'png':'jpg';
     const path=`${user.email}/${Date.now()}.${ext}`;
-    const {data,error}=await supabaseClient.storage.from('reminder-images').upload(path,blob,{contentType:blob.type,upsert:true});
+    const {data,error}=await supabaseClient.storage.from('reminder-images-lembra').upload(path,blob,{contentType:blob.type,upsert:true});
     if(error)throw error;
-    const {data:pub}=supabaseClient.storage.from('reminder-images').getPublicUrl(path);
+    const {data:pub}=supabaseClient.storage.from('reminder-images-lembra').getPublicUrl(path);
     return pub.publicUrl||null;
   }catch(e){console.log('Erro upload foto:',e);return null;}
 }
