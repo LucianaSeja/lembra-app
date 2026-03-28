@@ -2526,7 +2526,6 @@ function loadCompromissosDia(dia){
   }));
 
   // Deduplicar eventos do calendário: mesmo título + mesmo horário + mesma fonte = duplicado
-  // (não remover eventos de fontes diferentes, ex: Gmail 9h e Outlook 3h com mesmo nome)
   const seenCalKeys=new Set();
   const calItemsDedup=calItems.filter(e=>{
     const key=(e.title||'').toLowerCase().trim()+'|'+(e.time||'')+'|'+(e.source||'');
@@ -2534,7 +2533,11 @@ function loadCompromissosDia(dia){
     seenCalKeys.add(key);
     return true;
   });
-  const all=[...agendaItems,...calItemsDedup,...lembreteItems].sort((a,b)=>a.time.localeCompare(b.time));
+  // Remover eventos do calendário que são duplicatas de lembretes inAgenda
+  // (quando um lembrete é adicionado à agenda, ele sincroniza de volta como evento do cal)
+  const agendaTitles=new Set(agendaItems.map(a=>(a.title||'').toLowerCase().trim()));
+  const calItemsFinal=calItemsDedup.filter(e=>!agendaTitles.has((e.title||'').toLowerCase().trim()));
+  const all=[...agendaItems,...calItemsFinal,...lembreteItems].sort((a,b)=>a.time.localeCompare(b.time));
 
   // Atualizar badge (conta agenda + cal + lembretes do dia)
   document.getElementById(isHoje?'b-comp-hoje':'b-comp-amanha').textContent=all.length;
