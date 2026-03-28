@@ -9,27 +9,42 @@
 <meta name="apple-mobile-web-app-title" content="Lembra">
 <link rel="manifest" href="manifest.json">
 <title>Lembra</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=Inter:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0D0F0E;--surface:#161917;--surface2:#1E2220;--surface3:#262C29;
-  --text:#F0EDE6;--text2:#9BA39D;--text3:#5C6660;
-  --accent:#4ADE80;--accent-dim:rgba(74,222,128,0.12);--accent-text:#071a0f;
-  --border:rgba(240,237,230,0.08);
-  --red:#F87171;--red-dim:rgba(248,113,113,0.12);
-  --amber:#FBBF24;--amber-dim:rgba(251,191,36,0.12);
-  --blue:#60A5FA;--blue-dim:rgba(96,165,250,0.12);
-  --purple:#C084FC;--purple-dim:rgba(192,132,252,0.12);
+  /* Dark mode — WCAG AA compliant */
+  --bg:#0B0B0B;--surface:#1E1E1E;--surface2:#272727;--surface3:#303030;
+  --text:#FFFFFF;--text2:#B3B3B3;--text3:#7A7A7A;
+  --accent:#22C55E;--accent-dim:rgba(34,197,94,0.15);--accent-text:#052e16;
+  --border:#2A2A2A;
+  --red:#EF4444;--red-dim:rgba(239,68,68,0.15);
+  --amber:#FACC15;--amber-dim:rgba(250,204,21,0.15);
+  --blue:#3B82F6;--blue-dim:rgba(59,130,246,0.15);
+  --purple:#A78BFA;--purple-dim:rgba(167,139,250,0.15);
+  --cyan:#22D3EE;--cyan-dim:rgba(34,211,238,0.15);
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.4),0 1px 2px rgba(0,0,0,0.3);
+  --shadow:0 4px 12px rgba(0,0,0,0.5),0 2px 4px rgba(0,0,0,0.3);
+  --shadow-lg:0 8px 24px rgba(0,0,0,0.6),0 4px 8px rgba(0,0,0,0.4);
   --r:14px;--r-sm:9px;--r-xs:6px;--r-full:999px;
+  --font:'Inter','Instrument Sans',sans-serif;
 }
 [data-theme="light"]{
-  --bg:#F5F7F5;--surface:#FFFFFF;--surface2:#EEF1EE;--surface3:#E2E7E2;
-  --text:#111C14;--text2:#4A5C4E;--text3:#8A9E8E;
-  --border:rgba(17,28,20,0.10);
+  --bg:#F5F5F5;--surface:#FFFFFF;--surface2:#F0F0F0;--surface3:#E5E5E5;
+  --text:#1A1A1A;--text2:#5A5A5A;--text3:#888888;
+  --accent:#16A34A;--accent-dim:rgba(22,163,74,0.12);--accent-text:#FFFFFF;
+  --red:#DC2626;--red-dim:rgba(220,38,38,0.1);
+  --amber:#D97706;--amber-dim:rgba(217,119,6,0.1);
+  --blue:#2563EB;--blue-dim:rgba(37,99,235,0.1);
+  --purple:#7C3AED;--purple-dim:rgba(124,58,237,0.1);
+  --cyan:#0891B2;--cyan-dim:rgba(8,145,178,0.1);
+  --border:#E5E5E5;
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.06);
+  --shadow:0 4px 12px rgba(0,0,0,0.1),0 2px 4px rgba(0,0,0,0.06);
+  --shadow-lg:0 8px 24px rgba(0,0,0,0.12),0 4px 8px rgba(0,0,0,0.08);
 }
-body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body{font-family:var(--font,'Inter','Instrument Sans',sans-serif);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 /* AUTH */
 #auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;position:relative;overflow:hidden}
 .auth-glow{position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:500px;height:300px;background:radial-gradient(ellipse,rgba(74,222,128,0.08) 0%,transparent 70%);pointer-events:none}
@@ -331,18 +346,153 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .ai-mic-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
 @keyframes mic-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
 .ai-mic-btn.on svg{animation:mic-pulse 0.8s infinite}
-/* Cards compactos da agenda dashboard */
-.agenda-dash-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:0.875rem 1rem;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.2s;text-decoration:none;position:relative}
-.agenda-dash-card:hover{border-color:rgba(74,222,128,0.3);background:var(--surface2)}
-.agenda-dash-ico{width:36px;height:36px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+/* ============================================
+   AGENDA DASHBOARD — Design System Redesign
+   WCAG AA · Inter · Elevation · Hierarchy
+   ============================================ */
+.agenda-dash-card{
+  background:var(--surface);
+  border:1.5px solid var(--border);
+  border-radius:16px;
+  padding:1.125rem 1rem;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  cursor:pointer;
+  transition:transform 0.15s ease,box-shadow 0.15s ease,border-color 0.15s ease,background 0.15s ease;
+  text-decoration:none;
+  position:relative;
+  box-shadow:var(--shadow-sm);
+  outline:none;
+}
+.agenda-dash-card:hover{
+  transform:translateY(-3px);
+  box-shadow:var(--shadow);
+  border-color:rgba(255,255,255,0.12);
+  background:var(--surface2);
+}
+.agenda-dash-card:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+/* Quadrados (col layout) */
+.agenda-dash-card[style*="flex-direction:column"]{
+  display:flex;
+  padding:1.25rem 0.75rem;
+  gap:10px;
+}
+.agenda-dash-ico{
+  width:44px;
+  height:44px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+.agenda-dash-ico svg{width:20px;height:20px}
 .agenda-dash-info{flex:1;min-width:0}
-.agenda-dash-title{font-size:14px;font-weight:600;line-height:1.3}
-.agenda-dash-sub{font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;margin-top:2px}
-.agenda-dash-badge{min-width:24px;height:24px;border-radius:var(--r-full);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 6px;flex-shrink:0}
-/* Cards quadrados (agendas e e-mails) */
-.agenda-dash-card-sq{justify-content:center}
-/* Garantir que cards com flex-direction:column funcionem */
-.agenda-dash-card[style*="flex-direction:column"]{display:flex}
+.agenda-dash-title{
+  font-size:15px;
+  font-weight:600;
+  line-height:1.3;
+  letter-spacing:-0.01em;
+}
+.agenda-dash-sub{
+  font-size:12px;
+  color:var(--text3);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  margin-top:3px;
+  line-height:1.4;
+}
+.agenda-dash-badge{
+  min-width:28px;
+  height:28px;
+  border-radius:var(--r-full);
+  font-size:14px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 8px;
+  flex-shrink:0;
+  letter-spacing:-0.02em;
+}
+/* Seção labels da agenda dashboard */
+.agenda-section-lbl{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  color:var(--text3);
+  padding-bottom:2px;
+}
+.agenda-section-lbl svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;flex-shrink:0}
+/* Cards Hoje/Amanhã — destaque especial */
+.dash-hero-card{
+  border-radius:16px;
+  padding:1.5rem 1rem;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  gap:10px;
+  cursor:pointer;
+  transition:transform 0.15s ease,box-shadow 0.15s ease;
+  text-decoration:none;
+  position:relative;
+  box-shadow:var(--shadow-sm);
+  outline:none;
+}
+.dash-hero-card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.dash-hero-card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.dash-hero-ico{
+  width:52px;
+  height:52px;
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+}
+.dash-hero-ico svg{width:24px;height:24px}
+.dash-hero-num{
+  font-size:32px;
+  font-weight:700;
+  line-height:1;
+  letter-spacing:-0.03em;
+}
+.dash-hero-label{
+  font-size:16px;
+  font-weight:600;
+  letter-spacing:-0.01em;
+}
+.dash-hero-sub{
+  font-size:13px;
+  color:var(--text3);
+  line-height:1.4;
+  font-weight:500;
+}
+/* Número badge sobreposto ao ícone */
+.dash-hero-badge{
+  position:absolute;
+  top:-6px;
+  right:-8px;
+  min-width:22px;
+  height:22px;
+  border-radius:var(--r-full);
+  font-size:12px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 6px;
+  border:2px solid var(--bg);
+}
 /* Botão voltar mobile */
 .mob-back-btn{display:none;align-items:center;gap:6px;padding:6px 0 8px;background:none;border:none;color:var(--text2);font-family:inherit;font-size:13px;cursor:pointer;width:100%}
 .mob-back-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
@@ -609,106 +759,129 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
         <div id="list-container"></div>
       </div>
 
-      <!-- MEUS COMPROMISSOS - DASHBOARD COM 4 CARDS -->
-      <div id="view-agenda" style="display:none;flex-direction:column;gap:1.25rem">
+      <!-- MEUS COMPROMISSOS - DASHBOARD REDESENHADO -->
+      <div id="view-agenda" style="display:none;flex-direction:column;gap:1.5rem">
+
+        <!-- Header com título e botão atualizar -->
         <div class="main-hdr">
-          <div><div class="main-title">Meus Compromissos</div><div class="main-meta" id="agenda-meta">Acesso rápido</div></div>
-          <button onclick="refreshAllCalendars()" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:12px;cursor:pointer;flex-shrink:0" title="Atualizar calendários">
-            <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          <div>
+            <div class="main-title">Meus Compromissos</div>
+            <div class="main-meta" id="agenda-meta">Acesso rápido</div>
+          </div>
+          <button onclick="refreshAllCalendars()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;flex-shrink:0;transition:all 0.15s;box-shadow:var(--shadow-sm)" title="Atualizar calendários" onmouseover="this.style.color='var(--text)';this.style.borderColor='rgba(255,255,255,0.15)'" onmouseout="this.style.color='var(--text2)';this.style.borderColor='var(--border)'">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             Atualizar
           </button>
         </div>
-        <!-- LINHA 1: 2 quadrados Hoje / Amanhã (mesmo tamanho dos outros 6) -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <!-- Hoje -->
-          <div onclick="setView('compromissos-hoje',null)" class="agenda-dash-card" id="dash-card-hoje" style="flex-direction:column;align-items:center;text-align:center;gap:8px;padding:0.875rem 0.5rem;cursor:pointer">
-            <div style="position:relative;display:inline-block">
-              <div class="agenda-dash-ico" style="background:var(--accent-dim)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              </div>
-              <div class="agenda-dash-badge" id="dash-badge-hoje" style="background:var(--accent-dim);color:var(--accent);position:absolute;top:-6px;right:-10px;display:none">0</div>
+
+        <!-- LINHA 1: Cards Hero — Hoje e Amanhã -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
+          <!-- Hero: Hoje -->
+          <div onclick="setView('compromissos-hoje',null)" class="dash-hero-card" id="dash-card-hoje"
+            style="background:linear-gradient(135deg,rgba(34,197,94,0.15) 0%,rgba(34,197,94,0.05) 100%);border:1.5px solid rgba(34,197,94,0.25);cursor:pointer">
+            <div class="dash-hero-ico" style="background:rgba(34,197,94,0.2)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <div class="dash-hero-badge" id="dash-badge-hoje" style="background:var(--accent);color:var(--accent-text);display:none">0</div>
             </div>
-            <div class="agenda-dash-title" style="color:var(--accent)">Hoje</div>
-            <div class="agenda-dash-sub" id="minha-agenda-hoje-sub">Carregando...</div>
+            <div class="dash-hero-num" id="dash-num-hoje" style="color:#22C55E">0</div>
+            <div class="dash-hero-label" style="color:#22C55E">Hoje</div>
+            <div class="dash-hero-sub" id="minha-agenda-hoje-sub">compromissos</div>
           </div>
-          <!-- Amanhã -->
-          <div onclick="setView('compromissos-amanha',null)" class="agenda-dash-card" id="dash-card-amanha" style="flex-direction:column;align-items:center;text-align:center;gap:8px;padding:0.875rem 0.5rem;cursor:pointer">
-            <div style="position:relative;display:inline-block">
-              <div class="agenda-dash-ico" style="background:var(--amber-dim)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              </div>
-              <div class="agenda-dash-badge" id="dash-badge-amanha" style="background:var(--amber-dim);color:var(--amber);position:absolute;top:-6px;right:-10px;display:none">0</div>
+
+          <!-- Hero: Amanhã -->
+          <div onclick="setView('compromissos-amanha',null)" class="dash-hero-card" id="dash-card-amanha"
+            style="background:linear-gradient(135deg,rgba(250,204,21,0.15) 0%,rgba(250,204,21,0.05) 100%);border:1.5px solid rgba(250,204,21,0.25);cursor:pointer">
+            <div class="dash-hero-ico" style="background:rgba(250,204,21,0.2)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#FACC15" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <div class="dash-hero-badge" id="dash-badge-amanha" style="background:var(--amber);color:#1a0f00;display:none">0</div>
             </div>
-            <div class="agenda-dash-title" style="color:var(--amber)">Amanhã</div>
-            <div class="agenda-dash-sub" id="minha-agenda-amanha-sub">Carregando...</div>
+            <div class="dash-hero-num" id="dash-num-amanha" style="color:#FACC15">0</div>
+            <div class="dash-hero-label" style="color:#FACC15">Amanhã</div>
+            <div class="dash-hero-sub" id="minha-agenda-amanha-sub">compromissos</div>
           </div>
         </div>
 
-        <!-- LINHA 2: rótulo Agendas -->
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);display:flex;align-items:center;gap:6px;margin-bottom:-4px">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          Agendas
-        </div>
-        <!-- LINHA 2: 3 quadrados de Agendas -->
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-          <!-- Agenda Gmail -->
-          <a href="https://calendar.google.com/calendar/r" target="_blank" class="agenda-dash-card" id="dash-card-agenda-gmail" style="flex-direction:column;align-items:center;text-align:center;gap:8px;padding:0.875rem 0.5rem">
-            <div class="agenda-dash-ico" style="background:var(--red-dim)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F87171" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg>
-            </div>
-            <div class="agenda-dash-title" style="color:#F87171;font-size:12px">Google</div>
-            <div class="agenda-dash-sub" id="dash-sub-agenda-gmail" style="display:none">Google Calendar</div>
-          </a>
-          <!-- Agenda Outlook 1 -->
-          <a href="https://outlook.live.com/calendar/0/view/month" target="_blank" class="agenda-dash-card" id="dash-card-agenda-outlook" style="flex-direction:column;align-items:center;text-align:center;gap:8px;padding:0.875rem 0.5rem">
-            <div class="agenda-dash-ico" style="background:rgba(0,120,212,0.15)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg>
-            </div>
-            <div class="agenda-dash-title" style="color:#0078d4;font-size:12px">Outlook</div>
-            <div class="agenda-dash-sub" id="dash-sub-agenda-outlook" style="display:none">Outlook Calendar</div>
-          </a>
-          <!-- Agenda Outlook 2 -->
-          <a href="https://outlook.office.com/calendar/view/month" target="_blank" class="agenda-dash-card" id="dash-card-agenda-outlook2" style="flex-direction:column;align-items:center;text-align:center;gap:8px;padding:0.875rem 0.5rem">
-            <div class="agenda-dash-ico" style="background:rgba(0,180,216,0.15)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00b4d8" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg>
-            </div>
-            <div class="agenda-dash-title" style="color:#00b4d8;font-size:12px">Corp.</div>
-            <div class="agenda-dash-sub" id="dash-sub-agenda-outlook2" style="display:none">Corporativo</div>
-          </a>
+        <!-- LINHA 2: Agendas -->
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="agenda-section-lbl">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Agendas
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+
+            <!-- Agenda Google -->
+            <a href="https://calendar.google.com/calendar/r" target="_blank" class="agenda-dash-card" id="dash-card-agenda-gmail"
+              style="flex-direction:column;align-items:center;text-align:center">
+              <div class="agenda-dash-ico" style="background:rgba(239,68,68,0.15)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg>
+              </div>
+              <div class="agenda-dash-title" style="color:#EF4444">Google</div>
+              <div class="agenda-dash-sub" id="dash-sub-agenda-gmail">Calendar</div>
+            </a>
+
+            <!-- Agenda Outlook -->
+            <a href="https://outlook.live.com/calendar/0/view/month" target="_blank" class="agenda-dash-card" id="dash-card-agenda-outlook"
+              style="flex-direction:column;align-items:center;text-align:center">
+              <div class="agenda-dash-ico" style="background:rgba(59,130,246,0.15)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg>
+              </div>
+              <div class="agenda-dash-title" style="color:#3B82F6">Outlook</div>
+              <div class="agenda-dash-sub" id="dash-sub-agenda-outlook">Calendar</div>
+            </a>
+
+            <!-- Agenda Corp -->
+            <a href="https://outlook.office.com/calendar/view/month" target="_blank" class="agenda-dash-card" id="dash-card-agenda-outlook2"
+              style="flex-direction:column;align-items:center;text-align:center">
+              <div class="agenda-dash-ico" style="background:rgba(34,211,238,0.15)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#22D3EE" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg>
+              </div>
+              <div class="agenda-dash-title" style="color:#22D3EE">Corp.</div>
+              <div class="agenda-dash-sub" id="dash-sub-agenda-outlook2">Calendar</div>
+            </a>
+          </div>
         </div>
 
-        <!-- LINHA 3: rótulo E-mails -->
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);display:flex;align-items:center;gap:6px;margin-bottom:-4px">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-          E-mails
+        <!-- LINHA 3: E-mails -->
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="agenda-section-lbl">
+            <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            E-mails
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+
+            <!-- E-mail Gmail -->
+            <a href="https://mail.google.com/mail/u/0/#search/is%3Aunread" target="_blank" class="agenda-dash-card" id="dash-card-gmail"
+              style="flex-direction:column;align-items:center;text-align:center">
+              <div class="agenda-dash-ico" style="background:rgba(239,68,68,0.15)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              <div class="agenda-dash-title" style="color:#EF4444">Gmail</div>
+              <div class="agenda-dash-badge" id="dash-badge-gmail" style="background:rgba(239,68,68,0.15);color:#EF4444;display:none">0</div>
+            </a>
+
+            <!-- E-mail Outlook -->
+            <a href="https://outlook.live.com/mail/0/inbox" target="_blank" class="agenda-dash-card" id="dash-card-outlook"
+              style="flex-direction:column;align-items:center;text-align:center">
+              <div class="agenda-dash-ico" style="background:rgba(59,130,246,0.15)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              <div class="agenda-dash-title" style="color:#3B82F6">Outlook</div>
+              <div class="agenda-dash-badge" id="dash-badge-outlook" style="background:rgba(59,130,246,0.15);color:#3B82F6;display:none">0</div>
+            </a>
+
+            <!-- E-mail Corp -->
+            <a href="https://outlook.office.com/mail/inbox" target="_blank" class="agenda-dash-card" id="dash-card-outlook2"
+              style="flex-direction:column;align-items:center;text-align:center">
+              <div class="agenda-dash-ico" style="background:rgba(34,211,238,0.15)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#22D3EE" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              <div class="agenda-dash-title" style="color:#22D3EE">Corp.</div>
+              <div class="agenda-dash-badge" id="dash-badge-outlook2" style="background:rgba(34,211,238,0.15);color:#22D3EE;display:none">0</div>
+            </a>
+          </div>
         </div>
-        <!-- LINHA 3: 3 quadrados de E-mails -->
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-          <!-- E-mail Gmail -->
-          <a href="https://mail.google.com/mail/u/0/#search/is%3Aunread" target="_blank" class="agenda-dash-card" id="dash-card-gmail" style="flex-direction:column;align-items:center;text-align:center;gap:8px;padding:0.875rem 0.5rem">
-            <div class="agenda-dash-ico" style="background:var(--red-dim)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F87171" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            </div>
-            <div class="agenda-dash-title" style="color:#F87171;font-size:12px">Gmail</div>
-            <div class="agenda-dash-badge" id="dash-badge-gmail" style="background:var(--red-dim);color:#F87171;display:none">0</div>
-          </a>
-          <!-- E-mail Outlook 1 -->
-          <a href="https://outlook.live.com/mail/0/inbox" target="_blank" class="agenda-dash-card" id="dash-card-outlook" style="flex-direction:column;align-items:center;text-align:center;gap:8px;padding:0.875rem 0.5rem">
-            <div class="agenda-dash-ico" style="background:rgba(0,120,212,0.12)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            </div>
-            <div class="agenda-dash-title" style="color:#0078d4;font-size:12px">Outlook</div>
-            <div class="agenda-dash-badge" id="dash-badge-outlook" style="background:rgba(0,120,212,0.15);color:#0078d4;display:none">0</div>
-          </a>
-          <!-- E-mail Outlook 2 -->
-          <a href="https://outlook.office.com/mail/inbox" target="_blank" class="agenda-dash-card" id="dash-card-outlook2" style="flex-direction:column;align-items:center;text-align:center;gap:8px;padding:0.875rem 0.5rem">
-            <div class="agenda-dash-ico" style="background:rgba(0,180,216,0.12)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00b4d8" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            </div>
-            <div class="agenda-dash-title" style="color:#00b4d8;font-size:12px">Corp.</div>
-            <div class="agenda-dash-badge" id="dash-badge-outlook2" style="background:rgba(0,180,216,0.15);color:#00b4d8;display:none">0</div>
-          </a>
-        </div>
+
       </div>
 
       <!-- MEUS COMPROMISSOS HOJE -->
@@ -2779,13 +2952,17 @@ function renderAgendaDashboard(){
   const calEvts=integrations.calendarEvents||[];
   const nHoje=reminders.filter(r=>!r.done&&r.date===t).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t).length;
   const nAmanha=reminders.filter(r=>!r.done&&r.date===tom).length+calEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===tom).length;
-  // Atualizar subtextos e badges dos cards
+  // Atualizar cards hero Hoje/Amanhã
+  const numHoje=document.getElementById('dash-num-hoje');
+  if(numHoje)numHoje.textContent=nHoje;
   const subHoje=document.getElementById('minha-agenda-hoje-sub');
-  if(subHoje)subHoje.textContent=nHoje>0?nHoje+' compromisso'+(nHoje!==1?'s':'')+' hoje':'Nenhum compromisso';
+  if(subHoje)subHoje.textContent=nHoje===1?'compromisso':nHoje>0?'compromissos':'nenhum hoje';
   const badgeHoje=document.getElementById('dash-badge-hoje');
   if(badgeHoje){badgeHoje.textContent=nHoje;badgeHoje.style.display=nHoje>0?'flex':'none';}
+  const numAmanha=document.getElementById('dash-num-amanha');
+  if(numAmanha)numAmanha.textContent=nAmanha;
   const subAmanha=document.getElementById('minha-agenda-amanha-sub');
-  if(subAmanha)subAmanha.textContent=nAmanha>0?nAmanha+' compromisso'+(nAmanha!==1?'s':'')+' amanhã':'Nenhum compromisso';
+  if(subAmanha)subAmanha.textContent=nAmanha===1?'compromisso':nAmanha>0?'compromissos':'nenhum amanhã';
   const badgeAmanha=document.getElementById('dash-badge-amanha');
   if(badgeAmanha){badgeAmanha.textContent=nAmanha;badgeAmanha.style.display=nAmanha>0?'flex':'none';}
   // E-mail nos cards Gmail/Outlook e Agenda Gmail/Outlook
