@@ -618,33 +618,29 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
             Atualizar
           </button>
         </div>
-        <!-- LINHA 1: 2 retângulos Hoje / Amanhã -->
+        <!-- LINHA 1: 2 quadrados Hoje / Amanhã (mesmo tamanho dos outros 6) -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <!-- Hoje -->
-          <div onclick="setView('compromissos-hoje',null)" class="agenda-dash-card" id="dash-card-hoje" style="flex-direction:column;align-items:flex-start;gap:8px;padding:1rem">
-            <div style="display:flex;align-items:center;gap:8px;width:100%">
-              <div class="agenda-dash-ico" style="background:var(--accent-dim);flex-shrink:0">
+          <div onclick="setView('compromissos-hoje',null)" class="agenda-dash-card" id="dash-card-hoje" style="flex-direction:column;align-items:center;text-align:center;gap:8px;padding:0.875rem 0.5rem;cursor:pointer">
+            <div style="position:relative;display:inline-block">
+              <div class="agenda-dash-ico" style="background:var(--accent-dim)">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               </div>
-              <div class="agenda-dash-badge" id="dash-badge-hoje" style="background:var(--accent-dim);color:var(--accent);margin-left:auto;display:none">0</div>
+              <div class="agenda-dash-badge" id="dash-badge-hoje" style="background:var(--accent-dim);color:var(--accent);position:absolute;top:-6px;right:-10px;display:none">0</div>
             </div>
-            <div>
-              <div class="agenda-dash-title" style="color:var(--accent)">Hoje</div>
-              <div class="agenda-dash-sub" id="minha-agenda-hoje-sub">Carregando...</div>
-            </div>
+            <div class="agenda-dash-title" style="color:var(--accent)">Hoje</div>
+            <div class="agenda-dash-sub" id="minha-agenda-hoje-sub">Carregando...</div>
           </div>
           <!-- Amanhã -->
-          <div onclick="setView('compromissos-amanha',null)" class="agenda-dash-card" id="dash-card-amanha" style="flex-direction:column;align-items:flex-start;gap:8px;padding:1rem">
-            <div style="display:flex;align-items:center;gap:8px;width:100%">
-              <div class="agenda-dash-ico" style="background:var(--amber-dim);flex-shrink:0">
+          <div onclick="setView('compromissos-amanha',null)" class="agenda-dash-card" id="dash-card-amanha" style="flex-direction:column;align-items:center;text-align:center;gap:8px;padding:0.875rem 0.5rem;cursor:pointer">
+            <div style="position:relative;display:inline-block">
+              <div class="agenda-dash-ico" style="background:var(--amber-dim)">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
               </div>
-              <div class="agenda-dash-badge" id="dash-badge-amanha" style="background:var(--amber-dim);color:var(--amber);margin-left:auto;display:none">0</div>
+              <div class="agenda-dash-badge" id="dash-badge-amanha" style="background:var(--amber-dim);color:var(--amber);position:absolute;top:-6px;right:-10px;display:none">0</div>
             </div>
-            <div>
-              <div class="agenda-dash-title" style="color:var(--amber)">Amanhã</div>
-              <div class="agenda-dash-sub" id="minha-agenda-amanha-sub">Carregando...</div>
-            </div>
+            <div class="agenda-dash-title" style="color:var(--amber)">Amanhã</div>
+            <div class="agenda-dash-sub" id="minha-agenda-amanha-sub">Carregando...</div>
           </div>
         </div>
 
@@ -2529,10 +2525,11 @@ function loadCompromissosDia(dia){
     done:false
   }));
 
-  // Deduplicar eventos do calendário: mesmo título + mesmo horário = duplicado (ex: evento em hotmail e sejadigital)
+  // Deduplicar eventos do calendário: mesmo título + mesmo horário + mesma fonte = duplicado
+  // (não remover eventos de fontes diferentes, ex: Gmail 9h e Outlook 3h com mesmo nome)
   const seenCalKeys=new Set();
   const calItemsDedup=calItems.filter(e=>{
-    const key=(e.title||'').toLowerCase().trim()+'|'+(e.time||'');
+    const key=(e.title||'').toLowerCase().trim()+'|'+(e.time||'')+'|'+(e.source||'');
     if(seenCalKeys.has(key))return false;
     seenCalKeys.add(key);
     return true;
@@ -2576,10 +2573,11 @@ function loadCompromissosDia(dia){
     'Amanhã, '+new Date(targetDate+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
   meta.textContent=nomeDia+' · '+all.length+' compromisso'+(all.length!==1?'s':'');
 
-  // Separar em 3 seções: eventos do calendário, lembretes incluídos na agenda, lembretes normais do dia
-  const calSection=all.filter(x=>!x.isReminder&&!x.isReminderAgenda);
-  const agendaSection=all.filter(x=>x.isReminderAgenda);
-  const lembreteSection=all.filter(x=>x.isReminder&&!x.isReminderAgenda);
+  // Separar em 2 seções: eventos do calendário e lembretes do dia
+  // Lembretes com inAgenda=true são tratados como eventos normais (não têm seção separada)
+  const calSection=all.filter(x=>!x.isReminder);
+  const agendaSection=[];
+  const lembreteSection=all.filter(x=>x.isReminder);
 
   let html='';
   const now=new Date();
