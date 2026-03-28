@@ -1455,8 +1455,9 @@ function scheduleAutoSync(){
 }
 async function silentCalendarSync(){
   try{
+    // Só busca eventos se já temos token válido no storage
+    // NÃO tenta renovar automaticamente (evita popup OAuth visível)
     if(integrations.googleConnected&&gcalToken)await fetchGoogleCalendarEvents();
-    else if(integrations.googleConnected&&!gcalToken)await silentReauthGoogle();
   }catch(e){console.warn('[AutoSync] Google:',e);}
   try{
     if(integrations.outlookConnected){
@@ -1504,23 +1505,17 @@ function restoreGcalToken(){
 }
 
 // Renovação silenciosa de tokens ao iniciar o app
+// IMPORTANTE: Nunca chama requestAccessToken automaticamente pois abre popup visível.
+// Usa apenas o token salvo no storage (~1h de validade). Se expirou, aguarda ação manual.
 async function silentReauthGoogle(){
   if(!integrations.googleConnected)return;
-  // Garante que o singleton já existe (GIS pode ainda estar carregando)
   _ensureGcalClient();
-  // Se já temos token restaurado do storage, tentar usar direto
+  // Só tenta buscar eventos se já temos token no storage
   if(gcalToken){
     try{await fetchGoogleCalendarEvents();}
     catch(e){console.warn('[Sync] Google com token salvo:',e);}
-    return;
   }
-  // Tentar renovar silenciosamente — só funciona se há sessão Google ativa no browser
-  const ok=await renewGcalToken();
-  if(ok){
-    try{await fetchGoogleCalendarEvents();}
-    catch(e){console.warn('[Sync] Google pós-reauth:',e);}
-  }
-  // Se falhou: silencioso — usuário clica em "Conectar Google" manualmente
+  // Se não há token: silencioso — usuário reconecta manualmente quando necessário
 }
 async function silentReauthOutlook(){
   if(!integrations.outlookConnected)return;
@@ -1586,24 +1581,20 @@ function connectGoogle(){
 }
 
 async function renewGcalToken(){
-  // Renovação silenciosa (sem popup) — só funciona se há sessão Google ativa no browser
-  _ensureGcalClient();
-  if(!gcalTokenClient)return false;
+  // Renovação silenciosa — NÃO usa requestAccessToken (abriria popup visível).
+  // Apenas verifica se o token do storage ainda é válido.
+  if(!gcalToken)return false;
   try{
-    const r=await Promise.race([
-      new Promise((resolve,reject)=>{
-        _gcalTokenCb=(resp)=>resp.error?reject(resp):resolve(resp);
-        gcalTokenClient.requestAccessToken({prompt:'none'});
-      }),
-      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),5000))
-    ]);
-    gcalToken=r.access_token;
-    integrations.gcalToken=gcalToken;
+    const uRes=await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+gcalToken}});
+    if(uRes.ok)return true; // token ainda válido
+    // Token expirado: limpar e retornar false (usuário reconecta manualmente)
+    gcalToken=null;
+    delete integrations.gcalToken;
     saveInt();
-    return true;
+    console.warn('[Lembra] Token Google expirado — reconexão manual necessária.');
+    return false;
   }catch(e){
-    _gcalTokenCb=null; // limpar callback pendente
-    console.warn('Google token renewal failed:',e.error||e.message||e);
+    console.warn('Google token check failed:',e.message||e);
     return false;
   }
 }
@@ -1613,9 +1604,10 @@ async function fetchGoogleCalendarEvents(){
     // Verificar se token ainda é válido
     const uRes=await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+gcalToken}});
     if(uRes.status===401){
-      // Token expirado: tentar renovar
-      const renewed=await renewGcalToken();
-      if(!renewed){notify('Google Agenda','Sessão expirada. Clique em Conectar Google novamente.');gcalToken=null;delete integrations.gcalToken;saveInt();updateIntUI();return;}
+      // Token expirado: limpar silenciosamente, sem abrir popup
+      gcalToken=null;delete integrations.gcalToken;saveInt();updateIntUI();
+      console.warn('[Lembra] Token Google expirado — reconexão manual necessária.');
+      return;
     } else if(uRes.ok){
       const uData=await uRes.json();if(uData.email)integrations.googleEmail=uData.email;
     }
