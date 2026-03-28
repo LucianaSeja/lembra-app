@@ -1470,7 +1470,7 @@ async function silentCalendarSync(){
         const loaded=await loadMSAL();
         if(loaded){const app=getMsalApp();if(app){const accs=app.getAllAccounts();if(accs.length>0){const r=await app.acquireTokenSilent({scopes:OUTLOOK_SCOPES,account:accs[0]}).catch(()=>null);if(r){outlookToken=r.accessToken;}}}}
       }
-      if(outlookToken)await fetchOutlookCalendarEvents();
+      if(outlookToken){await fetchOutlookCalendarEvents();updateUnreadBadges();}
     }
   }catch(e){console.warn('[AutoSync] Outlook:',e);}
   try{
@@ -1479,7 +1479,7 @@ async function silentCalendarSync(){
         const loaded=await loadMSAL();
         if(loaded){const app2=getMsalApp2();if(app2){const accs=app2.getAllAccounts();if(accs.length>0){const r=await app2.acquireTokenSilent({scopes:OUTLOOK_SCOPES,account:accs[0]}).catch(()=>null);if(r){outlookToken2=r.accessToken;}}}}
       }
-      if(outlookToken2)await fetchOutlookCalendarEvents2();
+      if(outlookToken2){await fetchOutlookCalendarEvents2();updateUnreadBadges();}
     }
   }catch(e){console.warn('[AutoSync] Outlook2:',e);}
 }
@@ -1517,7 +1517,7 @@ async function silentReauthGoogle(){
   _ensureGcalClient();
   // Só tenta buscar eventos se já temos token no storage
   if(gcalToken){
-    try{await fetchGoogleCalendarEvents();}
+    try{await fetchGoogleCalendarEvents();updateUnreadBadges();}
     catch(e){console.warn('[Sync] Google com token salvo:',e);}
   }
   // Se não há token: silencioso — usuário reconecta manualmente quando necessário
@@ -1535,6 +1535,7 @@ async function silentReauthOutlook(){
     outlookToken=resp.accessToken;
     // Buscar eventos frescos silenciosamente
     await fetchOutlookCalendarEvents();
+    updateUnreadBadges();
   } catch(e){console.warn('Outlook silent reauth:',e);}
 }
 function getMsalApp(){
@@ -1903,6 +1904,7 @@ async function silentReauthOutlook2(){
     const resp=await app.acquireTokenSilent({scopes:OUTLOOK_SCOPES,account:acc2});
     outlookToken2=resp.accessToken;
     await fetchOutlookCalendarEvents2();
+    updateUnreadBadges();
   } catch(e){console.warn('Outlook2 silent reauth:',e);}
 }
 async function refreshAllCalendars(){
