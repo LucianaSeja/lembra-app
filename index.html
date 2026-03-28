@@ -674,14 +674,24 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
                 <div class="agenda-dash-sub" id="dash-sub-agenda-gmail">Google Calendar</div>
               </div>
             </a>
-            <!-- Card Agenda Outlook -->
+            <!-- Card Agenda Outlook 1 -->
             <a href="https://outlook.live.com/calendar/0/view/month" target="_blank" class="agenda-dash-card" id="dash-card-agenda-outlook">
               <div class="agenda-dash-ico" style="background:rgba(0,120,212,0.15)">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg>
               </div>
               <div class="agenda-dash-info">
-                <div class="agenda-dash-title" style="color:#0078d4">Outlook</div>
+                <div class="agenda-dash-title" style="color:#0078d4">Outlook 1</div>
                 <div class="agenda-dash-sub" id="dash-sub-agenda-outlook">Outlook Calendar</div>
+              </div>
+            </a>
+            <!-- Card Agenda Outlook 2 (corporativo @sejadigital) -->
+            <a href="https://outlook.office.com/calendar/view/month" target="_blank" class="agenda-dash-card" id="dash-card-agenda-outlook2">
+              <div class="agenda-dash-ico" style="background:rgba(0,180,216,0.15)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00b4d8" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg>
+              </div>
+              <div class="agenda-dash-info">
+                <div class="agenda-dash-title" style="color:#00b4d8">Outlook 2</div>
+                <div class="agenda-dash-sub" id="dash-sub-agenda-outlook2">Corporativo</div>
               </div>
             </a>
           </div>
@@ -2784,6 +2794,8 @@ function renderAgendaDashboard(){
   if(subAgendaGmail)subAgendaGmail.textContent=gc?(integrations.googleEmail||'Google Calendar'):'Google Calendar';
   const subAgendaOutlook=document.getElementById('dash-sub-agenda-outlook');
   if(subAgendaOutlook)subAgendaOutlook.textContent=oc?(integrations.outlookEmail||'Outlook Calendar'):'Outlook Calendar';
+  const subAgendaOutlook2=document.getElementById('dash-sub-agenda-outlook2');
+  if(subAgendaOutlook2)subAgendaOutlook2.textContent=oc2?(integrations.outlook2Email||'Corporativo'):'Corporativo';
   // Badges de e-mails não lidos (link para busca de não lidos)
   // Gmail: atualizar link com e-mail do usuário para abrir caixa correta
   const cardGmail=document.getElementById('dash-card-gmail');
