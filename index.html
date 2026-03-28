@@ -87,12 +87,13 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:0
   .chk{width:24px!important;height:24px!important;margin-top:2px!important}
   .main-title{font-size:22px!important}
   .main-meta{font-size:13px!important}
-  /* Cards de agenda maiores no mobile */
-  .agenda-dash-card{padding:1rem 1rem!important;gap:14px!important}
-  .agenda-dash-ico{width:40px!important;height:40px!important}
-  .agenda-dash-title{font-size:15px!important;white-space:normal!important}
-  .agenda-dash-sub{font-size:12px!important}
-  .agenda-dash-badge{min-width:28px!important;height:28px!important;font-size:14px!important}
+  /* Cards de agenda no mobile - não forçar padding para cards quadrados */
+  .agenda-dash-ico{width:36px!important;height:36px!important}
+  .agenda-dash-title{font-size:13px!important;white-space:normal!important}
+  .agenda-dash-sub{font-size:11px!important}
+  .agenda-dash-badge{min-width:24px!important;height:24px!important;font-size:12px!important}
+  /* view-agenda: gap menor para caber tudo */
+  #view-agenda{gap:0.75rem!important}
   /* Seção de compromissos */
   .compromissos-section-hdr span{font-size:13px!important}
   /* Botão voltar maior */
@@ -115,7 +116,16 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:0
 .hdr-chip.clickable{cursor:pointer}
 .hdr-chip svg{flex-shrink:0}
 .hdr-chip-count{font-weight:700;font-size:11px}
-@media(max-width:640px){.hdr-chips{display:none}}
+@media(max-width:640px){
+  .hdr-chips{display:none}
+  /* Mobile: esconder texto do botão IA e nome do usuário, manter só ícone/avatar */
+  .btn-ai span,.btn-ai-txt{display:none}
+  .btn-ai{padding:6px 8px;gap:0}
+  #hdr-nm{display:none}
+  .user-chip{padding:4px 6px}
+  /* Mobile: esconder botão Sair */
+  .btn-sm-logout{display:none!important}
+}
 .nav-btn{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r-sm);font-size:13px;color:var(--text2);cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:inherit;transition:all 0.15s}
 .nav-btn:hover{background:var(--surface2);color:var(--text)}
 .nav-btn.active{background:var(--accent-dim);color:var(--accent)}
@@ -435,7 +445,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
       </div>
       <button class="btn-ai" onclick="openAI()">
         <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/></svg>
-        Assistente IA
+        <span class="btn-ai-txt">Assistente IA</span>
       </button>
       <div class="user-chip">
         <div class="avatar" id="hdr-av">?</div>
@@ -445,7 +455,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
         <svg id="theme-icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         <svg id="theme-icon-sun" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       </button>
-      <button class="btn-sm" onclick="doLogout()">Sair</button>
+      <button class="btn-sm btn-sm-logout" onclick="doLogout()">Sair</button>
     </div>
   </header>
   <div class="layout">
@@ -603,8 +613,8 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
       <div id="view-agenda" style="display:none;flex-direction:column;gap:1.25rem">
         <div class="main-hdr">
           <div><div class="main-title">Meus Compromissos</div><div class="main-meta" id="agenda-meta">Acesso rápido</div></div>
-          <button class="add-btn" onclick="refreshAllCalendars()">
-            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--accent-text);fill:none;stroke-width:2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          <button onclick="refreshAllCalendars()" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:12px;cursor:pointer;flex-shrink:0" title="Atualizar calendários">
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             Atualizar
           </button>
         </div>
@@ -861,7 +871,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
       <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><polyline points="3 6 4 7 6 5"/><polyline points="3 12 4 13 6 11"/><polyline points="3 18 4 19 6 17"/></svg><span>Lembretes</span>
     </button>
     <div class="mob-btn-add-wrap">
-      <button class="mob-btn-add" onclick="toggleForm()" title="Novo lembrete">
+      <button class="mob-btn-add" onclick="setView('hoje',null);mobActive(document.getElementById('mob-btn-lembretes'));setTimeout(toggleForm,50)" title="Novo lembrete">
         <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </button>
     </div>
@@ -1150,16 +1160,17 @@ function startSession(u){
   document.getElementById('view-meta').textContent=d.charAt(0).toUpperCase()+d.slice(1);
   document.getElementById('f-date').value=today();
   renderSidebar();renderCatSelect();renderSheets();updateIntUI();render();scheduleNotifs();scheduleDigest();
-  // Mobile: iniciar na tela de Meus Compromissos
-  if(window.innerWidth<=640){
-    const layout=document.querySelector('.layout');
-    if(layout)layout.classList.add('mob-view-active');
-    allViews.forEach(id=>document.getElementById(id).style.display='none');
-    document.getElementById('view-agenda').style.display='flex';
-    renderAgendaDashboard();
-    const mobComp=document.getElementById('mob-btn-compromissos');
-    if(mobComp)mobActive(mobComp);
-  }
+  // Iniciar sempre na tela de Meus Compromissos (mobile e desktop)
+  const layout=document.querySelector('.layout');
+  if(window.innerWidth<=640&&layout)layout.classList.add('mob-view-active');
+  allViews.forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('view-agenda').style.display='flex';
+  renderAgendaDashboard();
+  // Ativar botão Compromissos na mob-bar (mobile)
+  const mobComp=document.getElementById('mob-btn-compromissos');
+  if(mobComp)mobActive(mobComp);
+  // Ativar botão na sidebar (desktop)
+  updateSidebarActive('agenda');
   // Solicitar permissão de notificações e iniciar monitoramento
   requestNotifPermission();
   // Limpar eventos do calendário salvos (podem ter fuso errado da versão anterior)
