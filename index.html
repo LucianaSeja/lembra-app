@@ -1030,7 +1030,7 @@ function applyTheme(t){
 function getUsers(){return JSON.parse(localStorage.getItem(USERS_KEY)||'{}')}
 function saveUsers(u){localStorage.setItem(USERS_KEY,JSON.stringify(u))}
 function loadReminders(){return JSON.parse(localStorage.getItem(DATA_KEY(user.email))||'[]')}
-function persist(){localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders))}
+function persist(){localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders));if(typeof syncToSupabase==='function')syncToSupabase();}
 function loadCats(){userCats=JSON.parse(localStorage.getItem(CATS_KEY(user.email))||'null')||[...defaultCats]}
 function saveCats(){localStorage.setItem(CATS_KEY(user.email),JSON.stringify(userCats))}
 function loadSheets(){userSheets=JSON.parse(localStorage.getItem(SHEETS_KEY(user.email))||'[]')}
@@ -3261,12 +3261,6 @@ async function loadFromSupabase(){
   return false;
 }
 
-// Override persist to also sync
-const _origPersist = persist;
-function persist(){
-  localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders));
-  syncToSupabase();
-}
 
 // Carregar chave de IA do ambiente (se disponível)
 (async function(){
