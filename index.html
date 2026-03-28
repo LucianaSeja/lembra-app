@@ -3240,6 +3240,9 @@ async function loadFromSupabase(){
     const {data,error}=await supabaseClient.from('reminders').select('*').eq('user_email',user.email).order('created',{ascending:false});
     if(error)throw error;
     if(data&&data.length>0){
+      // Preservar fotos base64 locais quando image_url ainda não foi enviada ao Storage
+      const localMap={};
+      reminders.forEach(r=>{if(r.photo&&r.photo.startsWith('data:'))localMap[r.id]=r.photo;});
       reminders=data.map(r=>({
         id: r.id,
         title: r.title,
@@ -3251,7 +3254,7 @@ async function loadFromSupabase(){
         recur: r.recur,
         done: r.done,
         inAgenda: r.include_agenda||false,
-        photo: r.image_url||null,
+        photo: r.image_url||(localMap[r.id]||null),
         created: r.created
       }));
       localStorage.setItem(DATA_KEY(user.email),JSON.stringify(reminders));
