@@ -3372,6 +3372,61 @@ function processLocalAI(msg,context){
     }
   }
 
+  // ─── PEDIDOS DE LINK ─── detectar antes de qualquer outra coisa
+  const isLinkRequest=msgLower.includes('link')||msgLower.includes('abrir')||msgLower.includes('abre')||msgLower.includes('trazer')||msgLower.includes('traz')||msgLower.includes('acessar');
+  if(isLinkRequest){
+    // Agenda Corp / Outlook Corp
+    if(msgLower.includes('corp')||msgLower.includes('corporativ')||msgLower.includes('office')){
+      setTimeout(()=>window.open('https://outlook.office.com/calendar/view/month','_blank'),300);
+      return '📅 Abrindo a agenda corporativa (Outlook Office)...';
+    }
+    // Agenda Outlook / Hotmail
+    if(msgLower.includes('outlook')||msgLower.includes('hotmail')){
+      if(msgLower.includes('agenda')||msgLower.includes('calend')){
+        setTimeout(()=>window.open('https://outlook.live.com/calendar/0/view/month','_blank'),300);
+        return '📅 Abrindo o Outlook Calendar...';
+      }
+      setTimeout(()=>window.open('https://outlook.live.com/mail/inbox','_blank'),300);
+      return '📧 Abrindo o Outlook Mail...';
+    }
+    // Agenda Google
+    if(msgLower.includes('google')||msgLower.includes('gmail')){
+      if(msgLower.includes('agenda')||msgLower.includes('calend')){
+        setTimeout(()=>window.open('https://calendar.google.com/calendar/r','_blank'),300);
+        return '📅 Abrindo o Google Agenda...';
+      }
+      setTimeout(()=>window.open('https://mail.google.com/mail/u/0/#inbox','_blank'),300);
+      return '📧 Abrindo o Gmail...';
+    }
+    // E-mail corp
+    if(msgLower.includes('e-mail corp')||msgLower.includes('email corp')||msgLower.includes('correio corp')){
+      setTimeout(()=>window.open('https://outlook.office.com/mail/inbox','_blank'),300);
+      return '📧 Abrindo o e-mail corporativo (Outlook)...';
+    }
+    // Agenda genérica
+    if(msgLower.includes('agenda')||msgLower.includes('calend')||msgLower.includes('compromiss')){
+      if(integrations.googleConnected){
+        setTimeout(()=>window.open('https://calendar.google.com/calendar/r','_blank'),300);
+        return '📅 Abrindo o Google Agenda...';
+      }
+      if(integrations.outlookConnected){
+        setTimeout(()=>window.open('https://outlook.live.com/calendar/0/view/month','_blank'),300);
+        return '📅 Abrindo o Outlook Calendar...';
+      }
+      return 'Qual agenda você quer abrir? Google, Outlook ou Corp.?';
+    }
+    // E-mail genérico
+    if(msgLower.includes('e-mail')||msgLower.includes('email')||msgLower.includes('mail')){
+      if(integrations.googleConnected){
+        setTimeout(()=>window.open('https://mail.google.com/mail/u/0/#inbox','_blank'),300);
+        return '📧 Abrindo o Gmail...';
+      }
+      if(integrations.outlookConnected){
+        setTimeout(()=>window.open('https://outlook.live.com/mail/inbox','_blank'),300);
+        return '📧 Abrindo o Outlook Mail...';
+      }
+    }
+  }
   // Detectar data mencionada na mensagem
   const dateMatch=msg.match(/(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?/);
   let targetDate=null;
