@@ -2568,24 +2568,37 @@ function toggleAIVoice(){
   if(!SR){notify('Voz','Use o Chrome para reconhecimento de voz');return;}
   const btn=document.getElementById('ai-mic-btn');
   if(aiVoiceOn){if(aiVoiceRec)aiVoiceRec.stop();return;}
-  aiVoiceRec=new SR();aiVoiceRec.lang='pt-BR';aiVoiceRec.interimResults=true;
-  aiVoiceRec.onstart=()=>{aiVoiceOn=true;if(btn){btn.classList.add('on');btn.title='Ouvindo... (clique para parar)';}};
-  let aiVoiceSilenceTimer=null;
+  aiVoiceRec=new SR();
+  aiVoiceRec.lang='pt-BR';
+  aiVoiceRec.interimResults=true;
+  aiVoiceRec.continuous=true; // continua ouvindo até o usuário parar
+  aiVoiceRec.onstart=()=>{
+    aiVoiceOn=true;
+    if(btn){btn.classList.add('on');btn.title='Ouvindo... (clique para parar)';}
+  };
   aiVoiceRec.onresult=e=>{
-    let t='';
-    for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;
+    let interim='';
+    let final='';
+    for(let i=0;i<e.results.length;i++){
+      if(e.results[i].isFinal)final+=e.results[i][0].transcript+' ';
+      else interim+=e.results[i][0].transcript;
+    }
+    // Colocar texto no campo — NÃO enviar automaticamente
     const inp=document.getElementById('ai-input');
-    if(inp)inp.value=t;
-    // Aguardar 1.5s de silêncio antes de enviar
-    if(aiVoiceSilenceTimer)clearTimeout(aiVoiceSilenceTimer);
-    if(e.results[e.results.length-1].isFinal){
-      aiVoiceSilenceTimer=setTimeout(()=>{
-        if(aiVoiceRec)aiVoiceRec.stop();
-        sendAIMessage();
-      },1500);
+    if(inp){
+      inp.value=(final+interim).trim();
+      // Ajustar altura do textarea
+      inp.style.height='auto';
+      inp.style.height=Math.min(inp.scrollHeight,120)+'px';
     }
   };
-  aiVoiceRec.onend=()=>{aiVoiceOn=false;if(btn){btn.classList.remove('on');btn.title='Usar voz';}};
+  aiVoiceRec.onend=()=>{
+    aiVoiceOn=false;
+    if(btn){btn.classList.remove('on');btn.title='Usar voz';}
+    // Focar no campo para o usuário revisar e enviar manualmente
+    const inp=document.getElementById('ai-input');
+    if(inp)inp.focus();
+  };
   aiVoiceRec.start();
 }
 
@@ -3153,13 +3166,28 @@ function openAI(){
 function closeAI(){
   document.getElementById('ai-modal').classList.remove('open');
 }
+function aiMarkdown(text){
+  // Converter Markdown simples para HTML seguro
+  let h=text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') // escape HTML
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>') // **negrito**
+    .replace(/\*(.+?)\*/g,'<em>$1</em>') // *itálico*
+    .replace(/`(.+?)`/g,'<code>$1</code>') // `código`
+    .replace(/^#{1,3}\s+(.+)$/gm,'<strong>$1</strong>') // # Título
+    .replace(/^[-•*]\s+(.+)$/gm,'• $1') // listas
+    .replace(/^\d+\.\s+(.+)$/gm,(m,p1,offset,str)=>m) // listas numeradas — manter
+    .replace(/\n{2,}/g,'</p><p>') // parágrafos
+    .replace(/\n/g,'<br>'); // quebras de linha
+  return '<p>'+h+'</p>';
+}
 function addAIMessage(role,text){
   aiMessages.push({role,text});
   const container=document.getElementById('ai-messages');
   const div=document.createElement('div');
   div.className='ai-msg '+role;
   const avatarText=role==='assistant'?'IA':initials(user?.name||'U');
-  div.innerHTML=`<div class="ai-msg-avatar">${avatarText}</div><div class="ai-bubble">${text}</div>`;
+  const bubble=role==='assistant'?aiMarkdown(text):('<p>'+text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')+'</p>');
+  div.innerHTML=`<div class="ai-msg-avatar">${avatarText}</div><div class="ai-bubble">${bubble}</div>`;
   container.appendChild(div);
   container.scrollTop=container.scrollHeight;
 }
@@ -3267,9 +3295,10 @@ async function callAI(userMessage,context){
     summary:e.summary,start:e.start,end:e.end,origem:e.source==='google'?'Google Agenda':'Outlook'
   }));
 
-  // Histórico das últimas 8 mensagens
-  const historico=aiMessages.slice(-8).map(m=>({role:m.role,content:m.text}));
-
+  // Histórico das últimas 10 mensagens
+  const historico=aiMessages.slice(-10).map(m=>({role:m.role,content:m.text}));
+  // System prompt enviado ao servidor
+  const sistema=`Você é o Assistente Lembra — assistente pessoal integrado ao app Lembra. Fale sempre em português brasileiro de forma natural e calorosa. Seja conciso e direto. Use bullet points simples (•) para listas. Não use asteriscos duplos. Use os dados reais do contexto (lembretes, eventos, datas). Data de hoje: ${t}. Data de amanhã: ${tom}. Usuário: ${user?.name||''}.`;
   try{
     const res=await fetch(edgeFnUrl,{
       method:'POST',
@@ -3277,7 +3306,8 @@ async function callAI(userMessage,context){
       body:JSON.stringify({
         mensagem:userMessage,
         historico,
-        contexto:{lembretes,eventos}
+        sistema,
+        contexto:{lembretes,eventos,hoje:t,amanha:tom}
       })
     });
     if(!res.ok){
