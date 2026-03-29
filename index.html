@@ -398,8 +398,10 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 /* Quadrados (col layout) */
 .agenda-dash-card[style*="flex-direction:column"]{
   display:flex;
-  padding:1.25rem 0.75rem;
-  gap:10px;
+  padding:1.125rem 0.625rem;
+  gap:8px;
+  align-items:center;
+  text-align:center;
 }
 .agenda-dash-ico{
   width:44px;
@@ -457,6 +459,21 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:8px;
+}
+/* Todos os cards do grid de 3 colunas têm altura igual */
+.dash-3col-grid .agenda-dash-card{
+  height:100%;
+  min-height:0;
+  justify-content:center;
+  overflow:hidden;
+}
+/* Texto do sub (e-mail truncado) */
+.dash-3col-grid .agenda-dash-sub{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:100%;
+  text-align:center;
 }
 @media(max-width:400px){
   .dash-3col-grid{
@@ -3028,25 +3045,26 @@ function renderAgendaDashboard(){
   const gc=integrations.googleConnected;
   const oc=integrations.outlookConnected;
   const oc2=integrations.outlook2Connected;
+  // Helper: mostrar só o usuário antes do @
+  const shortEmail=e=>e?(e.includes('@')?e.split('@')[0]:e):null;
   // Card E-mail_Gmail
   const subGmail=document.getElementById('dash-sub-gmail');
-  if(subGmail)subGmail.textContent=gc?(integrations.googleEmail||'Abrir e-mails'):'Abrir e-mails';
+  if(subGmail)subGmail.textContent=gc?(shortEmail(integrations.googleEmail)||'Gmail'):'Gmail';
   // Card E-mail_Microsoft 1
   const subOutlook=document.getElementById('dash-sub-outlook');
-  if(subOutlook)subOutlook.textContent=oc?(integrations.outlookEmail||'Abrir e-mails'):'Abrir e-mails';
-  // Card E-mail_Microsoft 2 (conta corporativa) — mostrar apenas se conectado
+  if(subOutlook)subOutlook.textContent=oc?(shortEmail(integrations.outlookEmail)||'Outlook'):'Outlook';
+  // Card E-mail_Microsoft 2 (conta corporativa)
   const cardOutlook2=document.getElementById('dash-card-outlook2');
-  // Sempre mostrar o card Outlook 2 (usuário pediu para sempre aparecer)
   if(cardOutlook2)cardOutlook2.style.display='flex';
   const subOutlook2=document.getElementById('dash-sub-outlook2');
-  if(subOutlook2)subOutlook2.textContent=oc2?(integrations.outlook2Email||'Corporativo (@sejadigital)'):'Corporativo (@sejadigital)';
+  if(subOutlook2)subOutlook2.textContent=oc2?(shortEmail(integrations.outlook2Email)||'Corp.'):'Corp.';
   // Agenda Gmail / Agenda Outlook
   const subAgendaGmail=document.getElementById('dash-sub-agenda-gmail');
-  if(subAgendaGmail)subAgendaGmail.textContent=gc?(integrations.googleEmail||'Google Calendar'):'Google Calendar';
+  if(subAgendaGmail)subAgendaGmail.textContent=gc?(shortEmail(integrations.googleEmail)||'Calendar'):'Calendar';
   const subAgendaOutlook=document.getElementById('dash-sub-agenda-outlook');
-  if(subAgendaOutlook)subAgendaOutlook.textContent=oc?(integrations.outlookEmail||'Outlook Calendar'):'Outlook Calendar';
+  if(subAgendaOutlook)subAgendaOutlook.textContent=oc?(shortEmail(integrations.outlookEmail)||'Calendar'):'Calendar';
   const subAgendaOutlook2=document.getElementById('dash-sub-agenda-outlook2');
-  if(subAgendaOutlook2)subAgendaOutlook2.textContent=oc2?(integrations.outlook2Email||'Corporativo'):'Corporativo';
+  if(subAgendaOutlook2)subAgendaOutlook2.textContent=oc2?(shortEmail(integrations.outlook2Email)||'Corp.'):'Corp.';
   // Badges de e-mails não lidos (link para busca de não lidos)
   // Gmail: atualizar link com e-mail do usuário para abrir caixa correta
   const cardGmail=document.getElementById('dash-card-gmail');
