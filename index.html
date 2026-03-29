@@ -3428,13 +3428,26 @@ function processLocalAI(msg,context){
     }
   }
   // Detectar data mencionada na mensagem
-  const dateMatch=msg.match(/(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?/);
+  // Parser de datas por extenso: "1 de maio", "dia 15 de junho", "03 de março de 2026"
+  const meses={'janeiro':'01','fevereiro':'02','março':'03','marco':'03','abril':'04','maio':'05','junho':'06','julho':'07','agosto':'08','setembro':'09','outubro':'10','novembro':'11','dezembro':'12'};
   let targetDate=null;
-  if(dateMatch){
-    const day=dateMatch[1].padStart(2,'0');
-    const month=dateMatch[2].padStart(2,'0');
-    const year=dateMatch[3]?(dateMatch[3].length===2?'20'+dateMatch[3]:dateMatch[3]):new Date().getFullYear();
+  const dateExtMatch=msgLower.match(/(\d{1,2})\s+de\s+(janeiro|fevereiro|mar[çc]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)(?:\s+de\s+(\d{2,4}))?/);
+  if(dateExtMatch){
+    const day=dateExtMatch[1].padStart(2,'0');
+    const monthKey=dateExtMatch[2].normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+    const month=meses[monthKey]||meses[dateExtMatch[2]]||'01';
+    const year=dateExtMatch[3]?(dateExtMatch[3].length===2?'20'+dateExtMatch[3]:dateExtMatch[3]):String(new Date().getFullYear());
     targetDate=`${year}-${month}-${day}`;
+  }
+  // Parser de datas numéricas: "01/05", "1-5-2026"
+  if(!targetDate){
+    const dateMatch=msg.match(/(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?/);
+    if(dateMatch){
+      const day=dateMatch[1].padStart(2,'0');
+      const month=dateMatch[2].padStart(2,'0');
+      const year=dateMatch[3]?(dateMatch[3].length===2?'20'+dateMatch[3]:dateMatch[3]):String(new Date().getFullYear());
+      targetDate=`${year}-${month}-${day}`;
+    }
   }
 
   // Consultas sobre hoje
@@ -3554,7 +3567,8 @@ Exemplo: *"Enviar e-mail para joao@empresa.com, assunto: Reunião, dizendo: Conf
 
   // Resposta genérica inteligente: tenta interpretar a mensagem como consulta de data
   // Se a mensagem parece uma pergunta sobre agenda sem data específica
-  if(msgLower.includes('tenho')||msgLower.includes('agenda')||msgLower.includes('compromisso')||msgLower.includes('próximo')||msgLower.includes('proximo')){
+  // (só entra aqui se não foi detectada data específica acima)
+  if(!targetDate&&(msgLower.includes('tenho')||msgLower.includes('agenda')||msgLower.includes('compromisso')||msgLower.includes('próximo')||msgLower.includes('proximo'))){
     const pend=reminders.filter(r=>!r.done&&!r.inAgenda);
     const agenda=reminders.filter(r=>!r.done&&r.inAgenda);
     const hojeItems=pend.filter(r=>r.date===t);
