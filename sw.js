@@ -1,4 +1,4 @@
-const CACHE = 'lembra-v54';
+const CACHE = 'lembra-v55';
 const ASSETS = ['/', '/index.html', '/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', e => {

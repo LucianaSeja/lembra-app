@@ -3333,6 +3333,28 @@ function processLocalAI(msg,context){
   const calEvts=integrations.calendarEvents||[];
   const pendingRem=reminders.filter(r=>!r.done);
 
+  // ─── FILTRO CONVERSACIONAL ───
+  // Detectar mensagens que NÃO são sobre agenda/lembretes
+  const agendaKeywords=['hoje','amanhã','amanha','lembrete','compromisso','agenda','calend','evento','tarefa','pendente','semana','mês','mes','data','dia','hora','link','abrir','abre','traz','trazer','acessar','e-mail','email','enviar','mandar','adicionar','incluir','criar','agendar','resumo'];
+  const hasAgendaIntent=agendaKeywords.some(k=>msgLower.includes(k));
+  // Se não tem intenção de agenda, responder de forma conversacional
+  if(!hasAgendaIntent){
+    // Saudações
+    if(msgLower.match(/^(olá|oi|ola|hey|e aí|e ai|bom dia|boa tarde|boa noite|tudo bem|tudo bom|como vai)/)){
+      const hora=new Date().getHours();
+      const saud=hora<12?'Bom dia':(hora<18?'Boa tarde':'Boa noite');
+      return `${saud}! Como posso ajudar com sua agenda ou lembretes? 😊`;
+    }
+    // Clima / tempo
+    if(msgLower.includes('sol')||msgLower.includes('chuva')||msgLower.includes('tempo')||msgLower.includes('clima')||msgLower.includes('calor')||msgLower.includes('frio')){
+      return 'Que ótimo! ☀️ Posso ajudar com sua agenda, lembretes ou compromissos. O que precisa?';
+    }
+    // Mensagens curtas genéricas
+    if(msg.length<60){
+      return 'Entendido! Posso ajudar com sua agenda, lembretes e compromissos. O que gostaria de saber?';
+    }
+  }
+
   // Detectar contexto da conversa anterior (última mensagem do assistente)
   const lastAssistant=aiMessages.filter(m=>m.role==='assistant').slice(-1)[0]?.text||'';
   const lastUser=aiMessages.filter(m=>m.role==='user').slice(-2,-1)[0]?.text||'';
