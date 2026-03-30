@@ -1598,7 +1598,18 @@ async function silentCalendarSync(){
     if(integrations.outlook2Connected){
       if(!outlookToken2){
         const loaded=await loadMSAL();
-        if(loaded){const app2=getMsalApp2();if(app2){const accs=app2.getAllAccounts();if(accs.length>0){const r=await app2.acquireTokenSilent({scopes:OUTLOOK_SCOPES,account:accs[0]}).catch(()=>null);if(r){outlookToken2=r.accessToken;}}}}
+        if(loaded){
+          const app=getMsalApp();
+          if(app){
+            const accs=app.getAllAccounts();
+            const email2=integrations.outlook2Email||'';
+            const email1=integrations.outlookEmail||'';
+            let acc2=accs.find(a=>a.username===email2);
+            if(!acc2&&email1)acc2=accs.find(a=>a.username!==email1);
+            if(!acc2&&accs.length>1)acc2=accs[1];
+            if(acc2){const r=await app.acquireTokenSilent({scopes:OUTLOOK_SCOPES,account:acc2}).catch(()=>null);if(r){outlookToken2=r.accessToken;}}
+          }
+        }
       }
       if(outlookToken2){await fetchOutlookCalendarEvents2();updateUnreadBadges();}
     }
@@ -1903,85 +1914,81 @@ function disconnectOutlook(){
   if(view==='compromissos-amanha')loadCompromissosDia('amanha');
 }
 // SEGUNDA CONTA MICROSOFT (sejadigital / corporativa)
-let msalApp2=null;
-function getMsalApp2(){
-  if(!msalApp2&&typeof msal!=='undefined'){
-    // Usar URI fixa para evitar erro de domínio não autorizado no Azure
-    const redirectUri='https://lembra-app.vercel.app';
-    msalApp2=new msal.PublicClientApplication({
-      auth:{clientId:OUTLOOK_CLIENT_ID,authority:'https://login.microsoftonline.com/common',redirectUri:redirectUri},
-      cache:{cacheLocation:'localStorage',storeAuthStateInCookie:true}
-    });
-  }
-  return msalApp2;
-}
+// Usa a mesma instância MSAL (getMsalApp) que já gerencia múltiplas contas por design
+function getMsalApp2(){return getMsalApp();}
 async function connectOutlook2(){
   const loaded=await loadMSAL();
   if(!loaded){notify('Erro','Não foi possível carregar a biblioteca Microsoft.');return;}
-  // Usar instância MSAL separada com sessionStorage para não conflitar com conta principal
-  const app2=getMsalApp2();
-  if(!app2){notify('Erro','Biblioteca Microsoft não inicializada. Tente recarregar a página.');return;}
+  const app=getMsalApp(); // instância única MSAL gerencia múltiplas contas
+  if(!app){notify('Erro','Biblioteca Microsoft não inicializada. Tente recarregar a página.');return;}
   try{
-    // Sempre pedir seleção de conta
-    const resp=await app2.loginPopup({scopes:OUTLOOK_SCOPES,prompt:'select_account'});
+    // Sempre pedir seleção de conta (permite escolher conta diferente da principal)
+    const resp=await app.loginPopup({scopes:OUTLOOK_SCOPES,prompt:'select_account'});
     outlookToken2=resp.accessToken;
     integrations.outlook2Connected=true;
     integrations.outlook2Email=resp.account.username||resp.account.name||'';
+    console.log('[Corp] Conectado como:',integrations.outlook2Email);
     saveInt();updateIntUI();
     await fetchOutlookCalendarEvents2();
     scheduleAutoSync();
   } catch(err){
     if(err.errorCode==='user_cancelled')return;
-    console.error('Erro MSAL conta 2:',err);
-    // Tentar com acquireTokenPopup se loginPopup falhar
-    try{
-      const app2b=getMsalApp2();
-      const accounts=app2b?app2b.getAllAccounts():[];
-      if(accounts.length>0){
-        const resp2=await app2b.acquireTokenPopup({scopes:OUTLOOK_SCOPES,account:accounts[0]});
-        outlookToken2=resp2.accessToken;
-        integrations.outlook2Connected=true;
-        integrations.outlook2Email=resp2.account.username||resp2.account.name||'';
-        saveInt();updateIntUI();
-        await fetchOutlookCalendarEvents2();
-        scheduleAutoSync();
-        return;
-      }
-    }catch(e2){console.error('Retry MSAL2:',e2);}
-    // Mostrar mensagem de erro mais detalhada
+    console.error('[Corp] Erro MSAL conta 2:',err);
     const errMsg=err.errorMessage||err.message||JSON.stringify(err);
     if(errMsg.includes('redirect_uri')||errMsg.includes('AADSTS50011')||errMsg.includes('reply URL')){
       notify('Erro Outlook','URI não autorizada no Azure. Adicione https://lembra-app.vercel.app em Redirect URIs no App Registration.');
     } else {
-      notify('Erro Outlook','Não foi possível conectar a segunda conta: '+errMsg.substring(0,120));
+      notify('Erro Outlook','Não foi possível conectar a conta corporativa: '+errMsg.substring(0,120));
     }
   }
 }
 async function fetchOutlookCalendarEvents2(){
   if(!outlookToken2)return;
   try{
-    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
-    const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
-      body:JSON.stringify({provider:'outlook',token:outlookToken2,accountId:'outlook2'})
-    });
-    if(!res.ok)throw new Error('Edge Function HTTP '+res.status);
+    // Chamar Graph API diretamente (igual ao Google Calendar — sem Edge Function)
+    const agora=new Date();
+    const hojeStr=agora.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'});
+    const amanhaDate=new Date(agora);amanhaDate.setDate(amanhaDate.getDate()+1);
+    const amanhaStr=amanhaDate.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'});
+    const startDt=encodeURIComponent(hojeStr+'T00:00:00-03:00');
+    const endDt=encodeURIComponent(amanhaStr+'T23:59:59-03:00');
+    const graphUrl=`https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=${startDt}&endDateTime=${endDt}&$select=id,subject,start,end,bodyPreview&$orderby=start/dateTime&$top=100`;
+    const res=await fetch(graphUrl,{headers:{Authorization:'Bearer '+outlookToken2,'Prefer':'outlook.timezone="America/Sao_Paulo"'}});
+    if(res.status===401){
+      console.warn('[Corp] Token expirado (401), limpando outlookToken2');
+      outlookToken2=null;
+      notify('Outlook Corp','Sessão expirada. Reconecte a conta corporativa em Configurações.');
+      return;
+    }
+    if(!res.ok)throw new Error('Graph API HTTP '+res.status);
     const data=await res.json();
-    if(data.erro)throw new Error(data.erro);
-    const outlook2Evts=(data.eventos||[]).map(e=>({...e,source:'outlook2'}));
-    // Manter eventos das outras fontes, substituir apenas outlook2
+    if(data.error)throw new Error(data.error.code+': '+data.error.message);
+    // Com header Prefer: outlook.timezone, as datas já vem no horário de Brasília sem offset
+    // Adicionamos -03:00 para que o JavaScript interprete corretamente
+    const normDt=dt=>dt?dt.replace(/(\.\d+)?$/,'-03:00').replace(/[+-]\d{2}:\d{2}-03:00$/,'-03:00'):dt;
+    const outlook2Evts=(data.value||[]).map(e=>({
+      id:e.id,
+      summary:e.subject||'(sem título)',
+      start:{dateTime:e.start?.dateTime?normDt(e.start.dateTime):undefined,date:e.start?.date},
+      end:{dateTime:e.end?.dateTime?normDt(e.end.dateTime):undefined,date:e.end?.date},
+      description:e.bodyPreview||'',
+      origem:'Outlook Corp',
+      source:'outlook2',
+      accountId:'outlook2'
+    }));
     const outros=(integrations.calendarEvents||[]).filter(e=>e.source!=='outlook2');
     integrations.calendarEvents=[...outros,...outlook2Evts];
     saveInt();
-    const emailInfo=integrations.outlook2Email?` (${integrations.outlook2Email})`:''
-    notify('Outlook 2ª conta',`✓ ${outlook2Evts.length} evento(s) carregado(s)${emailInfo}`);
+    const hoje=today();
+    const hojeEvts=outlook2Evts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===hoje);
+    const emailInfo=integrations.outlook2Email?` (${integrations.outlook2Email})`:'';
+    notify('Outlook Corp',`✓ ${outlook2Evts.length} evento(s) — ${hojeEvts.length} hoje${emailInfo}`);
     updateBadges();
     if(view==='compromissos-hoje')loadCompromissosDia('hoje');
     if(view==='compromissos-amanha')loadCompromissosDia('amanha');
   } catch(err){
-    console.error('Erro Outlook2 Calendar:',err);
-    notify('Outlook 2ª conta','Erro ao buscar eventos: '+err.message);
+    console.error('[Corp] Erro buscar eventos:',err);
+    notify('Outlook Corp','Erro ao buscar eventos: '+err.message);
   }
 }
 async function createOutlookCalendarEvent2(title,date,time,desc){
@@ -2012,18 +2019,22 @@ async function silentReauthOutlook2(){
   try{
     const loaded=await loadMSAL();
     if(!loaded)return;
-    const app=getMsalApp();
+    const app=getMsalApp(); // instância única gerencia ambas as contas
     if(!app)return;
     const accounts=app.getAllAccounts();
-    // Tentar conta diferente da principal
+    console.log('[Corp] silentReauth contas no cache MSAL:',accounts.map(a=>a.username));
     const email2=integrations.outlook2Email||'';
-    const acc2=accounts.find(a=>a.username===email2)||accounts[1];
-    if(!acc2)return;
+    // Buscar conta pelo email salvo; se não encontrar, tentar qualquer conta diferente da pessoal
+    const email1=integrations.outlookEmail||'';
+    let acc2=accounts.find(a=>a.username===email2);
+    if(!acc2&&email1)acc2=accounts.find(a=>a.username!==email1);
+    if(!acc2&&accounts.length>1)acc2=accounts[1];
+    if(!acc2){console.warn('[Corp] silentReauth: conta corporativa não encontrada no cache MSAL');return;}
+    console.log('[Corp] silentReauth usando conta:',acc2.username);
     const resp=await app.acquireTokenSilent({scopes:OUTLOOK_SCOPES,account:acc2});
     outlookToken2=resp.accessToken;
-    await fetchOutlookCalendarEvents2();
-    updateUnreadBadges();
-  } catch(e){console.warn('Outlook2 silent reauth:',e);}
+    console.log('[Corp] silentReauth OK, token renovado para:',acc2.username);
+  } catch(e){console.warn('[Corp] Outlook2 silent reauth falhou:',e.message||e);}
 }
 async function refreshAllCalendars(){
   const btn=document.querySelector('[onclick="refreshAllCalendars()"]');
@@ -2065,24 +2076,26 @@ async function refreshAllCalendars(){
     } else if(integrations.outlookConnected&&!outlookToken){
       updated++;
     }
-    // Segunda conta Outlook
+    // Segunda conta Outlook (Corp)
     if(integrations.outlook2Connected&&!outlookToken2){
       try{
         const loaded=await loadMSAL();
         if(loaded){
-          // CORRECÇÃO: usar getMsalApp2() (instância separada com sessionStorage)
-          const app2=getMsalApp2();
-          if(app2){
-            const accounts=app2.getAllAccounts();
+          const app=getMsalApp(); // instância única gerencia ambas as contas
+          if(app){
+            const accounts=app.getAllAccounts();
             const email2=integrations.outlook2Email||'';
-            const acc2=accounts.find(a=>a.username===email2)||accounts[0];
+            const email1=integrations.outlookEmail||'';
+            let acc2=accounts.find(a=>a.username===email2);
+            if(!acc2&&email1)acc2=accounts.find(a=>a.username!==email1);
+            if(!acc2&&accounts.length>1)acc2=accounts[1];
             if(acc2){
-              const silentResp2=await app2.acquireTokenSilent({scopes:OUTLOOK_SCOPES,account:acc2}).catch(()=>null);
-              if(silentResp2)outlookToken2=silentResp2.accessToken;
+              const silentResp2=await app.acquireTokenSilent({scopes:OUTLOOK_SCOPES,account:acc2}).catch(()=>null);
+              if(silentResp2){outlookToken2=silentResp2.accessToken;console.log('[Corp] AutoSync token renovado:',acc2.username);}
             }
           }
         }
-      } catch(e){console.warn('Silent Outlook2 reauth failed',e);}
+      } catch(e){console.warn('[Corp] Silent reauth failed',e);}
     }
     if(integrations.outlook2Connected&&outlookToken2){
       await fetchOutlookCalendarEvents2();
@@ -4037,27 +4050,31 @@ async function submitNewCalEvent(){
       eventUrl='https://calendar.google.com/calendar/r/day/'+gy+'/'+parseInt(gm)+'/'+parseInt(gd);
     } else if(provider==='outlook'||provider==='corp'){
       // Tentar renovar token silenciosamente antes de criar
-      if(provider==='corp'&&!outlookToken2){await silentReauthOutlook2();}
+      if(provider==='corp'&&!outlookToken2){
+        console.log('[CalEvent] outlookToken2 NULL, tentando renovar silenciosamente...');
+        await silentReauthOutlook2();
+        console.log('[CalEvent] após silentReauth, outlookToken2='+(outlookToken2?'OK':'ainda NULL'));
+      }
       if(provider==='outlook'&&!outlookToken){await silentReauthOutlook();}
       const tok=provider==='corp'?outlookToken2:outlookToken;
+      console.log('[CalEvent] provider='+provider+' tok='+(tok?tok.substring(0,30)+'...':'NULL'));
+      if(!tok){
+        // Token não disponível — pedir reconexão ao usuário em vez de abrir silenciosamente
+        throw new Error('Sessão expirada. Vá em Configurações e reconecte a conta '+(provider==='corp'?'Corporativa':'Outlook')+'.');
+      }
       const startDt=dateStart+'T'+(timeStart?timeStart+':00':'09:00:00');
       const endDt=timeEnd?(dateEnd+'T'+timeEnd+':00'):(dateEnd+'T'+(timeStart?String(parseInt(timeStart.split(':')[0])+1).padStart(2,'0')+':'+timeStart.split(':')[1]+':00':'10:00:00'));
       const body={subject:title,start:{dateTime:startDt,timeZone:'America/Sao_Paulo'},end:{dateTime:endDt,timeZone:'America/Sao_Paulo'}};
-      if(!tok){
-        eventUrl=provider==='corp'?'https://outlook.office.com/calendar/0/action/compose':'https://outlook.live.com/calendar/0/action/compose';
-        window.open(eventUrl,'_blank');
-        closeNewCalEvent();
-        return;
-      }
-      console.log('[CalEvent] provider='+provider+' tok='+(tok?tok.substring(0,20)+'...':'NULL'));
+      console.log('[CalEvent] Enviando para Graph API:',JSON.stringify(body));
       const r=await fetch('https://graph.microsoft.com/v1.0/me/events',{method:'POST',headers:{'Authorization':'Bearer '+tok,'Content-Type':'application/json'},body:JSON.stringify(body)});
       const d=await r.json();
-      console.log('[CalEvent] Graph response:',JSON.stringify(d).substring(0,300));
+      console.log('[CalEvent] Graph response (status='+r.status+'):',JSON.stringify(d).substring(0,400));
       if(d.error)throw new Error(d.error.code+': '+d.error.message);
+      if(!d.id)throw new Error('Resposta inesperada da API: '+JSON.stringify(d).substring(0,200));
       // Abrir o calendário no dia do evento
       const [oy,om,od]=dateStart.split('-');
       const outlookDayUrl=provider==='corp'
-        ?'https://outlook.office.com/calendar/view/week'
+        ?'https://outlook.office.com/calendar/'+oy+'-'+om+'-'+od+'/view/day'
         :'https://outlook.live.com/calendar/'+oy+'-'+om+'-'+od+'/view/day';
       eventUrl=outlookDayUrl;
     }
