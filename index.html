@@ -601,7 +601,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .inp-mic:hover{color:var(--text);background:var(--surface3)}
 .inp-mic.on{color:var(--red)}
 .inp-mic svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
-.ai-suggestions{display:flex;gap:6px;flex-wrap:wrap;padding:0 1.5rem 0.75rem;flex-shrink:0}
+.ai-suggestions{display:flex;gap:6px;flex-wrap:wrap;padding:0.75rem 1.5rem 0.75rem;flex-shrink:0;border-top:1px solid var(--border)}
 .ai-sug{padding:5px 11px;border-radius:var(--r-full);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:11px;cursor:pointer;transition:all 0.15s;white-space:nowrap}
 .ai-sug:hover{border-color:var(--purple);color:var(--purple);background:var(--purple-dim)}
 /* Botões de ação do chat IA */
@@ -610,6 +610,9 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .ai-action-btn:active{transform:scale(0.97)}
 .ai-action-btn svg{width:16px;height:16px;flex-shrink:0}
 .ai-suggestions>div{width:100%}
+/* Área do picker dinâmico (agenda/email selector) */
+#ai-picker-area{flex-shrink:0;border-top:1px solid var(--border)}
+#ai-picker-area:empty{border-top:none}
 /* Modal de mover lembrete para agenda */
 .to-agenda-modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:200;padding:1rem;backdrop-filter:blur(4px)}
 .to-agenda-modal-wrap.open{display:flex}
@@ -1307,9 +1310,11 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
       </button>
     </div>
     <div class="ai-messages" id="ai-messages"></div>
+    <!-- Seletor dinâmico (agenda/email picker) -->
+    <div id="ai-picker-area"></div>
+    <!-- Botões de ação fixos — sempre visíveis -->
     <div class="ai-suggestions" id="ai-suggestions">
-      <!-- Atalhos de ação principais -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:4px 0 8px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%">
         <button class="ai-action-btn" onclick="aiActionAddEvent()" style="border-color:rgba(34,197,94,0.35);color:var(--accent)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>
           <span>Adicionar evento</span>
@@ -1331,12 +1336,8 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
           <span>Consultar agenda</span>
         </button>
       </div>
-      <!-- Sugestões rápidas de texto -->
-      <button class="ai-sug" onclick="sendAISuggestion(this)">O que tenho hoje?</button>
-      <button class="ai-sug" onclick="sendAISuggestion(this)">Compromissos amanhã</button>
-      <button class="ai-sug" onclick="sendAISuggestion(this)">Resumo da semana</button>
     </div>
-    <div class="ai-input-area">
+    <div class="ai-input-area" style="display:none" id="ai-input-area">
       <button class="ai-mic-btn" id="ai-mic-btn" onclick="toggleAIVoice()" title="Usar voz">
         <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
       </button>
@@ -3271,6 +3272,7 @@ function removeAITyping(){
   if(el)el.remove();
 }
 function sendAISuggestion(btn){
+  // mantido por compatibilidade mas não usado com input bloqueado
   const text=btn.textContent;
   document.getElementById('ai-input').value=text;
   sendAIMessage();
@@ -3279,65 +3281,75 @@ function aiInputKeydown(e){
   if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAIMessage();}
 }
 // --- Atalhos de ação do chat IA ---
+// Os 5 botões são SEMPRE visíveis. Nenhuma função deve ocultar #ai-suggestions.
+// O picker dinâmico (agenda/email) é exibido em #ai-picker-area.
+function _showPicker(html){
+  const area=document.getElementById('ai-picker-area');
+  area.innerHTML=html;
+  // Auto-remover após 20s se não interagido
+  clearTimeout(area._pickerTimer);
+  area._pickerTimer=setTimeout(()=>{area.innerHTML='';},20000);
+}
+function _clearPicker(){document.getElementById('ai-picker-area').innerHTML='';}
 function aiActionAddEvent(){
-  // Perguntar em qual agenda e detalhes do evento
-  const inp=document.getElementById('ai-input');
-  const sugDiv=document.getElementById('ai-suggestions');
-  sugDiv.style.display='none';
-  // Mostrar mini-seletor de agenda dentro do chat
-  const agendas=[];
   const int=integrations||{};
+  const agendas=[];
   if(int.googleConnected)agendas.push({id:'google',label:'Google Calendar',color:'#EF4444'});
   if(int.outlookConnected)agendas.push({id:'outlook',label:'Outlook',color:'#3B82F6'});
   if(int.outlook2Connected)agendas.push({id:'corp',label:'Outlook Corp',color:'#22D3EE'});
-  if(agendas.length===0){inp.value='Adicionar evento na agenda';sendAIMessage();return;}
+  if(agendas.length===0){addAIMessage('assistant','Nenhuma agenda conectada. Conecte uma agenda em Configurações.');return;}
   if(agendas.length===1){openNewCalEvent(agendas[0].id);return;}
-  // Mostrar seletor inline
-  const wrap=document.createElement('div');
-  wrap.style.cssText='padding:8px 1.5rem 4px;display:flex;flex-direction:column;gap:6px';
-  wrap.innerHTML='<div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:2px">Em qual agenda?</div>'+agendas.map(a=>`<button onclick="openNewCalEvent('${a.id}');this.closest('.ai-agenda-picker').remove()" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;border:1.5px solid ${a.color}33;background:none;color:${a.color};font-family:inherit;font-size:13px;font-weight:600;cursor:pointer"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' style='width:14px;height:14px'><rect x='3' y='4' width='18' height='18' rx='2'/><line x1='16' y1='2' x2='16' y2='6'/><line x1='8' y1='2' x2='8' y2='6'/><line x1='3' y1='10' x2='21' y2='10'/></svg>${a.label}</button>`).join('');
-  wrap.className='ai-agenda-picker';
-  const msgArea=document.getElementById('ai-messages');
-  msgArea.parentNode.insertBefore(wrap,msgArea.nextSibling);
-  setTimeout(()=>wrap.remove(),15000);
+  _showPicker(
+    '<div style="padding:10px 1.5rem 6px;display:flex;flex-direction:column;gap:6px">'+
+    '<div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:2px">Em qual agenda?</div>'+
+    agendas.map(a=>`<button onclick="openNewCalEvent('${a.id}');_clearPicker()" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;border:1.5px solid ${a.color}33;background:none;color:${a.color};font-family:inherit;font-size:13px;font-weight:600;cursor:pointer"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' style='width:14px;height:14px'><rect x='3' y='4' width='18' height='18' rx='2'/><line x1='16' y1='2' x2='16' y2='6'/><line x1='8' y1='2' x2='8' y2='6'/><line x1='3' y1='10' x2='21' y2='10'/></svg>${a.label}</button>`).join('')+
+    '</div>'
+  );
 }
 function aiActionDeleteEvent(){
-  const inp=document.getElementById('ai-input');
-  inp.value='Quero excluir um evento. Qual evento devo excluir? ';
-  inp.focus();
-  inp.setSelectionRange(inp.value.length,inp.value.length);
-  document.getElementById('ai-suggestions').style.display='none';
+  addAIMessage('assistant','Para excluir um evento, acesse diretamente o calendário (Google, Outlook ou Outlook Corp) e exclua o evento desejado.');
 }
 function aiActionAccessEvent(){
-  const inp=document.getElementById('ai-input');
-  inp.value='Quero acessar um evento. ';
-  inp.focus();
-  inp.setSelectionRange(inp.value.length,inp.value.length);
-  document.getElementById('ai-suggestions').style.display='none';
+  const int=integrations||{};
+  const agendas=[];
+  if(int.googleConnected)agendas.push({id:'google',label:'Google Calendar',color:'#EF4444',url:'https://calendar.google.com'});
+  if(int.outlookConnected)agendas.push({id:'outlook',label:'Outlook',color:'#3B82F6',url:'https://outlook.live.com/calendar'});
+  if(int.outlook2Connected)agendas.push({id:'corp',label:'Outlook Corp',color:'#22D3EE',url:'https://outlook.office.com/calendar'});
+  if(agendas.length===0){addAIMessage('assistant','Nenhuma agenda conectada.');return;}
+  if(agendas.length===1){window.open(agendas[0].url,'_blank');return;}
+  _showPicker(
+    '<div style="padding:10px 1.5rem 6px;display:flex;flex-direction:column;gap:6px">'+
+    '<div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:2px">Abrir qual agenda?</div>'+
+    agendas.map(a=>`<button onclick="window.open('${a.url}','_blank');_clearPicker()" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;border:1.5px solid ${a.color}33;background:none;color:${a.color};font-family:inherit;font-size:13px;font-weight:600;cursor:pointer"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' style='width:14px;height:14px'><rect x='3' y='4' width='18' height='18' rx='2'/><line x1='16' y1='2' x2='16' y2='6'/><line x1='8' y1='2' x2='8' y2='6'/><line x1='3' y1='10' x2='21' y2='10'/></svg>${a.label}</button>`).join('')+
+    '</div>'
+  );
 }
 function aiActionSendEmail(){
-  // Mostrar seletor de conta de e-mail
   const int=integrations||{};
   const emails=[];
-  if(int.googleConnected&&int.gcalEmail)emails.push({label:'Gmail ('+int.gcalEmail.split('@')[0]+')',url:'https://mail.google.com/mail/u/0/#compose',color:'#EF4444'});
+  // CORRIGIDO: usar googleEmail (não gcalEmail) para Gmail
+  if(int.googleConnected)emails.push({label:'Gmail'+(int.googleEmail?' ('+int.googleEmail.split('@')[0]+')':''),url:'https://mail.google.com/mail/u/0/#compose',color:'#EF4444'});
   if(int.outlookConnected&&int.outlookEmail)emails.push({label:'Outlook ('+int.outlookEmail.split('@')[0]+')',url:'https://outlook.live.com/mail/0/deeplink/compose',color:'#3B82F6'});
   if(int.outlook2Connected&&int.outlook2Email)emails.push({label:'Corp. ('+int.outlook2Email.split('@')[0]+')',url:'https://outlook.office.com/mail/deeplink/compose',color:'#22D3EE'});
-  if(emails.length===0){document.getElementById('ai-input').value='Mandar e-mail';sendAIMessage();return;}
+  if(emails.length===0){addAIMessage('assistant','Nenhuma conta de e-mail conectada. Conecte uma conta em Configurações.');return;}
   if(emails.length===1){window.open(emails[0].url,'_blank');return;}
-  const wrap=document.createElement('div');
-  wrap.style.cssText='padding:8px 1.5rem 4px;display:flex;flex-direction:column;gap:6px';
-  wrap.innerHTML='<div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:2px">Qual conta de e-mail?</div>'+emails.map(e=>`<button onclick="window.open('${e.url}','_blank');this.closest('.ai-agenda-picker').remove()" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;border:1.5px solid ${e.color}33;background:none;color:${e.color};font-family:inherit;font-size:13px;font-weight:600;cursor:pointer"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' style='width:14px;height:14px'><path d='M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z'/><polyline points='22,6 12,13 2,6'/></svg>${e.label}</button>`).join('');
-  wrap.className='ai-agenda-picker';
-  const msgArea=document.getElementById('ai-messages');
-  msgArea.parentNode.insertBefore(wrap,msgArea.nextSibling);
-  setTimeout(()=>wrap.remove(),15000);
+  _showPicker(
+    '<div style="padding:10px 1.5rem 6px;display:flex;flex-direction:column;gap:6px">'+
+    '<div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:2px">Qual conta de e-mail?</div>'+
+    emails.map(e=>`<button onclick="window.open('${e.url}','_blank');_clearPicker()" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;border:1.5px solid ${e.color}33;background:none;color:${e.color};font-family:inherit;font-size:13px;font-weight:600;cursor:pointer"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' style='width:14px;height:14px'><path d='M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z'/><polyline points='22,6 12,13 2,6'/></svg>${e.label}</button>`).join('')+
+    '</div>'
+  );
 }
 function aiActionQueryAgenda(){
-  const inp=document.getElementById('ai-input');
-  inp.value='O que tenho na agenda do dia ';
-  inp.focus();
-  inp.setSelectionRange(inp.value.length,inp.value.length);
-  document.getElementById('ai-suggestions').style.display='none';
+  // Mostrar resumo da agenda diretamente no chat
+  const t=today();
+  const calEvts=(integrations.calendarEvents||[]).filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t);
+  const rems=reminders.filter(r=>!r.done&&r.date===t);
+  let msg=`**Agenda de hoje (${new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit'})})**\n\n`;
+  if(calEvts.length)msg+='**Eventos:**\n'+calEvts.map(e=>`- ${fmtTime(e.start?.dateTime)||'Dia todo'} — ${e.summary} _(${e.origem||e.source})_`).join('\n')+'\n\n';
+  if(rems.length)msg+='**Lembretes:**\n'+rems.map(r=>`- ${r.time||''} ${r.title}`).join('\n');
+  if(!calEvts.length&&!rems.length)msg+='Nenhum compromisso ou lembrete para hoje.';
+  addAIMessage('assistant',msg);
 }
 function autoResizeAI(el){
   el.style.height='auto';
@@ -3352,8 +3364,7 @@ async function sendAIMessage(){
   addAIMessage('user',text);
   aiTyping=true;
   showAITyping();
-  // Ocultar sugestões após primeira mensagem
-  document.getElementById('ai-suggestions').style.display='none';
+  _clearPicker(); // limpar picker dinâmico após envio
   try{
     const context=buildAIContext();
     const response=await callAI(text,context);
