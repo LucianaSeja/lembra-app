@@ -454,6 +454,25 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
   padding-bottom:2px;
 }
 .agenda-section-lbl svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;flex-shrink:0}
+/* Botão + adicionar evento na agenda */
+.btn-add-agenda{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  padding:6px 4px;
+  border-radius:10px;
+  border:1.5px solid;
+  font-size:11px;
+  font-weight:600;
+  cursor:pointer;
+  transition:opacity 0.15s,transform 0.1s;
+  letter-spacing:0.01em;
+  width:100%;
+}
+.btn-add-agenda:hover{opacity:0.8;transform:translateY(-1px)}
+.btn-add-agenda:active{transform:scale(0.97)}
+.btn-add-agenda svg{width:12px;height:12px;flex-shrink:0}
 /* Grid de 3 colunas para Agendas e E-mails — responsivo */
 .dash-3col-grid{
   display:grid;
@@ -585,6 +604,12 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .ai-suggestions{display:flex;gap:6px;flex-wrap:wrap;padding:0 1.5rem 0.75rem;flex-shrink:0}
 .ai-sug{padding:5px 11px;border-radius:var(--r-full);border:1px solid var(--border);background:none;color:var(--text2);font-family:inherit;font-size:11px;cursor:pointer;transition:all 0.15s;white-space:nowrap}
 .ai-sug:hover{border-color:var(--purple);color:var(--purple);background:var(--purple-dim)}
+/* Botões de ação do chat IA */
+.ai-action-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 8px;border-radius:12px;border:1.5px solid;background:none;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;width:100%}
+.ai-action-btn:hover{opacity:0.75;transform:translateY(-1px)}
+.ai-action-btn:active{transform:scale(0.97)}
+.ai-action-btn svg{width:16px;height:16px;flex-shrink:0}
+.ai-suggestions>div{width:100%}
 /* Modal de mover lembrete para agenda */
 .to-agenda-modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:200;padding:1rem;backdrop-filter:blur(4px)}
 .to-agenda-modal-wrap.open{display:flex}
@@ -912,6 +937,21 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
               <div class="agenda-dash-title" style="color:#22D3EE">Corp.</div>
               <div class="agenda-dash-sub" id="dash-sub-agenda-outlook2">Calendar</div>
             </a>
+          </div>
+          <!-- Botões + para adicionar evento em cada agenda -->
+          <div class="dash-3col-grid">
+            <button class="btn-add-agenda" style="color:#EF4444;border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.07)" onclick="openNewCalEvent('google')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Adicionar
+            </button>
+            <button class="btn-add-agenda" style="color:#3B82F6;border-color:rgba(59,130,246,0.3);background:rgba(59,130,246,0.07)" onclick="openNewCalEvent('outlook')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Adicionar
+            </button>
+            <button class="btn-add-agenda" style="color:#22D3EE;border-color:rgba(34,211,238,0.3);background:rgba(34,211,238,0.07)" onclick="openNewCalEvent('corp')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Adicionar
+            </button>
           </div>
         </div>
 
@@ -1268,11 +1308,33 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
     </div>
     <div class="ai-messages" id="ai-messages"></div>
     <div class="ai-suggestions" id="ai-suggestions">
+      <!-- Atalhos de ação principais -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:4px 0 8px">
+        <button class="ai-action-btn" onclick="aiActionAddEvent()" style="border-color:rgba(34,197,94,0.35);color:var(--accent)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>
+          <span>Adicionar evento</span>
+        </button>
+        <button class="ai-action-btn" onclick="aiActionDeleteEvent()" style="border-color:rgba(239,68,68,0.35);color:var(--red)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          <span>Excluir evento</span>
+        </button>
+        <button class="ai-action-btn" onclick="aiActionAccessEvent()" style="border-color:rgba(59,130,246,0.35);color:var(--blue)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span>Acessar evento</span>
+        </button>
+        <button class="ai-action-btn" onclick="aiActionSendEmail()" style="border-color:rgba(167,139,250,0.35);color:var(--purple)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <span>Mandar e-mail</span>
+        </button>
+        <button class="ai-action-btn" onclick="aiActionQueryAgenda()" style="border-color:rgba(250,204,21,0.35);color:var(--amber);grid-column:1/-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Consultar agenda</span>
+        </button>
+      </div>
+      <!-- Sugestões rápidas de texto -->
       <button class="ai-sug" onclick="sendAISuggestion(this)">O que tenho hoje?</button>
-      <button class="ai-sug" onclick="sendAISuggestion(this)">Lembretes pendentes</button>
       <button class="ai-sug" onclick="sendAISuggestion(this)">Compromissos amanhã</button>
       <button class="ai-sug" onclick="sendAISuggestion(this)">Resumo da semana</button>
-      <button class="ai-sug" onclick="sendAISuggestion(this)">Enviar e-mail</button>
     </div>
     <div class="ai-input-area">
       <button class="ai-mic-btn" id="ai-mic-btn" onclick="toggleAIVoice()" title="Usar voz">
@@ -3203,6 +3265,67 @@ function sendAISuggestion(btn){
 function aiInputKeydown(e){
   if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAIMessage();}
 }
+// --- Atalhos de ação do chat IA ---
+function aiActionAddEvent(){
+  // Perguntar em qual agenda e detalhes do evento
+  const inp=document.getElementById('ai-input');
+  const sugDiv=document.getElementById('ai-suggestions');
+  sugDiv.style.display='none';
+  // Mostrar mini-seletor de agenda dentro do chat
+  const agendas=[];
+  const int=integrations||{};
+  if(int.googleConnected)agendas.push({id:'google',label:'Google Calendar',color:'#EF4444'});
+  if(int.outlookConnected)agendas.push({id:'outlook',label:'Outlook',color:'#3B82F6'});
+  if(int.outlook2Connected)agendas.push({id:'corp',label:'Outlook Corp',color:'#22D3EE'});
+  if(agendas.length===0){inp.value='Adicionar evento na agenda';sendAIMessage();return;}
+  if(agendas.length===1){openNewCalEvent(agendas[0].id);return;}
+  // Mostrar seletor inline
+  const wrap=document.createElement('div');
+  wrap.style.cssText='padding:8px 1.5rem 4px;display:flex;flex-direction:column;gap:6px';
+  wrap.innerHTML='<div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:2px">Em qual agenda?</div>'+agendas.map(a=>`<button onclick="openNewCalEvent('${a.id}');this.closest('.ai-agenda-picker').remove()" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;border:1.5px solid ${a.color}33;background:none;color:${a.color};font-family:inherit;font-size:13px;font-weight:600;cursor:pointer"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' style='width:14px;height:14px'><rect x='3' y='4' width='18' height='18' rx='2'/><line x1='16' y1='2' x2='16' y2='6'/><line x1='8' y1='2' x2='8' y2='6'/><line x1='3' y1='10' x2='21' y2='10'/></svg>${a.label}</button>`).join('');
+  wrap.className='ai-agenda-picker';
+  const msgArea=document.getElementById('ai-messages');
+  msgArea.parentNode.insertBefore(wrap,msgArea.nextSibling);
+  setTimeout(()=>wrap.remove(),15000);
+}
+function aiActionDeleteEvent(){
+  const inp=document.getElementById('ai-input');
+  inp.value='Quero excluir um evento. Qual evento devo excluir? ';
+  inp.focus();
+  inp.setSelectionRange(inp.value.length,inp.value.length);
+  document.getElementById('ai-suggestions').style.display='none';
+}
+function aiActionAccessEvent(){
+  const inp=document.getElementById('ai-input');
+  inp.value='Quero acessar um evento. ';
+  inp.focus();
+  inp.setSelectionRange(inp.value.length,inp.value.length);
+  document.getElementById('ai-suggestions').style.display='none';
+}
+function aiActionSendEmail(){
+  // Mostrar seletor de conta de e-mail
+  const int=integrations||{};
+  const emails=[];
+  if(int.googleConnected&&int.gcalEmail)emails.push({label:'Gmail ('+int.gcalEmail.split('@')[0]+')',url:'https://mail.google.com/mail/u/0/#compose',color:'#EF4444'});
+  if(int.outlookConnected&&int.outlookEmail)emails.push({label:'Outlook ('+int.outlookEmail.split('@')[0]+')',url:'https://outlook.live.com/mail/0/deeplink/compose',color:'#3B82F6'});
+  if(int.outlook2Connected&&int.outlook2Email)emails.push({label:'Corp. ('+int.outlook2Email.split('@')[0]+')',url:'https://outlook.office.com/mail/deeplink/compose',color:'#22D3EE'});
+  if(emails.length===0){document.getElementById('ai-input').value='Mandar e-mail';sendAIMessage();return;}
+  if(emails.length===1){window.open(emails[0].url,'_blank');return;}
+  const wrap=document.createElement('div');
+  wrap.style.cssText='padding:8px 1.5rem 4px;display:flex;flex-direction:column;gap:6px';
+  wrap.innerHTML='<div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:2px">Qual conta de e-mail?</div>'+emails.map(e=>`<button onclick="window.open('${e.url}','_blank');this.closest('.ai-agenda-picker').remove()" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;border:1.5px solid ${e.color}33;background:none;color:${e.color};font-family:inherit;font-size:13px;font-weight:600;cursor:pointer"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' style='width:14px;height:14px'><path d='M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z'/><polyline points='22,6 12,13 2,6'/></svg>${e.label}</button>`).join('');
+  wrap.className='ai-agenda-picker';
+  const msgArea=document.getElementById('ai-messages');
+  msgArea.parentNode.insertBefore(wrap,msgArea.nextSibling);
+  setTimeout(()=>wrap.remove(),15000);
+}
+function aiActionQueryAgenda(){
+  const inp=document.getElementById('ai-input');
+  inp.value='O que tenho na agenda do dia ';
+  inp.focus();
+  inp.setSelectionRange(inp.value.length,inp.value.length);
+  document.getElementById('ai-suggestions').style.display='none';
+}
 function autoResizeAI(el){
   el.style.height='auto';
   el.style.height=Math.min(el.scrollHeight,120)+'px';
@@ -3776,6 +3899,133 @@ async function loginWithGoogle() {
   if (error) {
     console.error('Erro ao entrar com Google:', error.message);
     alert('Erro ao entrar com Google: ' + error.message);
+  }
+}
+</script>
+<!-- Modal: Novo evento na agenda -->
+<div id="modal-new-cal-event" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px">
+  <div style="background:var(--surface);border-radius:20px;padding:24px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.4)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h3 id="modal-cal-title" style="font-size:17px;font-weight:700;margin:0">Novo Compromisso</h3>
+      <button onclick="closeNewCalEvent()" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:20px;height:20px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="modal-cal-form">
+      <div style="margin-bottom:14px">
+        <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Nome do evento</label>
+        <input id="cal-event-title" type="text" placeholder="Ex: Reunião de equipe" style="width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:15px;outline:none;box-sizing:border-box">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Data</label>
+          <input id="cal-event-date" type="date" style="width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;outline:none;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Horário</label>
+          <input id="cal-event-time" type="time" style="width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;outline:none;box-sizing:border-box">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button onclick="closeNewCalEvent()" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--border);background:none;color:var(--text2);font-size:14px;font-weight:600;cursor:pointer">Cancelar</button>
+        <button id="btn-create-cal-event" onclick="submitNewCalEvent()" style="flex:2;padding:11px;border-radius:10px;border:none;background:var(--accent);color:var(--accent-text);font-size:14px;font-weight:700;cursor:pointer">Criar Evento</button>
+      </div>
+    </div>
+    <div id="modal-cal-success" style="display:none;text-align:center;padding:8px 0">
+      <div style="font-size:36px;margin-bottom:12px">✅</div>
+      <p id="modal-cal-success-msg" style="font-weight:600;font-size:15px;margin-bottom:16px">Criado com sucesso!</p>
+      <a id="btn-view-cal-event" href="#" target="_blank" style="display:block;padding:11px;border-radius:10px;background:var(--accent);color:var(--accent-text);font-size:14px;font-weight:700;text-decoration:none;margin-bottom:10px">Ver na agenda</a>
+      <div style="display:flex;gap:8px">
+        <button onclick="closeNewCalEvent()" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:none;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer">Fechar</button>
+        <button onclick="resetNewCalEvent()" style="flex:1;padding:10px;border-radius:10px;border:none;background:var(--surface2);color:var(--text);font-size:13px;font-weight:600;cursor:pointer">Novo evento</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+let _calEventProvider=null;
+function openNewCalEvent(provider){
+  _calEventProvider=provider;
+  const titles={google:'Novo Compromisso · Google Calendar',outlook:'Novo Compromisso · Outlook',corp:'Novo Compromisso · Outlook Corp'};
+  document.getElementById('modal-cal-title').textContent=titles[provider]||'Novo Compromisso';
+  const today=new Date();
+  const yyyy=today.getFullYear();
+  const mm=String(today.getMonth()+1).padStart(2,'0');
+  const dd=String(today.getDate()).padStart(2,'0');
+  document.getElementById('cal-event-date').value=yyyy+'-'+mm+'-'+dd;
+  document.getElementById('cal-event-time').value='';
+  document.getElementById('cal-event-title').value='';
+  document.getElementById('modal-cal-form').style.display='block';
+  document.getElementById('modal-cal-success').style.display='none';
+  const modal=document.getElementById('modal-new-cal-event');
+  modal.style.display='flex';
+  setTimeout(()=>document.getElementById('cal-event-title').focus(),100);
+}
+function closeNewCalEvent(){
+  document.getElementById('modal-new-cal-event').style.display='none';
+  _calEventProvider=null;
+}
+function resetNewCalEvent(){
+  document.getElementById('modal-cal-form').style.display='block';
+  document.getElementById('modal-cal-success').style.display='none';
+  document.getElementById('cal-event-title').value='';
+  document.getElementById('cal-event-time').value='';
+  setTimeout(()=>document.getElementById('cal-event-title').focus(),100);
+}
+async function submitNewCalEvent(){
+  const title=document.getElementById('cal-event-title').value.trim();
+  const date=document.getElementById('cal-event-date').value;
+  const time=document.getElementById('cal-event-time').value;
+  if(!title){document.getElementById('cal-event-title').focus();return;}
+  if(!date){document.getElementById('cal-event-date').focus();return;}
+  const btn=document.getElementById('btn-create-cal-event');
+  btn.textContent='Criando...';
+  btn.disabled=true;
+  try{
+    let eventUrl='';
+    const provider=_calEventProvider;
+    if(provider==='google'){
+      const startDt=time?date+'T'+time+':00':date;
+      const endDt=time?(date+'T'+String(parseInt(time.split(':')[0])+1).padStart(2,'0')+':'+time.split(':')[1]+':00'):date;
+      const isAllDay=!time;
+      const body=isAllDay?{summary:title,start:{date:date},end:{date:date}}:{summary:title,start:{dateTime:startDt,timeZone:'America/Sao_Paulo'},end:{dateTime:endDt,timeZone:'America/Sao_Paulo'}};
+      if(!gcalToken){
+        eventUrl='https://calendar.google.com/calendar/r/eventedit?text='+encodeURIComponent(title)+(date?'&dates='+date.replace(/-/g,'')+'T'+(time?time.replace(':','')+'00':'090000')+'/'+date.replace(/-/g,'')+'T'+(time?String(parseInt(time.split(':')[0])+1).padStart(2,'0')+time.split(':')[1]+'00':'100000'):'');
+        window.open(eventUrl,'_blank');
+        closeNewCalEvent();
+        return;
+      }
+      const r=await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events',{method:'POST',headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},body:JSON.stringify(body)});
+      const d=await r.json();
+      if(d.error)throw new Error(d.error.message);
+      eventUrl=d.htmlLink||'https://calendar.google.com/calendar/r';
+    } else if(provider==='outlook'||provider==='corp'){
+      const tok=provider==='corp'?outlookToken2:outlookToken;
+      const startDt=time?date+'T'+time+':00':date+'T09:00:00';
+      const endDt=time?(date+'T'+String(parseInt(time.split(':')[0])+1).padStart(2,'0')+':'+time.split(':')[1]+':00'):(date+'T10:00:00');
+      const body={subject:title,start:{dateTime:startDt,timeZone:'America/Sao_Paulo'},end:{dateTime:endDt,timeZone:'America/Sao_Paulo'}};
+      if(!tok){
+        eventUrl=provider==='corp'?'https://outlook.office.com/calendar/0/action/compose':'https://outlook.live.com/calendar/0/action/compose';
+        window.open(eventUrl,'_blank');
+        closeNewCalEvent();
+        return;
+      }
+      const r=await fetch('https://graph.microsoft.com/v1.0/me/events',{method:'POST',headers:{'Authorization':'Bearer '+tok,'Content-Type':'application/json'},body:JSON.stringify(body)});
+      const d=await r.json();
+      if(d.error)throw new Error(d.error.message);
+      eventUrl=d.webLink||(provider==='corp'?'https://outlook.office.com/calendar':'https://outlook.live.com/calendar');
+    }
+    const names={google:'Google Calendar',outlook:'Outlook',corp:'Outlook Corp'};
+    document.getElementById('modal-cal-success-msg').textContent='Criado com sucesso em '+names[provider]+'!';
+    document.getElementById('btn-view-cal-event').href=eventUrl||'#';
+    document.getElementById('modal-cal-form').style.display='none';
+    document.getElementById('modal-cal-success').style.display='block';
+    setTimeout(()=>refreshAllCalendars&&refreshAllCalendars(),1500);
+  }catch(e){
+    alert('Erro ao criar evento: '+e.message);
+  } finally{
+    btn.textContent='Criar Evento';
+    btn.disabled=false;
   }
 }
 </script>
