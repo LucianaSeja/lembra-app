@@ -1749,8 +1749,14 @@ async function fetchGoogleCalendarEvents(){
     integrations.calendarEvents=[...googleEvts,...nonGoogleEvts];
     integrations.gcalToken=gcalToken; // manter token atualizado
     saveInt();
-    const emailInfo=integrations.googleEmail?` (${integrations.googleEmail})`:''
-    notify('Google Agenda',`✓ ${googleEvts.length} evento(s) carregado(s)${emailInfo}`);
+    const emailInfo=integrations.googleEmail?` (${integrations.googleEmail})`:'';
+    // Log detalhado: mostrar os eventos carregados para debug
+    const hoje=today();
+    const hojeEvts=googleEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===hoje);
+    console.log('[Google] Total eventos:',googleEvts.length,'| Hoje:',hojeEvts.length,'| Conta:',integrations.googleEmail);
+    console.log('[Google] Eventos hoje:',hojeEvts.map(e=>e.summary+'@'+(e.start?.dateTime||e.start?.date)));
+    notify('Google Agenda',`✓ ${googleEvts.length} evento(s) carregado(s) — ${hojeEvts.length} hoje${emailInfo}`);
+    renderAgendaDashboard();
     updateBadges();
     if(view==='compromissos-hoje')loadCompromissosDia('hoje');
     if(view==='compromissos-amanha')loadCompromissosDia('amanha');
