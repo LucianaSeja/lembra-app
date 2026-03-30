@@ -1910,7 +1910,7 @@ function getMsalApp2(){
     const redirectUri='https://lembra-app.vercel.app';
     msalApp2=new msal.PublicClientApplication({
       auth:{clientId:OUTLOOK_CLIENT_ID,authority:'https://login.microsoftonline.com/common',redirectUri:redirectUri},
-      cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
+      cache:{cacheLocation:'localStorage',storeAuthStateInCookie:true}
     });
   }
   return msalApp2;
