@@ -4032,7 +4032,9 @@ async function submitNewCalEvent(){
       const r=await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events',{method:'POST',headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},body:JSON.stringify(body)});
       const d=await r.json();
       if(d.error)throw new Error(d.error.message);
-      eventUrl=d.htmlLink||'https://calendar.google.com/calendar/r';
+      // Abrir o calendário no dia do evento em vez do link direto (evita erro "evento não encontrado")
+      const [gy,gm,gd]=dateStart.split('-');
+      eventUrl='https://calendar.google.com/calendar/r/day/'+gy+'/'+parseInt(gm)+'/'+parseInt(gd);
     } else if(provider==='outlook'||provider==='corp'){
       const tok=provider==='corp'?outlookToken2:outlookToken;
       const startDt=dateStart+'T'+(timeStart?timeStart+':00':'09:00:00');
@@ -4047,7 +4049,12 @@ async function submitNewCalEvent(){
       const r=await fetch('https://graph.microsoft.com/v1.0/me/events',{method:'POST',headers:{'Authorization':'Bearer '+tok,'Content-Type':'application/json'},body:JSON.stringify(body)});
       const d=await r.json();
       if(d.error)throw new Error(d.error.message);
-      eventUrl=d.webLink||(provider==='corp'?'https://outlook.office.com/calendar':'https://outlook.live.com/calendar');
+      // Abrir o calendário no dia do evento
+      const [oy,om,od]=dateStart.split('-');
+      const outlookDayUrl=provider==='corp'
+        ?'https://outlook.office.com/calendar/view/week'
+        :'https://outlook.live.com/calendar/'+oy+'-'+om+'-'+od+'/view/day';
+      eventUrl=outlookDayUrl;
     }
     const names={google:'Google Calendar',outlook:'Outlook',corp:'Outlook Corp'};
     document.getElementById('modal-cal-success-msg').textContent='Criado com sucesso em '+names[provider]+'!';
