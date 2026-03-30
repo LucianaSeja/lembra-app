@@ -3929,11 +3929,11 @@ async function loginWithGoogle() {
         </div>
       </div>
       <!-- Fim -->
-      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Fim</div>
+      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Fim <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
         <div>
           <label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">Data</label>
-          <input id="cal-event-date-end" type="date" style="width:100%;padding:9px 10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;outline:none;box-sizing:border-box">
+          <input id="cal-event-date-end" type="date" placeholder="Mesmo dia" style="width:100%;padding:9px 10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;outline:none;box-sizing:border-box">
         </div>
         <div>
           <label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">Horário</label>
@@ -3997,7 +3997,7 @@ async function submitNewCalEvent(){
   const title=document.getElementById('cal-event-title').value.trim();
   const dateStart=document.getElementById('cal-event-date').value;
   const timeStart=document.getElementById('cal-event-time').value;
-  const dateEnd=document.getElementById('cal-event-date-end').value||dateStart;
+  const dateEnd=document.getElementById('cal-event-date-end').value||dateStart; // fallback = data início
   const timeEnd=document.getElementById('cal-event-time-end').value;
   if(!title){document.getElementById('cal-event-title').focus();return;}
   if(!dateStart){document.getElementById('cal-event-date').focus();return;}
