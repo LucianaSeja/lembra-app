@@ -4036,6 +4036,9 @@ async function submitNewCalEvent(){
       const [gy,gm,gd]=dateStart.split('-');
       eventUrl='https://calendar.google.com/calendar/r/day/'+gy+'/'+parseInt(gm)+'/'+parseInt(gd);
     } else if(provider==='outlook'||provider==='corp'){
+      // Tentar renovar token silenciosamente antes de criar
+      if(provider==='corp'&&!outlookToken2){await silentReauthOutlook2();}
+      if(provider==='outlook'&&!outlookToken){await silentReauthOutlook();}
       const tok=provider==='corp'?outlookToken2:outlookToken;
       const startDt=dateStart+'T'+(timeStart?timeStart+':00':'09:00:00');
       const endDt=timeEnd?(dateEnd+'T'+timeEnd+':00'):(dateEnd+'T'+(timeStart?String(parseInt(timeStart.split(':')[0])+1).padStart(2,'0')+':'+timeStart.split(':')[1]+':00':'10:00:00'));
