@@ -1685,84 +1685,55 @@ async function renewGcalToken(){
 async function fetchGoogleCalendarEvents(){
   if(!gcalToken){updateBadges();return;}
   try{
-    // Verificar se token ainda é válido
+    // Verificar token via userinfo
     const uRes=await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+gcalToken}});
     if(uRes.status===401){
-      // Token expirado: limpar silenciosamente, sem abrir popup
       gcalToken=null;delete integrations.gcalToken;saveInt();updateIntUI();
-      console.warn('[Lembra] Token Google expirado — reconexão manual necessária.');
       showGoogleTokenWarning();
       return;
-    } else if(uRes.ok){
-      const uData=await uRes.json();if(uData.email)integrations.googleEmail=uData.email;
     }
-    // Usar Edge Function do Supabase para buscar eventos
-    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
-    const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
-      body:JSON.stringify({provider:'google',token:gcalToken})
-    });
-    if(!res.ok){
-      if(res.status===401){
-        // Tentar renovar o token Google (pode ter expirado entre a verificação userinfo e a chamada)
-        const renewed=await renewGcalToken();
-        if(renewed){
-          // Tentar novamente com novo token
-          const res2=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
-            method:'POST',
-            headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
-            body:JSON.stringify({provider:'google',token:gcalToken})
-          });
-          if(res2.ok){
-            const data2=await res2.json();
-            if(!data2.erro){
-              const nonGoogleEvts=(integrations.calendarEvents||[]).filter(e=>e.source!=='google');
-              const googleEvts=(data2.eventos||[]).map(e=>({...e,source:'google'}));
-              integrations.calendarEvents=[...googleEvts,...nonGoogleEvts];
-              integrations.gcalToken=gcalToken;
-              saveInt();
-              notify('Google Agenda',`✓ ${googleEvts.length} evento(s) carregado(s)`);
-              updateBadges();
-              if(view==='compromissos-hoje')loadCompromissosDia('hoje');
-              if(view==='compromissos-amanha')loadCompromissosDia('amanha');
-              return;
-            }
-          }
-        }
-        // Token Google expirado e renovação falhou — pedir reconexão
-        gcalToken=null;delete integrations.gcalToken;saveInt();updateIntUI();
-        notify('Google Agenda','Sessão expirada. Clique em “Conectar Google” para reconectar.');
-        return;
-      }
-      if(res.status===400){
-        // Erro de servidor (não é token expirado) — manter token e avisar
-        notify('Google Agenda','Erro ao buscar eventos. Tente sincronizar novamente.');
-        return;
-      }
-      throw new Error('Edge Function HTTP '+res.status);
+    if(uRes.ok){const uData=await uRes.json();if(uData.email)integrations.googleEmail=uData.email;}
+    // Buscar eventos DIRETAMENTE da API do Google Calendar (sem Supabase)
+    const agora=new Date();
+    const hojeStr=agora.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'});
+    const amanhaDate=new Date(agora);amanhaDate.setDate(amanhaDate.getDate()+1);
+    const amanhaStr=amanhaDate.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'});
+    const timeMin=encodeURIComponent(hojeStr+'T00:00:00-03:00');
+    const timeMax=encodeURIComponent(amanhaStr+'T23:59:59-03:00');
+    const gcalUrl=`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime&maxResults=100`;
+    const res=await fetch(gcalUrl,{headers:{Authorization:'Bearer '+gcalToken}});
+    if(res.status===401){
+      gcalToken=null;delete integrations.gcalToken;saveInt();updateIntUI();
+      showGoogleTokenWarning();
+      return;
     }
+    if(!res.ok)throw new Error('Google Calendar API HTTP '+res.status);
     const data=await res.json();
-    if(data.erro)throw new Error(data.erro);
+    const googleEvts=(data.items||[]).map(e=>({
+      id:e.id,
+      summary:e.summary||'(sem título)',
+      start:e.start,
+      end:e.end,
+      description:e.description||'',
+      origem:'Google Agenda',
+      source:'google',
+      accountId:'primary'
+    }));
     const nonGoogleEvts=(integrations.calendarEvents||[]).filter(e=>e.source!=='google');
-    const googleEvts=(data.eventos||[]).map(e=>({...e,source:'google'}));
     integrations.calendarEvents=[...googleEvts,...nonGoogleEvts];
-    integrations.gcalToken=gcalToken; // manter token atualizado
+    integrations.gcalToken=gcalToken;
     saveInt();
-    const emailInfo=integrations.googleEmail?` (${integrations.googleEmail})`:'';
-    // Log detalhado: mostrar os eventos carregados para debug
     const hoje=today();
     const hojeEvts=googleEvts.filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===hoje);
-    console.log('[Google] Total eventos:',googleEvts.length,'| Hoje:',hojeEvts.length,'| Conta:',integrations.googleEmail);
-    console.log('[Google] Eventos hoje:',hojeEvts.map(e=>e.summary+'@'+(e.start?.dateTime||e.start?.date)));
-    notify('Google Agenda',`✓ ${googleEvts.length} evento(s) carregado(s) — ${hojeEvts.length} hoje${emailInfo}`);
+    const emailInfo=integrations.googleEmail?` (${integrations.googleEmail})`:""
+    notify('Google Agenda',`✓ ${googleEvts.length} evento(s) — ${hojeEvts.length} hoje${emailInfo}`);
     renderAgendaDashboard();
     updateBadges();
     if(view==='compromissos-hoje')loadCompromissosDia('hoje');
     if(view==='compromissos-amanha')loadCompromissosDia('amanha');
   } catch(err){
     console.error('Erro Google Calendar:',err);
-    notify('Google Agenda','Erro ao buscar eventos: '+err.message);
+    notify('Google Agenda','Erro: '+err.message);
   }
 }
 // CRIAR EVENTO NO GOOGLE CALENDAR (via Edge Function Supabase)
