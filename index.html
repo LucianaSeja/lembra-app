@@ -1582,10 +1582,29 @@ async function silentReauthGoogle(){
   _ensureGcalClient();
   // Só tenta buscar eventos se já temos token no storage
   if(gcalToken){
-    try{await fetchGoogleCalendarEvents();updateUnreadBadges();}
+    try{
+      await fetchGoogleCalendarEvents();
+      updateUnreadBadges();
+      // Remover aviso de token expirado se existir
+      const warn=document.getElementById('google-token-warn');
+      if(warn)warn.remove();
+    }
     catch(e){console.warn('[Sync] Google com token salvo:',e);}
+  } else {
+    // Token expirado ou ausente — mostrar aviso visível no dashboard
+    showGoogleTokenWarning();
   }
-  // Se não há token: silencioso — usuário reconecta manualmente quando necessário
+}
+function showGoogleTokenWarning(){
+  if(document.getElementById('google-token-warn'))return; // já existe
+  const container=document.getElementById('dash-card-hoje')?.parentElement;
+  if(!container)return;
+  const div=document.createElement('div');
+  div.id='google-token-warn';
+  div.style.cssText='background:rgba(250,204,21,0.12);border:1.5px solid rgba(250,204,21,0.35);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:4px;cursor:pointer';
+  div.innerHTML=`<svg viewBox="0 0 24 24" style="width:18px;height:18px;flex-shrink:0;fill:none;stroke:#FACC15;stroke-width:2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">Google Agenda desconectado</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Toque para reconectar e ver seus eventos</div></div>`;
+  div.onclick=()=>{ setView('config'); setTimeout(()=>{ const btn=document.querySelector('.connect-btn.google'); if(btn)btn.click(); else connectGoogle(); },400); };
+  container.parentElement.insertBefore(div, container);
 }
 async function silentReauthOutlook(){
   if(!integrations.outlookConnected)return;
@@ -1678,6 +1697,7 @@ async function fetchGoogleCalendarEvents(){
       // Token expirado: limpar silenciosamente, sem abrir popup
       gcalToken=null;delete integrations.gcalToken;saveInt();updateIntUI();
       console.warn('[Lembra] Token Google expirado — reconexão manual necessária.');
+      showGoogleTokenWarning();
       return;
     } else if(uRes.ok){
       const uData=await uRes.json();if(uData.email)integrations.googleEmail=uData.email;
