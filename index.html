@@ -4049,9 +4049,11 @@ async function submitNewCalEvent(){
         closeNewCalEvent();
         return;
       }
+      console.log('[CalEvent] provider='+provider+' tok='+(tok?tok.substring(0,20)+'...':'NULL'));
       const r=await fetch('https://graph.microsoft.com/v1.0/me/events',{method:'POST',headers:{'Authorization':'Bearer '+tok,'Content-Type':'application/json'},body:JSON.stringify(body)});
       const d=await r.json();
-      if(d.error)throw new Error(d.error.message);
+      console.log('[CalEvent] Graph response:',JSON.stringify(d).substring(0,300));
+      if(d.error)throw new Error(d.error.code+': '+d.error.message);
       // Abrir o calendário no dia do evento
       const [oy,om,od]=dateStart.split('-');
       const outlookDayUrl=provider==='corp'
