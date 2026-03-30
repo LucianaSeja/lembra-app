@@ -3311,18 +3311,17 @@ function aiActionAccessEvent(){
     addAIMessage('assistant','Nenhuma agenda conectada. Conecte uma conta em Configurações.');
     return;
   }
-  const t=today();
   _showPicker(
     `<div style="padding:10px 1.5rem 10px;display:flex;flex-direction:column;gap:8px">
       <div style="font-size:11px;font-weight:600;color:var(--text3)">Buscar evento por:</div>
       <div style="display:flex;gap:6px">
-        <input type="text" id="ai-access-name" placeholder="Nome do evento (ex: reunião)" style="flex:1;padding:7px 10px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:13px;outline:none">
+        <input type="text" id="ai-access-name" placeholder="Nome do evento (ex: reunião, patins...)" style="flex:1;padding:7px 10px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:13px;outline:none">
       </div>
       <div style="display:flex;gap:6px;align-items:center">
-        <input type="date" id="ai-access-date" value="${t}" style="flex:1;padding:7px 10px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:13px;outline:none">
+        <input type="date" id="ai-access-date" placeholder="dd/mm/aaaa" style="flex:1;padding:7px 10px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:13px;outline:none">
       </div>
       <button onclick="_searchAccessEvent(document.getElementById('ai-access-name').value,document.getElementById('ai-access-date').value);_clearPicker()" style="padding:8px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🔍 Buscar</button>
-      <div style="font-size:10px;color:var(--text3);text-align:center">Preencha nome e/ou data para buscar nas 3 agendas</div>
+      <div style="font-size:10px;color:var(--text3);text-align:center">Nome e/ou data são opcionais — preencha um ou os dois</div>
     </div>`
   );
 }
@@ -3334,15 +3333,15 @@ async function _searchAccessEvent(nameQuery,dateStr){
   const searchLabel=hasName&&hasDate?`"${nameQuery.trim()}" em ${dtLabel}`:hasName?`"${nameQuery.trim()}"`:dtLabel;
   addAIMessage('assistant',`🔍 Buscando ${searchLabel} nas agendas...`);
   const loadingBubble=document.querySelector('#ai-messages .ai-msg.assistant:last-child .ai-bubble');
-  // Montar intervalo: se tem data usa o dia inteiro, senão busca 30 dias
+  // Montar intervalo: se tem data usa o dia inteiro, senão busca 365 dias passados + 365 futuros
   let startISO,endISO;
   if(hasDate){
     startISO=encodeURIComponent(dateStr+'T00:00:00-03:00');
     endISO=encodeURIComponent(dateStr+'T23:59:59-03:00');
   }else{
     const now=new Date();
-    const past=new Date(now);past.setDate(past.getDate()-30);
-    const future=new Date(now);future.setDate(future.getDate()+90);
+    const past=new Date(now);past.setFullYear(past.getFullYear()-1);
+    const future=new Date(now);future.setFullYear(future.getFullYear()+1);
     startISO=encodeURIComponent(past.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'})+'T00:00:00-03:00');
     endISO=encodeURIComponent(future.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'})+'T23:59:59-03:00');
   }
@@ -3352,12 +3351,21 @@ async function _searchAccessEvent(nameQuery,dateStr){
   // 1) Google Calendar
   if(gcalToken){
     try{
-      const url=`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${startISO}&timeMax=${endISO}&singleEvents=true&orderBy=startTime&maxResults=100${q?'&q='+encodeURIComponent(q):''}`;
+      // Com singleEvents=true expande recorrências; q= filtra por texto no servidor
+      const url=`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${startISO}&timeMax=${endISO}&singleEvents=true&orderBy=startTime&maxResults=250${q?'&q='+encodeURIComponent(q):''}`;
       const res=await fetch(url,{headers:{Authorization:'Bearer '+gcalToken}});
-      if(res.ok){const d=await res.json();(d.items||[]).filter(matchEvt).forEach(e=>{
-        const dt=e.start?.dateTime||e.start?.date||'';
-        const dtFmt=e.start?.dateTime?fmtDateLocal(e.start.dateTime)+(e.start.dateTime?' às '+fmtTime(e.start.dateTime):''):e.start?.date||'';
-        results.push({summary:e.summary||'(sem título)',dtFmt,source:'🗓️ Google',color:'#EF4444',url:'https://calendar.google.com/calendar/r/day/'+dt.substring(0,10).replace(/-/g,'/')});});
+      if(res.ok){
+        const d=await res.json();
+        // Quando busca só por nome (sem data), mostrar apenas a próxima ocorrência de cada evento recorrente
+        const seen=new Set();
+        (d.items||[]).filter(matchEvt).forEach(e=>{
+          const key=(e.recurringEventId||e.id||e.summary||'');
+          if(!hasDate&&seen.has(key))return; // pula ocorrências duplicadas de recorrentes
+          seen.add(key);
+          const dt=e.start?.dateTime||e.start?.date||'';
+          const dtFmt=e.start?.dateTime?fmtDateLocal(e.start.dateTime)+' às '+fmtTime(e.start.dateTime):e.start?.date||'';
+          results.push({summary:e.summary||'(sem título)',dtFmt,source:'🗓️ Google',color:'#EF4444',url:'https://calendar.google.com/calendar/r/day/'+dt.substring(0,10).replace(/-/g,'/')});
+        });
       }
     }catch(e){console.error('Google access err:',e);}
   }
