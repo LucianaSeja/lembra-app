@@ -3349,13 +3349,18 @@ async function _searchAccessEvent(nameQuery,dateStr){
   const matchEvt=e=>!q||((e.summary||'').toLowerCase().includes(q)||(e.description||'').toLowerCase().includes(q));
   let results=[];
   // 1) Google Calendar
+  let googleTokenExpired=false;
   if(gcalToken){
     try{
       // Com singleEvents=true expande recorrências; q= filtra por texto no servidor
       const url=`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${startISO}&timeMax=${endISO}&singleEvents=true&orderBy=startTime&maxResults=250${q?'&q='+encodeURIComponent(q):''}`;
+      console.log('[Busca] Google URL:',url);
       const res=await fetch(url,{headers:{Authorization:'Bearer '+gcalToken}});
-      if(res.ok){
+      console.log('[Busca] Google status:',res.status);
+      if(res.status===401){googleTokenExpired=true;gcalToken=null;delete integrations.gcalToken;saveInt();}
+      else if(res.ok){
         const d=await res.json();
+        console.log('[Busca] Google items:',d.items?.length);
         // Quando busca só por nome (sem data), mostrar apenas a próxima ocorrência de cada evento recorrente
         const seen=new Set();
         (d.items||[]).filter(matchEvt).forEach(e=>{
@@ -3368,6 +3373,8 @@ async function _searchAccessEvent(nameQuery,dateStr){
         });
       }
     }catch(e){console.error('Google access err:',e);}
+  } else if(integrations.googleConnected){
+    googleTokenExpired=true; // token ausente mas conta conectada = expirado
   }
   // 2) Outlook Corp (Graph API direta)
   if(outlookToken2){
@@ -3388,11 +3395,17 @@ async function _searchAccessEvent(nameQuery,dateStr){
     results.push({summary:e.summary||'(sem título)',dtFmt,source:'📧 Outlook',color:'#3B82F6',url:'https://outlook.live.com/calendar/'+dt.substring(0,10)});
   });
   // Montar resposta
-  let msg=`**Resultados para ${searchLabel}**\n\n`;
+  let warningHtml='';
+  if(googleTokenExpired){
+    warningHtml=`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:rgba(250,204,21,0.1);border:1.5px solid rgba(250,204,21,0.35);margin-bottom:8px">`+
+      `<span style="font-size:16px">⚠️</span>`+
+      `<div><div style="font-size:12px;font-weight:600;color:#FACC15">Sessão Google expirada</div>`+
+      `<div style="font-size:11px;color:var(--text3)">Reconecte o Google em <button onclick="setView('config');_clearPicker()" style="background:none;border:none;color:var(--blue);font-size:11px;cursor:pointer;padding:0;text-decoration:underline">Configurações</button> para buscar eventos do Google Calendar.</div></div></div>`;
+  }
   if(!results.length){
-    msg+='Nenhum evento encontrado. Tente outro nome ou data.';
-    if(loadingBubble)loadingBubble.innerHTML=aiMarkdown(msg);
-    else addAIMessage('assistant',msg);
+    const noResultHtml=warningHtml+`<strong>Resultados para ${searchLabel}</strong><br><span style="color:var(--text3);font-size:13px">Nenhum evento encontrado nas demais agendas. Tente outro nome ou data.</span>`;
+    if(loadingBubble)loadingBubble.innerHTML=noResultHtml;
+    else addAIMessage('assistant','Nenhum evento encontrado. Tente outro nome ou data.');
     return;
   }
   // Renderizar cards de resultado
@@ -3403,7 +3416,7 @@ async function _searchAccessEvent(nameQuery,dateStr){
     `<button onclick="window.open('${r.url}','_blank')" style="padding:5px 12px;border-radius:8px;border:none;background:${r.color};color:#fff;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">Ver</button>`+
     `</div>`
   ).join('');
-  const fullHtml=`<div><strong>Resultados para ${searchLabel}</strong><div style="margin-top:8px">${cardsHtml}</div>`+
+  const fullHtml=`<div>${warningHtml}<strong>Resultados para ${searchLabel}</strong><div style="margin-top:8px">${cardsHtml}</div>`+
     `<button onclick="aiActionAccessEvent()" style="margin-top:4px;padding:5px 12px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--text3);font-family:inherit;font-size:11px;cursor:pointer">🔄 Nova busca</button></div>`;
   if(loadingBubble)loadingBubble.innerHTML=fullHtml;
   else{const div=document.createElement('div');div.className='ai-msg assistant';div.innerHTML=`<div class="ai-avatar">IA</div><div class="ai-bubble">${fullHtml}</div>`;document.getElementById('ai-messages').appendChild(div);}
