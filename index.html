@@ -3341,14 +3341,55 @@ function aiActionSendEmail(){
   );
 }
 function aiActionQueryAgenda(){
-  // Mostrar resumo da agenda diretamente no chat
+  // Mostrar seletor de data com atalhos rápidos + campo de data
   const t=today();
-  const calEvts=(integrations.calendarEvents||[]).filter(e=>(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))===t);
-  const rems=reminders.filter(r=>!r.done&&r.date===t);
-  let msg=`**Agenda de hoje (${new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit'})})**\n\n`;
-  if(calEvts.length)msg+='**Eventos:**\n'+calEvts.map(e=>`- ${fmtTime(e.start?.dateTime)||'Dia todo'} — ${e.summary} _(${e.origem||e.source})_`).join('\n')+'\n\n';
-  if(rems.length)msg+='**Lembretes:**\n'+rems.map(r=>`- ${r.time||''} ${r.title}`).join('\n');
-  if(!calEvts.length&&!rems.length)msg+='Nenhum compromisso ou lembrete para hoje.';
+  const tom=tomorrow();
+  _showPicker(
+    `<div style="padding:10px 1.5rem 10px;display:flex;flex-direction:column;gap:8px">
+      <div style="font-size:11px;font-weight:600;color:var(--text3)">Consultar agenda de qual dia?</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button onclick="_queryAgendaForDate('${t}');_clearPicker()" style="padding:6px 14px;border-radius:20px;border:1.5px solid rgba(250,204,21,0.4);background:none;color:var(--amber);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">Hoje</button>
+        <button onclick="_queryAgendaForDate('${tom}');_clearPicker()" style="padding:6px 14px;border-radius:20px;border:1.5px solid rgba(250,204,21,0.4);background:none;color:var(--amber);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">Amanhã</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="date" id="ai-query-date" value="${t}" style="flex:1;padding:7px 10px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:13px;outline:none">
+        <button onclick="_queryAgendaForDate(document.getElementById('ai-query-date').value);_clearPicker()" style="padding:7px 16px;border-radius:10px;border:none;background:var(--amber);color:#000;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">Ver</button>
+      </div>
+    </div>`
+  );
+}
+function _queryAgendaForDate(dateStr){
+  if(!dateStr)return;
+  // Buscar eventos de todas as agendas para o dia
+  const allEvts=(integrations.calendarEvents||[]).filter(e=>{
+    const d=e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||'');
+    return d===dateStr;
+  });
+  // Separar por fonte
+  const googleEvts=allEvts.filter(e=>e.source==='google');
+  const outlookEvts=allEvts.filter(e=>e.source==='outlook');
+  const corpEvts=allEvts.filter(e=>e.source==='outlook2');
+  const rems=reminders.filter(r=>!r.done&&r.date===dateStr);
+  // Formatar data para exibição
+  const dtObj=new Date(dateStr+'T12:00:00');
+  const dtLabel=dtObj.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
+  let msg=`**Agenda de ${dtLabel}**\n\n`;
+  const fmtEvt=e=>`- ${fmtTime(e.start?.dateTime)||'Dia todo'} — ${e.summary}`;
+  if(googleEvts.length){
+    msg+='**🗓️ Google Calendar:**\n'+googleEvts.map(fmtEvt).join('\n')+'\n\n';
+  }
+  if(outlookEvts.length){
+    msg+='**📧 Outlook:**\n'+outlookEvts.map(fmtEvt).join('\n')+'\n\n';
+  }
+  if(corpEvts.length){
+    msg+='**🏢 Outlook Corp:**\n'+corpEvts.map(fmtEvt).join('\n')+'\n\n';
+  }
+  if(rems.length){
+    msg+='**📌 Lembretes:**\n'+rems.map(r=>`- ${r.time?r.time+' — ':''}${r.title}`).join('\n');
+  }
+  if(!allEvts.length&&!rems.length){
+    msg+='Nenhum compromisso ou lembrete para este dia.';
+  }
   addAIMessage('assistant',msg);
 }
 function autoResizeAI(el){
