@@ -4010,33 +4010,49 @@ async function submitNewCalEvent(){
   const title=document.getElementById('cal-event-title').value.trim();
   const dateStart=document.getElementById('cal-event-date').value;
   const timeStart=document.getElementById('cal-event-time').value;
-  const dateEnd=document.getElementById('cal-event-date-end').value||dateStart; // fallback = data início
+  const dateEnd=document.getElementById('cal-event-date-end').value||dateStart;
   const timeEnd=document.getElementById('cal-event-time-end').value;
   if(!title){document.getElementById('cal-event-title').focus();return;}
   if(!dateStart){document.getElementById('cal-event-date').focus();return;}
   const btn=document.getElementById('btn-create-cal-event');
   btn.textContent='Criando...';
   btn.disabled=true;
-  // Calcular data/hora de fim
   const isAllDay=!timeStart;
-  // Para evento de dia inteiro multi-dia, o Google exige end date = last day + 1
+  // Evento multi-dia COM horário = recorrência diária (mesmo horário todos os dias)
+  const isMultiDay=dateEnd&&dateEnd!==dateStart;
+  const isRecurring=isMultiDay&&!isAllDay; // recorrência só quando tem horário
   function nextDay(d){const dt=new Date(d+'T12:00:00');dt.setDate(dt.getDate()+1);return dt.toISOString().slice(0,10);}
+  // Formatar data como YYYYMMDD para Google
+  function toGoogleDate(d){return d.replace(/-/g,'');}
   try{
     let eventUrl='';
     const provider=_calEventProvider;
     if(provider==='google'){
       let body;
       if(isAllDay){
-        const endDateGoogle=dateEnd===dateStart?nextDay(dateEnd):nextDay(dateEnd);
-        body={summary:title,start:{date:dateStart},end:{date:endDateGoogle}};
-      } else {
+        // Dia inteiro: pode ser multi-dia sem recorrência (bloco)
+        body={summary:title,start:{date:dateStart},end:{date:nextDay(dateEnd)}};
+      } else if(isRecurring){
+        // Multi-dia com horário: recorrência diária até dateEnd
         const startDt=dateStart+'T'+timeStart+':00';
-        const endDt=timeEnd?(dateEnd+'T'+timeEnd+':00'):(dateEnd+'T'+String(parseInt(timeStart.split(':')[0])+1).padStart(2,'0')+':'+timeStart.split(':')[1]+':00');
+        const dailyEndTime=timeEnd?timeEnd:String(parseInt(timeStart.split(':')[0])+1).padStart(2,'0')+':'+timeStart.split(':')[1];
+        const endDt=dateStart+'T'+dailyEndTime+':00'; // fim no mesmo dia do início
+        body={
+          summary:title,
+          start:{dateTime:startDt,timeZone:'America/Sao_Paulo'},
+          end:{dateTime:endDt,timeZone:'America/Sao_Paulo'},
+          recurrence:['RRULE:FREQ=DAILY;UNTIL='+toGoogleDate(dateEnd)+'T235959Z']
+        };
+      } else {
+        // Evento simples (mesmo dia)
+        const startDt=dateStart+'T'+timeStart+':00';
+        const dailyEndTime=timeEnd?timeEnd:String(parseInt(timeStart.split(':')[0])+1).padStart(2,'0')+':'+timeStart.split(':')[1];
+        const endDt=dateStart+'T'+dailyEndTime+':00';
         body={summary:title,start:{dateTime:startDt,timeZone:'America/Sao_Paulo'},end:{dateTime:endDt,timeZone:'America/Sao_Paulo'}};
       }
       if(!gcalToken){
-        const s=dateStart.replace(/-/g,'')+'T'+(timeStart?timeStart.replace(':','')+'00':'090000');
-        const e=dateEnd.replace(/-/g,'')+'T'+(timeEnd?timeEnd.replace(':','')+'00':(timeStart?String(parseInt(timeStart.split(':')[0])+1).padStart(2,'0')+timeStart.split(':')[1]+'00':'100000'));
+        const s=toGoogleDate(dateStart)+'T'+(timeStart?timeStart.replace(':','')+'00':'090000');
+        const e=toGoogleDate(dateEnd)+'T'+(timeEnd?timeEnd.replace(':','')+'00':'100000');
         eventUrl='https://calendar.google.com/calendar/r/eventedit?text='+encodeURIComponent(title)+'&dates='+s+'/'+e;
         window.open(eventUrl,'_blank');
         closeNewCalEvent();
@@ -4045,11 +4061,9 @@ async function submitNewCalEvent(){
       const r=await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events',{method:'POST',headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},body:JSON.stringify(body)});
       const d=await r.json();
       if(d.error)throw new Error(d.error.message);
-      // Abrir o calendário no dia do evento em vez do link direto (evita erro "evento não encontrado")
       const [gy,gm,gd]=dateStart.split('-');
       eventUrl='https://calendar.google.com/calendar/r/day/'+gy+'/'+parseInt(gm)+'/'+parseInt(gd);
     } else if(provider==='outlook'||provider==='corp'){
-      // Tentar renovar token silenciosamente antes de criar
       if(provider==='corp'&&!outlookToken2){
         console.log('[CalEvent] outlookToken2 NULL, tentando renovar silenciosamente...');
         await silentReauthOutlook2();
@@ -4058,28 +4072,37 @@ async function submitNewCalEvent(){
       if(provider==='outlook'&&!outlookToken){await silentReauthOutlook();}
       const tok=provider==='corp'?outlookToken2:outlookToken;
       console.log('[CalEvent] provider='+provider+' tok='+(tok?tok.substring(0,30)+'...':'NULL'));
-      if(!tok){
-        // Token não disponível — pedir reconexão ao usuário em vez de abrir silenciosamente
-        throw new Error('Sessão expirada. Vá em Configurações e reconecte a conta '+(provider==='corp'?'Corporativa':'Outlook')+'.');
-      }
+      if(!tok)throw new Error('Sessão expirada. Vá em Configurações e reconecte a conta '+(provider==='corp'?'Corporativa':'Outlook')+'.');
+      const dailyEndTime=timeEnd?timeEnd:(timeStart?String(parseInt(timeStart.split(':')[0])+1).padStart(2,'0')+':'+timeStart.split(':')[1]:'10:00');
       const startDt=dateStart+'T'+(timeStart?timeStart+':00':'09:00:00');
-      const endDt=timeEnd?(dateEnd+'T'+timeEnd+':00'):(dateEnd+'T'+(timeStart?String(parseInt(timeStart.split(':')[0])+1).padStart(2,'0')+':'+timeStart.split(':')[1]+':00':'10:00:00'));
-      const body={subject:title,start:{dateTime:startDt,timeZone:'America/Sao_Paulo'},end:{dateTime:endDt,timeZone:'America/Sao_Paulo'}};
+      const endDt=dateStart+'T'+dailyEndTime+':00'; // fim sempre no mesmo dia (1º dia)
+      let body={
+        subject:title,
+        start:{dateTime:startDt,timeZone:'America/Sao_Paulo'},
+        end:{dateTime:endDt,timeZone:'America/Sao_Paulo'}
+      };
+      if(isRecurring){
+        // Recorrência diária até dateEnd (inclusive)
+        body.recurrence={
+          pattern:{type:'daily',interval:1},
+          range:{type:'endDate',startDate:dateStart,endDate:dateEnd}
+        };
+      }
       console.log('[CalEvent] Enviando para Graph API:',JSON.stringify(body));
       const r=await fetch('https://graph.microsoft.com/v1.0/me/events',{method:'POST',headers:{'Authorization':'Bearer '+tok,'Content-Type':'application/json'},body:JSON.stringify(body)});
       const d=await r.json();
       console.log('[CalEvent] Graph response (status='+r.status+'):',JSON.stringify(d).substring(0,400));
       if(d.error)throw new Error(d.error.code+': '+d.error.message);
       if(!d.id)throw new Error('Resposta inesperada da API: '+JSON.stringify(d).substring(0,200));
-      // Abrir o calendário no dia do evento
+      // URL do calendário no dia exato do evento
       const [oy,om,od]=dateStart.split('-');
-      const outlookDayUrl=provider==='corp'
-        ?'https://outlook.office.com/calendar/'+oy+'-'+om+'-'+od+'/view/day'
-        :'https://outlook.live.com/calendar/'+oy+'-'+om+'-'+od+'/view/day';
-      eventUrl=outlookDayUrl;
+      eventUrl=provider==='corp'
+        ?`https://outlook.office.com/calendar/${oy}-${om}-${od}/view/day`
+        :`https://outlook.live.com/calendar/${oy}-${om}-${od}/view/day`;
     }
     const names={google:'Google Calendar',outlook:'Outlook',corp:'Outlook Corp'};
-    document.getElementById('modal-cal-success-msg').textContent='Criado com sucesso em '+names[provider]+'!';
+    const recMsg=isRecurring?' (recorrente diário)':'';
+    document.getElementById('modal-cal-success-msg').textContent='Criado com sucesso em '+names[provider]+recMsg+'!';
     document.getElementById('btn-view-cal-event').href=eventUrl||'#';
     document.getElementById('modal-cal-form').style.display='none';
     document.getElementById('modal-cal-success').style.display='block';
