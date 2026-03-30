@@ -3358,39 +3358,65 @@ function aiActionQueryAgenda(){
     </div>`
   );
 }
-function _queryAgendaForDate(dateStr){
+async function _queryAgendaForDate(dateStr){
   if(!dateStr)return;
-  // Buscar eventos de todas as agendas para o dia
-  const allEvts=(integrations.calendarEvents||[]).filter(e=>{
-    const d=e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||'');
-    return d===dateStr;
-  });
-  // Separar por fonte
-  const googleEvts=allEvts.filter(e=>e.source==='google');
-  const outlookEvts=allEvts.filter(e=>e.source==='outlook');
-  const corpEvts=allEvts.filter(e=>e.source==='outlook2');
-  const rems=reminders.filter(r=>!r.done&&r.date===dateStr);
-  // Formatar data para exibição
   const dtObj=new Date(dateStr+'T12:00:00');
   const dtLabel=dtObj.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
-  let msg=`**Agenda de ${dtLabel}**\n\n`;
+  // Mostrar indicador de carregamento
+  addAIMessage('assistant',`Buscando eventos de **${dtLabel}**...`);
+  const loadingMsg=document.querySelector('#ai-messages .ai-msg.assistant:last-child .ai-bubble');
   const fmtEvt=e=>`- ${fmtTime(e.start?.dateTime)||'Dia todo'} — ${e.summary}`;
-  if(googleEvts.length){
-    msg+='**🗓️ Google Calendar:**\n'+googleEvts.map(fmtEvt).join('\n')+'\n\n';
+  // Montar intervalo do dia inteiro
+  const startISO=encodeURIComponent(dateStr+'T00:00:00-03:00');
+  const endISO=encodeURIComponent(dateStr+'T23:59:59-03:00');
+  let googleEvts=[],outlookEvts=[],corpEvts=[];
+  // 1) Google Calendar
+  if(gcalToken){
+    try{
+      const url=`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${startISO}&timeMax=${endISO}&singleEvents=true&orderBy=startTime&maxResults=100`;
+      const res=await fetch(url,{headers:{Authorization:'Bearer '+gcalToken}});
+      if(res.ok){const d=await res.json();googleEvts=(d.items||[]).map(e=>({summary:e.summary||'(sem título)',start:e.start,end:e.end}));}
+    }catch(e){console.error('Google query err:',e);}
   }
-  if(outlookEvts.length){
-    msg+='**📧 Outlook:**\n'+outlookEvts.map(fmtEvt).join('\n')+'\n\n';
+  // 2) Outlook pessoal (via Edge Function — mantido igual ao sync normal)
+  if(outlookToken){
+    try{
+      const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+      const res=await fetch(SUPABASE_URL+'/functions/v1/sync-calendar',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({provider:'outlook',token:outlookToken,dateFilter:dateStr})
+      });
+      if(res.ok){const d=await res.json();outlookEvts=(d.eventos||[]).filter(e=>{
+        const dd=e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||'');
+        return dd===dateStr;
+      }).map(e=>({summary:e.summary||e.subject||'(sem título)',start:e.start,end:e.end}));}
+    }catch(e){console.error('Outlook query err:',e);}
   }
-  if(corpEvts.length){
-    msg+='**🏢 Outlook Corp:**\n'+corpEvts.map(fmtEvt).join('\n')+'\n\n';
+  // 3) Outlook Corp (Graph API direta)
+  if(outlookToken2){
+    try{
+      const graphUrl=`https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=${startISO}&endDateTime=${endISO}&$select=id,subject,start,end&$orderby=start/dateTime&$top=100`;
+      const res=await fetch(graphUrl,{headers:{Authorization:'Bearer '+outlookToken2,'Prefer':'outlook.timezone="America/Sao_Paulo"'}});
+      if(res.ok){
+        const d=await res.json();
+        const normDt=dt=>dt?dt.replace(/(\.[0-9]+)?$/,'-03:00').replace(/[+-]\d{2}:\d{2}-03:00$/,'-03:00'):dt;
+        corpEvts=(d.value||[]).map(e=>({summary:e.subject||'(sem título)',start:{dateTime:e.start?.dateTime?normDt(e.start.dateTime):undefined,date:e.start?.date},end:{dateTime:e.end?.dateTime?normDt(e.end.dateTime):undefined,date:e.end?.date}}));
+      }
+    }catch(e){console.error('Corp query err:',e);}
   }
-  if(rems.length){
-    msg+='**📌 Lembretes:**\n'+rems.map(r=>`- ${r.time?r.time+' — ':''}${r.title}`).join('\n');
-  }
-  if(!allEvts.length&&!rems.length){
+  const rems=reminders.filter(r=>!r.done&&r.date===dateStr);
+  // Montar resposta
+  let msg=`**Agenda de ${dtLabel}**\n\n`;
+  if(googleEvts.length)msg+='**🗓️ Google Calendar:**\n'+googleEvts.map(fmtEvt).join('\n')+'\n\n';
+  if(outlookEvts.length)msg+='**📧 Outlook:**\n'+outlookEvts.map(fmtEvt).join('\n')+'\n\n';
+  if(corpEvts.length)msg+='**🏢 Outlook Corp:**\n'+corpEvts.map(fmtEvt).join('\n')+'\n\n';
+  if(rems.length)msg+='**📌 Lembretes:**\n'+rems.map(r=>`- ${r.time?r.time+' — ':''}${r.title}`).join('\n');
+  if(!googleEvts.length&&!outlookEvts.length&&!corpEvts.length&&!rems.length)
     msg+='Nenhum compromisso ou lembrete para este dia.';
-  }
-  addAIMessage('assistant',msg);
+  // Substituir mensagem de carregamento
+  if(loadingMsg)loadingMsg.innerHTML=aiMarkdown(msg);
+  else addAIMessage('assistant',msg);
 }
 function autoResizeAI(el){
   el.style.height='auto';
