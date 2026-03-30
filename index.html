@@ -1414,12 +1414,6 @@ function startSession(u){
   updateSidebarActive('agenda');
   // Solicitar permissão de notificações e iniciar monitoramento
   requestNotifPermission();
-  // Limpar eventos do calendário salvos (podem ter fuso errado da versão anterior)
-  // Serão resincronizados automaticamente abaixo
-  if(integrations.calendarEvents&&integrations.calendarEvents.length>0){
-    integrations.calendarEvents=[];
-    saveInt();
-  }
   // Renovar tokens silenciosamente após 2s (aguardar carregamento dos SDKs)
   // Restaurar token Google do storage imediatamente
   restoreGcalToken();
