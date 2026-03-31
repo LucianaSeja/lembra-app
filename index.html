@@ -1655,8 +1655,12 @@ async function silentReauthGoogle(){
     }
     catch(e){console.warn('[Sync] Google com token salvo:',e);}
   } else {
-    // Token expirado ou ausente — mostrar aviso visível no dashboard
-    showGoogleTokenWarning();
+    // Token expirado ou ausente — só mostrar aviso se não há eventos Google cacheados
+    const hasGoogleCache=(integrations.calendarEvents||[]).some(e=>e.source==='google');
+    if(!hasGoogleCache){
+      showGoogleTokenWarning();
+    }
+    // Se há cache, os eventos já aparecem normalmente — não incomodar o usuário
   }
 }
 function showGoogleTokenWarning(){
@@ -3374,7 +3378,19 @@ async function _searchAccessEvent(nameQuery,dateStr){
       }
     }catch(e){console.error('Google access err:',e);}
   } else if(integrations.googleConnected){
-    googleTokenExpired=true; // token ausente mas conta conectada = expirado
+    // Token ausente — usar cache local do Google como fallback
+    const cacheEvts=(integrations.calendarEvents||[]).filter(e=>e.source==='google'&&matchEvt(e));
+    if(cacheEvts.length>0){
+      cacheEvts.forEach(e=>{
+        const dt=e.start?.dateTime||e.start?.date||'';
+        if(hasDate&&(e.start?.dateTime?fmtDateLocal(e.start.dateTime):(e.start?.date||''))!==dateStr)return;
+        const dtFmt=e.start?.dateTime?fmtDateLocal(e.start.dateTime)+' \u00e0s '+fmtTime(e.start.dateTime):e.start?.date||'';
+        results.push({summary:e.summary||'(sem t\u00edtulo)',dtFmt,source:'\ud83d\uddd3\ufe0f Google (cache)',color:'#EF4444',url:'https://calendar.google.com/calendar/r/day/'+dt.substring(0,10).replace(/-/g,'/')});
+      });
+      googleTokenExpired=true; // ainda avisa que est\u00e1 expirado mas mostra cache
+    } else {
+      googleTokenExpired=true; // sem cache e sem token
+    }
   }
   // 2) Outlook Corp (Graph API direta)
   if(outlookToken2){
