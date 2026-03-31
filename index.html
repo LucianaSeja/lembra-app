@@ -3375,12 +3375,12 @@ function aiInputKeydown(e){
 // --- Atalhos de ação do chat IA ---
 // Os 5 botões são SEMPRE visíveis. Nenhuma função deve ocultar #ai-suggestions.
 // O picker dinâmico (agenda/email) é exibido em #ai-picker-area.
-function _showPicker(html){
+function _showPicker(html, noTimeout){
   const area=document.getElementById('ai-picker-area');
   area.innerHTML=html;
-  // Auto-remover após 20s se não interagido
   clearTimeout(area._pickerTimer);
-  area._pickerTimer=setTimeout(()=>{area.innerHTML='';},20000);
+  // Auto-remover após 20s apenas se não for formulário longo
+  if(!noTimeout) area._pickerTimer=setTimeout(()=>{area.innerHTML='';},20000);
 }
 function _clearPicker(){document.getElementById('ai-picker-area').innerHTML='';}
 function aiActionAddEvent(){
@@ -3625,26 +3625,50 @@ async function _queryAgendaForDate(dateStr){
 }
 // ─── CONSULTAR E-MAIL ────────────────────────────────────────────────────────
 function aiActionSearchEmail(){
-  addAIMessage('assistant','Pesquisar e-mails em todas as contas. Preencha os campos abaixo:');
+  const int=integrations||{};
+  // Montar lista de contas conectadas com status de token
+  const contas=[];
+  if(int.googleConnected) contas.push({id:'gmail',label:'Gmail',email:int.googleEmail||'',color:'#EA4335',icon:'📧',hasToken:!!gcalToken});
+  if(int.outlookConnected) contas.push({id:'outlook',label:'Outlook',email:int.outlookEmail||'',color:'#0078D4',icon:'📧',hasToken:!!outlookToken});
+  if(int.outlook2Connected) contas.push({id:'corp',label:'Corp',email:int.outlook2Email||'',color:'#6366f1',icon:'🏢',hasToken:!!outlookToken2});
+  if(!contas.length){addAIMessage('assistant','Nenhuma conta de e-mail conectada. Conecte em Configurações.');return;}
+
+  // Checkboxes de contas
+  const contasHtml=contas.map(c=>{
+    const emailShort=c.email?c.email.split('@')[0]:'';
+    const status=c.hasToken?'':' ⚠️ sessão expirada';
+    return `<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:10px;border:1.5px solid ${c.color}33;cursor:pointer">
+      <input type="checkbox" id="ai-email-chk-${c.id}" checked style="accent-color:${c.color};width:15px;height:15px">
+      <span style="font-size:12px;font-weight:600;color:${c.color}">${c.icon} ${c.label}</span>
+      <span style="font-size:11px;color:var(--text3);flex:1">${emailShort}${status}</span>
+    </label>`;
+  }).join('');
+
+  addAIMessage('assistant','Pesquisar e-mails. Selecione as contas e preencha os filtros:');
   _showPicker(
-    `<div style="padding:10px 1.5rem 12px;display:flex;flex-direction:column;gap:10px">
-      <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Consultar E-mail</div>
+    `<div style="padding:10px 1.5rem 14px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Consultar E-mail</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:11px;color:var(--text3)">Contas a pesquisar:</div>
+        ${contasHtml}
+      </div>
       <div style="display:flex;flex-direction:column;gap:6px">
         <label style="font-size:11px;color:var(--text3)">Assunto / palavra-chave (opcional)</label>
         <input type="text" id="ai-email-q" placeholder="Ex: reunião, fatura, proposta..." style="padding:8px 10px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:13px;outline:none">
       </div>
       <div style="display:flex;gap:8px">
-        <div style="flex:1;display:flex;flex-direction:column;gap:6px">
-          <label style="font-size:11px;color:var(--text3)">Data inicial (opcional)</label>
+        <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:11px;color:var(--text3)">Data inicial</label>
           <input type="date" id="ai-email-from" style="width:100%;padding:7px 8px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:12px;outline:none">
         </div>
-        <div style="flex:1;display:flex;flex-direction:column;gap:6px">
-          <label style="font-size:11px;color:var(--text3)">Data final (opcional)</label>
+        <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:11px;color:var(--text3)">Data final</label>
           <input type="date" id="ai-email-to" style="width:100%;padding:7px 8px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:12px;outline:none">
         </div>
       </div>
-      <button onclick="_searchEmailsAllAccounts()" style="padding:9px;border-radius:10px;border:none;background:#14b8a6;color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🔍 Buscar em todas as contas</button>
-    </div>`
+      <button onclick="_searchEmailsAllAccounts()" style="padding:9px;border-radius:10px;border:none;background:#14b8a6;color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🔍 Buscar</button>
+    </div>`,
+    true /* noTimeout */
   );
 }
 
@@ -3652,6 +3676,10 @@ async function _searchEmailsAllAccounts(){
   const q=(document.getElementById('ai-email-q')?.value||'').trim();
   const fromDate=document.getElementById('ai-email-from')?.value||'';
   const toDate=document.getElementById('ai-email-to')?.value||'';
+  // Ler quais contas foram selecionadas
+  const chkGmail=document.getElementById('ai-email-chk-gmail')?.checked!==false;
+  const chkOutlook=document.getElementById('ai-email-chk-outlook')?.checked!==false;
+  const chkCorp=document.getElementById('ai-email-chk-corp')?.checked!==false;
   if(!q&&!fromDate&&!toDate){
     addAIMessage('assistant','Por favor, informe ao menos um critério de busca (assunto ou data).');
     return;
@@ -3663,14 +3691,14 @@ async function _searchEmailsAllAccounts(){
   if(fromDate&&toDate)labelParts.push(`de ${new Date(fromDate+'T12:00:00').toLocaleDateString('pt-BR')} a ${new Date(toDate+'T12:00:00').toLocaleDateString('pt-BR')}`);
   else if(fromDate)labelParts.push(`a partir de ${new Date(fromDate+'T12:00:00').toLocaleDateString('pt-BR')}`);
   else if(toDate)labelParts.push(`até ${new Date(toDate+'T12:00:00').toLocaleDateString('pt-BR')}`);
-  addAIMessage('assistant',`Buscando e-mails ${labelParts.join(' ')} em todas as contas...`);
+  addAIMessage('assistant',`Buscando e-mails ${labelParts.join(' ')}...`);
   const loadingEl=document.querySelector('#ai-messages .ai-msg.assistant:last-child .ai-bubble');
 
   let gmailResults=[],outlookResults=[],corpResults=[];
   const erros=[];
 
   // 1) Gmail
-  if(integrations.googleConnected&&gcalToken){
+  if(chkGmail&&integrations.googleConnected&&gcalToken){
     try{
       let gmailQ='';
       if(q)gmailQ+=q;
@@ -3697,7 +3725,7 @@ async function _searchEmailsAllAccounts(){
   }
 
   // 2) Outlook pessoal
-  if(integrations.outlookConnected&&outlookToken){
+  if(chkOutlook&&integrations.outlookConnected&&outlookToken){
     try{
       let filter='';
       const filters=[];
@@ -3716,7 +3744,7 @@ async function _searchEmailsAllAccounts(){
   }
 
   // 3) Outlook Corp
-  if(integrations.outlook2Connected&&outlookToken2){
+  if(chkCorp&&integrations.outlook2Connected&&outlookToken2){
     try{
       let filter='';
       const filters=[];
