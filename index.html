@@ -1654,9 +1654,9 @@ async function silentReauthGoogle(){
     console.log('[Lembra] Token Google expirado ou expirando, tentando renovar automaticamente...');
     const renewed=await renewGcalToken();
     if(!renewed){
-      // Não conseguiu renovar — só mostrar aviso se não há cache
-      const hasGoogleCache=(integrations.calendarEvents||[]).some(e=>e.source==='google');
-      if(!hasGoogleCache) showGoogleTokenWarning();
+      // Não conseguiu renovar — NÃO mostrar aviso se conta está conectada (token pode ser renovado depois)
+      // Só mostrar aviso se conta foi explicitamente desconectada
+      console.warn('[Lembra] Token Google não renovado — tentará novamente no próximo ciclo');
       return;
     }
   }
@@ -1849,12 +1849,13 @@ async function fetchGoogleCalendarEvents(){
   try{
     // Verificar token via userinfo
     const uRes=await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+gcalToken}});
-    if(uRes.status===401){
+      if(uRes.status===401){
       // Token inválido — tentar renovar uma vez
       const renewed=await renewGcalToken();
       if(!renewed){
-        gcalToken=null;delete integrations.gcalToken;saveInt();updateIntUI();
-        showGoogleTokenWarning();
+        gcalToken=null;delete integrations.gcalToken;saveInt();
+        // Não mostrar aviso — o sistema tentará renovar no próximo ciclo
+        console.warn('[Lembra] Token Google inválido e não renovado. Reconecte o Google em Configurações.');
         return;
       }
     }
@@ -1869,8 +1870,19 @@ async function fetchGoogleCalendarEvents(){
     const gcalUrl=`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime&maxResults=100`;
     const res=await fetch(gcalUrl,{headers:{Authorization:'Bearer '+gcalToken}});
     if(res.status===401){
-      gcalToken=null;delete integrations.gcalToken;saveInt();updateIntUI();
-      showGoogleTokenWarning();
+      gcalToken=null;delete integrations.gcalToken;saveInt();
+      // Tentar renovar token automaticamente
+      const renewed=await renewGcalToken();
+      if(renewed){
+        // Tentar buscar novamente com novo token
+        try{
+          const res2=await fetch(gcalUrl.replace(/(?<=Authorization: Bearer )[^ ]+/,''),{headers:{Authorization:'Bearer '+gcalToken}});
+          if(!res2.ok)return;
+          const data2=await res2.json();
+          // continua abaixo
+        }catch(e2){return;}
+      }
+      console.warn('[Lembra] Token Google expirado na busca de eventos. Reconecte o Google.');
       return;
     }
     if(!res.ok)throw new Error('Google Calendar API HTTP '+res.status);
