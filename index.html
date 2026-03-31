@@ -1331,6 +1331,10 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           <span>Consultar agenda</span>
         </button>
+        <button class="ai-action-btn" onclick="aiActionSearchEmail()" style="grid-column:1/-1;border-color:rgba(20,184,166,0.35);color:#14b8a6">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/><circle cx="18" cy="18" r="4"/><line x1="21" y1="21" x2="19.5" y2="19.5"/></svg>
+          <span>Consultar E-mail</span>
+        </button>
       </div>
     </div>
     <div class="ai-input-area" style="display:none" id="ai-input-area">
@@ -3619,6 +3623,178 @@ async function _queryAgendaForDate(dateStr){
   if(loadingMsg)loadingMsg.innerHTML=aiMarkdown(msg);
   else addAIMessage('assistant',msg);
 }
+// ─── CONSULTAR E-MAIL ────────────────────────────────────────────────────────
+function aiActionSearchEmail(){
+  addAIMessage('assistant','Pesquisar e-mails em todas as contas. Preencha os campos abaixo:');
+  _showPicker(
+    `<div style="padding:10px 1.5rem 12px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Consultar E-mail</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <label style="font-size:11px;color:var(--text3)">Assunto / palavra-chave (opcional)</label>
+        <input type="text" id="ai-email-q" placeholder="Ex: reunião, fatura, proposta..." style="padding:8px 10px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:13px;outline:none">
+      </div>
+      <div style="display:flex;gap:8px">
+        <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+          <label style="font-size:11px;color:var(--text3)">Data inicial (opcional)</label>
+          <input type="date" id="ai-email-from" style="width:100%;padding:7px 8px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:12px;outline:none">
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+          <label style="font-size:11px;color:var(--text3)">Data final (opcional)</label>
+          <input type="date" id="ai-email-to" style="width:100%;padding:7px 8px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:12px;outline:none">
+        </div>
+      </div>
+      <button onclick="_searchEmailsAllAccounts()" style="padding:9px;border-radius:10px;border:none;background:#14b8a6;color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🔍 Buscar em todas as contas</button>
+    </div>`
+  );
+}
+
+async function _searchEmailsAllAccounts(){
+  const q=(document.getElementById('ai-email-q')?.value||'').trim();
+  const fromDate=document.getElementById('ai-email-from')?.value||'';
+  const toDate=document.getElementById('ai-email-to')?.value||'';
+  if(!q&&!fromDate&&!toDate){
+    addAIMessage('assistant','Por favor, informe ao menos um critério de busca (assunto ou data).');
+    return;
+  }
+  _clearPicker();
+  // Montar label de busca
+  let labelParts=[];
+  if(q)labelParts.push(`"${q}"`);
+  if(fromDate&&toDate)labelParts.push(`de ${new Date(fromDate+'T12:00:00').toLocaleDateString('pt-BR')} a ${new Date(toDate+'T12:00:00').toLocaleDateString('pt-BR')}`);
+  else if(fromDate)labelParts.push(`a partir de ${new Date(fromDate+'T12:00:00').toLocaleDateString('pt-BR')}`);
+  else if(toDate)labelParts.push(`até ${new Date(toDate+'T12:00:00').toLocaleDateString('pt-BR')}`);
+  addAIMessage('assistant',`Buscando e-mails ${labelParts.join(' ')} em todas as contas...`);
+  const loadingEl=document.querySelector('#ai-messages .ai-msg.assistant:last-child .ai-bubble');
+
+  let gmailResults=[],outlookResults=[],corpResults=[];
+  const erros=[];
+
+  // 1) Gmail
+  if(integrations.googleConnected&&gcalToken){
+    try{
+      let gmailQ='';
+      if(q)gmailQ+=q;
+      if(fromDate)gmailQ+=(gmailQ?' ':'')+`after:${fromDate.replace(/-/g,'/')}`;
+      if(toDate)gmailQ+=(gmailQ?' ':'')+`before:${toDate.replace(/-/g,'/')}`;
+      const gmailUrl=`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(gmailQ)}&maxResults=20`;
+      const res=await fetch(gmailUrl,{headers:{Authorization:'Bearer '+gcalToken}});
+      if(res.status===401){erros.push('Gmail: sessão expirada — reconecte o Google');}
+      else if(res.ok){
+        const d=await res.json();
+        const msgs=d.messages||[];
+        // Buscar detalhes dos primeiros 10
+        const details=await Promise.all(msgs.slice(0,10).map(async m=>{
+          const r=await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date`,{headers:{Authorization:'Bearer '+gcalToken}});
+          if(!r.ok)return null;
+          const md=await r.json();
+          const headers=md.payload?.headers||[];
+          const get=n=>headers.find(h=>h.name===n)?.value||'';
+          return {subject:get('Subject')||'(sem assunto)',from:get('From'),date:get('Date'),id:m.id};
+        }));
+        gmailResults=details.filter(Boolean);
+      }
+    }catch(e){erros.push('Gmail: '+e.message);}
+  }
+
+  // 2) Outlook pessoal
+  if(integrations.outlookConnected&&outlookToken){
+    try{
+      let filter='';
+      const filters=[];
+      if(q)filters.push(`contains(subject,'${q.replace(/'/g,"''")}')`);
+      if(fromDate)filters.push(`receivedDateTime ge ${fromDate}T00:00:00Z`);
+      if(toDate)filters.push(`receivedDateTime le ${toDate}T23:59:59Z`);
+      if(filters.length)filter='&$filter='+encodeURIComponent(filters.join(' and '));
+      const url=`https://graph.microsoft.com/v1.0/me/messages?$select=subject,from,receivedDateTime,webLink&$top=10&$orderby=receivedDateTime desc${filter}`;
+      const res=await fetch(url,{headers:{Authorization:'Bearer '+outlookToken}});
+      if(res.status===401){erros.push('Outlook: sessão expirada — reconecte o Outlook');}
+      else if(res.ok){
+        const d=await res.json();
+        outlookResults=(d.value||[]).map(m=>({subject:m.subject||'(sem assunto)',from:m.from?.emailAddress?.address||'',date:m.receivedDateTime,link:m.webLink,id:m.id}));
+      }
+    }catch(e){erros.push('Outlook: '+e.message);}
+  }
+
+  // 3) Outlook Corp
+  if(integrations.outlook2Connected&&outlookToken2){
+    try{
+      let filter='';
+      const filters=[];
+      if(q)filters.push(`contains(subject,'${q.replace(/'/g,"''")}')`);
+      if(fromDate)filters.push(`receivedDateTime ge ${fromDate}T00:00:00Z`);
+      if(toDate)filters.push(`receivedDateTime le ${toDate}T23:59:59Z`);
+      if(filters.length)filter='&$filter='+encodeURIComponent(filters.join(' and '));
+      const url=`https://graph.microsoft.com/v1.0/me/messages?$select=subject,from,receivedDateTime,webLink&$top=10&$orderby=receivedDateTime desc${filter}`;
+      const res=await fetch(url,{headers:{Authorization:'Bearer '+outlookToken2}});
+      if(res.status===401){erros.push('Outlook Corp: sessão expirada — reconecte a conta corporativa');}
+      else if(res.ok){
+        const d=await res.json();
+        corpResults=(d.value||[]).map(m=>({subject:m.subject||'(sem assunto)',from:m.from?.emailAddress?.address||'',date:m.receivedDateTime,link:m.webLink,id:m.id}));
+      }
+    }catch(e){erros.push('Outlook Corp: '+e.message);}
+  }
+
+  // Montar resultado
+  const fmtDate=d=>{if(!d)return '';try{return new Date(d).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});}catch{return d;}};
+  const fmtFrom=f=>f?` · ${f.length>30?f.substring(0,30)+'...':f}`:''
+  let html=`<div style="font-size:13px;font-weight:700;margin-bottom:8px">📬 Resultados para ${labelParts.join(' ')}</div>`;
+  let total=0;
+
+  if(gmailResults.length){
+    total+=gmailResults.length;
+    html+=`<div style="font-size:11px;font-weight:700;color:#EA4335;margin:8px 0 4px">📧 Gmail (${gmailResults.length})</div>`;
+    html+=gmailResults.map(m=>{
+      const link=`https://mail.google.com/mail/u/0/#search/rfc822msgid/${m.id}`;
+      return `<div style="padding:6px 8px;border-radius:8px;background:var(--surface2);margin-bottom:4px">
+        <div style="font-size:12px;font-weight:600;color:var(--text)">${m.subject}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${fmtDate(m.date)}${fmtFrom(m.from)}</div>
+        <a href="https://mail.google.com/mail/u/0/#inbox/${m.id}" target="_blank" style="font-size:11px;color:#14b8a6;text-decoration:none">Abrir →</a>
+      </div>`;
+    }).join('');
+  }
+
+  if(outlookResults.length){
+    total+=outlookResults.length;
+    html+=`<div style="font-size:11px;font-weight:700;color:#0078D4;margin:8px 0 4px">📧 Outlook (${outlookResults.length})</div>`;
+    html+=outlookResults.map(m=>{
+      return `<div style="padding:6px 8px;border-radius:8px;background:var(--surface2);margin-bottom:4px">
+        <div style="font-size:12px;font-weight:600;color:var(--text)">${m.subject}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${fmtDate(m.date)}${fmtFrom(m.from)}</div>
+        ${m.link?`<a href="${m.link}" target="_blank" style="font-size:11px;color:#14b8a6;text-decoration:none">Abrir →</a>`:''}
+      </div>`;
+    }).join('');
+  }
+
+  if(corpResults.length){
+    total+=corpResults.length;
+    html+=`<div style="font-size:11px;font-weight:700;color:#6366f1;margin:8px 0 4px">🏢 Outlook Corp (${corpResults.length})</div>`;
+    html+=corpResults.map(m=>{
+      return `<div style="padding:6px 8px;border-radius:8px;background:var(--surface2);margin-bottom:4px">
+        <div style="font-size:12px;font-weight:600;color:var(--text)">${m.subject}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${fmtDate(m.date)}${fmtFrom(m.from)}</div>
+        ${m.link?`<a href="${m.link}" target="_blank" style="font-size:11px;color:#14b8a6;text-decoration:none">Abrir →</a>`:''}
+      </div>`;
+    }).join('');
+  }
+
+  if(total===0&&!erros.length){
+    html+=`<div style="color:var(--text3);font-size:12px">Nenhum e-mail encontrado com esses critérios.</div>`;
+  }
+  if(erros.length){
+    html+=`<div style="margin-top:8px;padding:8px;border-radius:8px;background:rgba(250,204,21,0.1);border:1px solid rgba(250,204,21,0.3);font-size:11px;color:var(--amber)">⚠️ ${erros.join(' · ')}</div>`;
+  }
+  html+=`<button onclick="aiActionSearchEmail()" style="margin-top:8px;padding:5px 12px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--text3);font-family:inherit;font-size:11px;cursor:pointer">🔄 Nova busca</button>`;
+
+  if(loadingEl)loadingEl.innerHTML=html;
+  else{
+    const msgEl=document.createElement('div');
+    msgEl.className='ai-msg assistant';
+    msgEl.innerHTML=`<div class="ai-avatar">IA</div><div class="ai-bubble">${html}</div>`;
+    document.getElementById('ai-messages').appendChild(msgEl);
+    msgEl.scrollIntoView({behavior:'smooth',block:'end'});
+  }
+}
+
 function autoResizeAI(el){
   el.style.height='auto';
   el.style.height=Math.min(el.scrollHeight,120)+'px';
