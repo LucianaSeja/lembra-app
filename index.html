@@ -3697,7 +3697,15 @@ async function _searchEmailsAllAccounts(){
   let gmailResults=[],outlookResults=[],corpResults=[];
   const erros=[];
 
-  // 1) Gmail
+  // 1) Gmail — renovar token se necessário
+  if(chkGmail&&integrations.googleConnected){
+    if(!gcalToken||gcalToken==='expired'){
+      try{
+        const renewed=await renewGcalToken();
+        if(!renewed)erros.push('Gmail: sessão expirada — reconecte o Google em Configurações');
+      }catch(e){erros.push('Gmail: falha ao renovar sessão');}
+    }
+  }
   if(chkGmail&&integrations.googleConnected&&gcalToken){
     try{
       let gmailQ='';
@@ -3727,18 +3735,27 @@ async function _searchEmailsAllAccounts(){
   // 2) Outlook pessoal
   if(chkOutlook&&integrations.outlookConnected&&outlookToken){
     try{
-      let filter='';
-      const filters=[];
-      if(q)filters.push(`contains(subject,'${q.replace(/'/g,"''")}')`);
-      if(fromDate)filters.push(`receivedDateTime ge ${fromDate}T00:00:00Z`);
-      if(toDate)filters.push(`receivedDateTime le ${toDate}T23:59:59Z`);
-      if(filters.length)filter='&$filter='+encodeURIComponent(filters.join(' and '));
-      const url=`https://graph.microsoft.com/v1.0/me/messages?$select=subject,from,receivedDateTime,webLink&$top=10&$orderby=receivedDateTime desc${filter}`;
-      const res=await fetch(url,{headers:{Authorization:'Bearer '+outlookToken}});
+      // Usar $search para assunto (compatível com $orderby) e $filter só para datas
+      let params=[];
+      let searchParam='';
+      let filterParam='';
+      if(q)searchParam=`&$search="subject:${q.replace(/"/g,'')}"`;
+      const dateFilters=[];
+      if(fromDate)dateFilters.push(`receivedDateTime ge ${fromDate}T00:00:00Z`);
+      if(toDate)dateFilters.push(`receivedDateTime le ${toDate}T23:59:59Z`);
+      if(dateFilters.length)filterParam='&$filter='+encodeURIComponent(dateFilters.join(' and '));
+      // Nota: $search e $filter não podem ser combinados — priorizar $search se tiver assunto
+      const extraParam=searchParam||(filterParam?filterParam:'');
+      const url=`https://graph.microsoft.com/v1.0/me/messages?$select=subject,from,receivedDateTime,webLink&$top=15${extraParam}`;
+      const res=await fetch(url,{headers:{Authorization:'Bearer '+outlookToken,'ConsistencyLevel':'eventual'}});
       if(res.status===401){erros.push('Outlook: sessão expirada — reconecte o Outlook');}
       else if(res.ok){
         const d=await res.json();
         outlookResults=(d.value||[]).map(m=>({subject:m.subject||'(sem assunto)',from:m.from?.emailAddress?.address||'',date:m.receivedDateTime,link:m.webLink,id:m.id}));
+      } else {
+        const errText=await res.text();
+        erros.push(`Outlook: erro ${res.status}`);
+        console.warn('[Outlook email search] erro:',errText);
       }
     }catch(e){erros.push('Outlook: '+e.message);}
   }
@@ -3746,18 +3763,24 @@ async function _searchEmailsAllAccounts(){
   // 3) Outlook Corp
   if(chkCorp&&integrations.outlook2Connected&&outlookToken2){
     try{
-      let filter='';
-      const filters=[];
-      if(q)filters.push(`contains(subject,'${q.replace(/'/g,"''")}')`);
-      if(fromDate)filters.push(`receivedDateTime ge ${fromDate}T00:00:00Z`);
-      if(toDate)filters.push(`receivedDateTime le ${toDate}T23:59:59Z`);
-      if(filters.length)filter='&$filter='+encodeURIComponent(filters.join(' and '));
-      const url=`https://graph.microsoft.com/v1.0/me/messages?$select=subject,from,receivedDateTime,webLink&$top=10&$orderby=receivedDateTime desc${filter}`;
-      const res=await fetch(url,{headers:{Authorization:'Bearer '+outlookToken2}});
+      let searchParam='';
+      let filterParam='';
+      if(q)searchParam=`&$search="subject:${q.replace(/"/g,'')}"`;
+      const dateFilters=[];
+      if(fromDate)dateFilters.push(`receivedDateTime ge ${fromDate}T00:00:00Z`);
+      if(toDate)dateFilters.push(`receivedDateTime le ${toDate}T23:59:59Z`);
+      if(dateFilters.length)filterParam='&$filter='+encodeURIComponent(dateFilters.join(' and '));
+      const extraParam=searchParam||(filterParam?filterParam:'');
+      const url=`https://graph.microsoft.com/v1.0/me/messages?$select=subject,from,receivedDateTime,webLink&$top=15${extraParam}`;
+      const res=await fetch(url,{headers:{Authorization:'Bearer '+outlookToken2,'ConsistencyLevel':'eventual'}});
       if(res.status===401){erros.push('Outlook Corp: sessão expirada — reconecte a conta corporativa');}
       else if(res.ok){
         const d=await res.json();
         corpResults=(d.value||[]).map(m=>({subject:m.subject||'(sem assunto)',from:m.from?.emailAddress?.address||'',date:m.receivedDateTime,link:m.webLink,id:m.id}));
+      } else {
+        const errText=await res.text();
+        erros.push(`Outlook Corp: erro ${res.status}`);
+        console.warn('[Corp email search] erro:',errText);
       }
     }catch(e){erros.push('Outlook Corp: '+e.message);}
   }
