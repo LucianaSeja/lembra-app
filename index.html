@@ -1639,28 +1639,32 @@ function restoreGcalToken(){
 }
 
 // Renovação silenciosa de tokens ao iniciar o app
-// IMPORTANTE: Nunca chama requestAccessToken automaticamente pois abre popup visível.
-// Usa apenas o token salvo no storage (~1h de validade). Se expirou, aguarda ação manual.
+// Tenta renovar automaticamente via Supabase (refresh_token) se token expirado
 async function silentReauthGoogle(){
   if(!integrations.googleConnected)return;
   _ensureGcalClient();
-  // Só tenta buscar eventos se já temos token no storage
+  // Verificar se token está próximo de expirar (menos de 5 min) ou já expirou
+  const expiry=integrations.gcalTokenExpiry||0;
+  const tokenExpirando=!gcalToken||(expiry&&Date.now()>expiry-5*60*1000);
+  if(tokenExpirando){
+    console.log('[Lembra] Token Google expirado ou expirando, tentando renovar automaticamente...');
+    const renewed=await renewGcalToken();
+    if(!renewed){
+      // Não conseguiu renovar — só mostrar aviso se não há cache
+      const hasGoogleCache=(integrations.calendarEvents||[]).some(e=>e.source==='google');
+      if(!hasGoogleCache) showGoogleTokenWarning();
+      return;
+    }
+  }
+  // Token válido (original ou renovado) — buscar eventos
   if(gcalToken){
     try{
       await fetchGoogleCalendarEvents();
       updateUnreadBadges();
-      // Remover aviso de token expirado se existir
       const warn=document.getElementById('google-token-warn');
       if(warn)warn.remove();
     }
     catch(e){console.warn('[Sync] Google com token salvo:',e);}
-  } else {
-    // Token expirado ou ausente — só mostrar aviso se não há eventos Google cacheados
-    const hasGoogleCache=(integrations.calendarEvents||[]).some(e=>e.source==='google');
-    if(!hasGoogleCache){
-      showGoogleTokenWarning();
-    }
-    // Se há cache, os eventos já aparecem normalmente — não incomodar o usuário
   }
 }
 function showGoogleTokenWarning(){
@@ -1702,8 +1706,19 @@ function getMsalApp(){
   return msalApp;
 }
 
-// Inicializa o GIS token client UMA única vez (singleton).
-// Recria somente se a biblioteca ainda não carregou.
+// Inicializa o GIS Code client para Authorization Code flow (offline access)
+let gcalCodeClient=null;
+function _ensureGcalCodeClient(callback){
+  if(typeof google==='undefined'||!google.accounts)return;
+  gcalCodeClient=google.accounts.oauth2.initCodeClient({
+    client_id:GCAL_CLIENT_ID,
+    scope:GCAL_SCOPES,
+    ux_mode:'popup',
+    callback:callback
+  });
+}
+
+// Mantém também o token client para renovação imediata quando já logado
 function _ensureGcalClient(){
   if(gcalTokenClient)return;
   if(typeof google==='undefined'||!google.accounts)return;
@@ -1711,45 +1726,110 @@ function _ensureGcalClient(){
     client_id:GCAL_CLIENT_ID,
     scope:GCAL_SCOPES,
     callback:(resp)=>{
-      // Delega para o callback registrado pela chamada corrente
       if(_gcalTokenCb){const cb=_gcalTokenCb;_gcalTokenCb=null;cb(resp);}
     }
   });
 }
 
 function connectGoogle(){
-  _ensureGcalClient();
-  if(gcalTokenClient){
-    _gcalTokenCb=(resp)=>{
-      if(resp.error){notify('Erro','Não foi possível conectar ao Google: '+resp.error);return;}
-      gcalToken=resp.access_token;
-      integrations.googleConnected=true;
-      integrations.gcalToken=gcalToken;
-      saveInt();updateIntUI();
-      fetchGoogleCalendarEvents();
-      scheduleAutoSync();
-    };
-    gcalTokenClient.requestAccessToken({prompt:'select_account'});
-  } else {
+  if(typeof google==='undefined'||!google.accounts){
     // GIS não carregado — modo offline/mock
     integrations.googleConnected=true;
-    integrations.googleEmail=user.email;
+    integrations.googleEmail=user&&user.email?user.email:'';
     saveInt();updateIntUI();loadMockGoogleEvents();
+    return;
   }
+  // Usar Authorization Code flow para obter refresh_token
+  _ensureGcalCodeClient(async(resp)=>{
+    if(resp.error){notify('Erro','Não foi possível conectar ao Google: '+resp.error);return;}
+    try{
+      const redirectUri=window.location.origin;
+      const userEmail=integrations.googleEmail||'';
+      const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+      const res=await fetch(SUPABASE_URL+'/functions/v1/refresh-google-token',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
+        body:JSON.stringify({action:'exchange_code',code:resp.code,userEmail:userEmail||'pending',redirectUri:redirectUri})
+      });
+      const data=await res.json();
+      if(data.erro)throw new Error(data.erro);
+      gcalToken=data.access_token;
+      integrations.googleConnected=true;
+      integrations.gcalToken=gcalToken;
+      integrations.gcalTokenExpiry=Date.now()+(data.expires_in||3600)*1000;
+      saveInt();updateIntUI();
+      // Buscar email do usuário
+      const uRes=await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+gcalToken}});
+      if(uRes.ok){const uData=await uRes.json();if(uData.email){integrations.googleEmail=uData.email;saveInt();}}
+      // Atualizar email no banco com o email real
+      if(integrations.googleEmail&&integrations.googleEmail!=='pending'){
+        await fetch(SUPABASE_URL+'/functions/v1/refresh-google-token',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
+          body:JSON.stringify({action:'exchange_code',code:resp.code,userEmail:integrations.googleEmail,redirectUri:redirectUri})
+        }).catch(()=>{});
+      }
+      fetchGoogleCalendarEvents();
+      scheduleAutoSync();
+      notify('Google','✓ Google conectado com renovação automática!');
+    }catch(e){
+      console.error('[Google] Erro ao trocar code:',e);
+      // Fallback: usar token client simples
+      _ensureGcalClient();
+      if(gcalTokenClient){
+        _gcalTokenCb=(resp2)=>{
+          if(resp2.error){notify('Erro','Não foi possível conectar ao Google: '+resp2.error);return;}
+          gcalToken=resp2.access_token;
+          integrations.googleConnected=true;
+          integrations.gcalToken=gcalToken;
+          saveInt();updateIntUI();
+          fetchGoogleCalendarEvents();
+          scheduleAutoSync();
+        };
+        gcalTokenClient.requestAccessToken({prompt:'select_account'});
+      }
+    }
+  });
+  gcalCodeClient.requestCode();
 }
 
 async function renewGcalToken(){
-  // Renovação silenciosa — NÃO usa requestAccessToken (abriria popup visível).
-  // Apenas verifica se o token do storage ainda é válido.
+  // Tenta renovar via Supabase Edge Function (refresh_token)
+  const email=integrations.googleEmail;
+  if(email){
+    try{
+      const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+      const res=await fetch(SUPABASE_URL+'/functions/v1/refresh-google-token',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
+        body:JSON.stringify({action:'refresh',userEmail:email})
+      });
+      const data=await res.json();
+      if(data.access_token){
+        gcalToken=data.access_token;
+        integrations.gcalToken=gcalToken;
+        integrations.gcalTokenExpiry=Date.now()+(data.expires_in||3600)*1000;
+        saveInt();
+        console.log('[Lembra] Token Google renovado automaticamente via Supabase ✓');
+        // Remover aviso de expirado se existir
+        const warn=document.getElementById('google-token-warn');
+        if(warn)warn.remove();
+        return true;
+      }
+      console.warn('[Lembra] Supabase refresh retornou erro:',data.erro);
+    }catch(e){
+      console.warn('[Lembra] Erro ao renovar token via Supabase:',e.message||e);
+    }
+  }
+  // Fallback: verificar se token atual ainda é válido
   if(!gcalToken)return false;
   try{
     const uRes=await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+gcalToken}});
-    if(uRes.ok)return true; // token ainda válido
-    // Token expirado: limpar e retornar false (usuário reconecta manualmente)
+    if(uRes.ok)return true;
     gcalToken=null;
     delete integrations.gcalToken;
     saveInt();
-    console.warn('[Lembra] Token Google expirado — reconexão manual necessária.');
+    console.warn('[Lembra] Token Google expirado e sem refresh_token — reconexão manual necessária.');
     return false;
   }catch(e){
     console.warn('Google token check failed:',e.message||e);
@@ -1757,14 +1837,22 @@ async function renewGcalToken(){
   }
 }
 async function fetchGoogleCalendarEvents(){
-  if(!gcalToken){updateBadges();return;}
+  if(!gcalToken){
+    // Tentar renovar automaticamente antes de desistir
+    const renewed=await renewGcalToken();
+    if(!renewed){updateBadges();return;}
+  }
   try{
     // Verificar token via userinfo
     const uRes=await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+gcalToken}});
     if(uRes.status===401){
-      gcalToken=null;delete integrations.gcalToken;saveInt();updateIntUI();
-      showGoogleTokenWarning();
-      return;
+      // Token inválido — tentar renovar uma vez
+      const renewed=await renewGcalToken();
+      if(!renewed){
+        gcalToken=null;delete integrations.gcalToken;saveInt();updateIntUI();
+        showGoogleTokenWarning();
+        return;
+      }
     }
     if(uRes.ok){const uData=await uRes.json();if(uData.email)integrations.googleEmail=uData.email;}
     // Buscar eventos DIRETAMENTE da API do Google Calendar (sem Supabase)
