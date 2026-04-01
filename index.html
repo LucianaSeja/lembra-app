@@ -1753,10 +1753,16 @@ async function silentReauthOutlook(){
   } catch(e){console.warn('Outlook silent reauth:',e);}
 }
 // Detectar se está rodando como PWA (standalone) — popups são bloqueados nesse modo
-function isPWA(){
-  return window.matchMedia('(display-mode: standalone)').matches||
-         window.navigator.standalone===true;
+// Detectar mobile (qualquer browser no celular) OU PWA standalone
+// Popups são bloqueados em ambos os casos no iOS/Android
+function isMobileOrPWA(){
+  const standalone=window.matchMedia('(display-mode: standalone)').matches||
+                    window.navigator.standalone===true;
+  const mobile=/iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  return standalone||mobile;
 }
+// Manter isPWA como alias para compatibilidade
+function isPWA(){return isMobileOrPWA();}
 function getMsalApp(){
   if(!msalApp&&typeof msal!=='undefined'){
     // Usar URI fixa para evitar erro de domínio não autorizado no Azure
@@ -1802,23 +1808,22 @@ function connectGoogle(){
     saveInt();updateIntUI();loadMockGoogleEvents();
     return;
   }
-  // Em modo PWA (standalone), usar redirect em vez de popup
-  if(isPWA()){
-    const redirectUri=window.location.origin+'/';
-    // Usar GIS com redirect_uri
-    _ensureGcalCodeClient(async(resp)=>{
-      if(resp.error){notify('Erro','Não foi possível conectar ao Google: '+resp.error);return;}
-      await _finishGoogleConnect(resp.code,redirectUri);
-    });
-    gcalCodeClient.requestCode();
-    return;
-  }
-  // Usar Authorization Code flow para obter refresh_token (popup no browser normal)
-  _ensureGcalCodeClient(async(resp)=>{
-    if(resp.error){notify('Erro','Não foi possível conectar ao Google: '+resp.error);return;}
-    await _finishGoogleConnect(resp.code,window.location.origin);
+  // Sempre usar redirect (funciona em mobile, PWA e desktop)
+  // Construir URL de autorização OAuth2 manualmente e redirecionar
+  const redirectUri=window.location.origin+'/';
+  const state='google_oauth_'+Date.now();
+  localStorage.setItem('google_oauth_state',state);
+  localStorage.setItem('google_oauth_pending','1');
+  const params=new URLSearchParams({
+    client_id:GCAL_CLIENT_ID,
+    redirect_uri:redirectUri,
+    response_type:'code',
+    scope:GCAL_SCOPES,
+    access_type:'offline',
+    prompt:'consent',
+    state:state
   });
-  gcalCodeClient.requestCode();
+  window.location.href='https://accounts.google.com/o/oauth2/v2/auth?'+params.toString();
 }
 async function _finishGoogleConnect(code,redirectUri){
   try{
@@ -2036,11 +2041,11 @@ async function connectOutlook(){
   try{
     // Processar redirect de retorno antes de iniciar novo login
     await app.handleRedirectPromise().catch(()=>{});
-    if(isPWA()){
-      // Em modo PWA (standalone), popup é bloqueado — usar redirect
+    // Usar redirect em mobile (celular) E PWA — popup é bloqueado em ambos
+    if(isMobileOrPWA()){
       localStorage.setItem('msal_pending_account','outlook');
       await app.loginRedirect({scopes:OUTLOOK_SCOPES});
-      return; // a página será redirecionada
+      return;
     }
     const resp=await app.loginPopup({scopes:OUTLOOK_SCOPES});
     outlookToken=resp.accessToken;
@@ -2101,11 +2106,11 @@ async function connectOutlook2(){
   try{
     // Processar redirect de retorno antes de iniciar novo login
     await app.handleRedirectPromise().catch(()=>{});
-    if(isPWA()){
-      // Em modo PWA (standalone), popup é bloqueado — usar redirect
+    if(isMobileOrPWA()){
+      // Usar redirect em mobile (celular) E PWA — popup é bloqueado em ambos
       localStorage.setItem('msal_pending_account','outlook2');
       await app.loginRedirect({scopes:OUTLOOK_SCOPES,prompt:'select_account'});
-      return; // a página será redirecionada
+      return;
     }
     // Sempre pedir seleção de conta (permite escolher conta diferente da principal)
     const resp=await app.loginPopup({scopes:OUTLOOK_SCOPES,prompt:'select_account'});
@@ -4349,9 +4354,36 @@ Exemplo: *"Enviar e-mail para joao@empresa.com, assunto: Reunião, dizendo: Conf
   return `Não encontrei nada relacionado. Pode me perguntar sobre seus lembretes, compromissos de hoje ou amanhã, ou pedir para enviar um e-mail.`;
 }
 
-window.onload=()=>{
+window.onload=async()=>{
+  // Verificar se é retorno de redirect OAuth Google
+  const urlParams=new URLSearchParams(window.location.search);
+  const oauthCode=urlParams.get('code');
+  const oauthState=urlParams.get('state');
+  const oauthError=urlParams.get('error');
+  const pendingGoogle=localStorage.getItem('google_oauth_pending');
+  const savedState=localStorage.getItem('google_oauth_state');
+
+  // Limpar parâmetros da URL sem recarregar a página
+  if(oauthCode||oauthError){
+    window.history.replaceState({},'',window.location.pathname);
+  }
+
+  // Restaurar sessão do usuário primeiro
   const s=localStorage.getItem(SESSION_KEY);
-  if(s){const u=JSON.parse(s);if(getUsers()[u.email])startSession(u)}
+  if(s){const u=JSON.parse(s);if(getUsers()[u.email])startSession(u);}
+
+  // Processar retorno OAuth Google
+  if(pendingGoogle&&oauthCode){
+    localStorage.removeItem('google_oauth_pending');
+    localStorage.removeItem('google_oauth_state');
+    if(oauthError){
+      notify('Erro Google','Autenticação cancelada: '+oauthError);
+    } else {
+      const redirectUri=window.location.origin+'/';
+      // Aguardar integrations estar carregado (startSession já chamou loadInt)
+      await _finishGoogleConnect(oauthCode,redirectUri);
+    }
+  }
 };
 </script>
 <!-- Supabase -->
