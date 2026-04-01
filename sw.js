@@ -1,5 +1,5 @@
-const CACHE = 'lembra-v84';
-const ASSETS = ['/', '/index.html', '/manifest.json', '/icon.svg', '/icon.png'];
+const CACHE = 'lembra-v85';
+const ASSETS = ['/', '/index.html', '/manifest.json', '/icon.svg', '/icon-192.png', '/icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
