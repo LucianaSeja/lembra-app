@@ -7,6 +7,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Lembra">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon.png">
+<link rel="apple-touch-icon" sizes="167x167" href="icon.png">
 <link rel="manifest" href="manifest.json">
 <title>Lembra</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=Inter:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1487,12 +1491,62 @@ function startSession(u){
     // Iniciar sincronização automática a cada 5 minutos
     scheduleAutoSync();
   },2000);
-  loadFromSupabase().then(found=>{if(found){render();scheduleNotifs();notify('Sincronizado','✓ Lembretes sincronizados da nuvem!')}});
+  // Carregar lembretes do Supabase silenciosamente (sem notificação intrusiva)
+  loadFromSupabase().then(found=>{
+    if(found){
+      render();
+      scheduleNotifs();
+      console.log('[Sync] Lembretes carregados do Supabase');
+    }
+  });
+  // Sincronizar periodicamente a cada 2 minutos para manter dispositivos atualizados
+  if(window._syncInterval)clearInterval(window._syncInterval);
+  window._syncInterval=setInterval(async()=>{
+    if(!user||!supabaseClient)return;
+    const found=await loadFromSupabase();
+    if(found){render();scheduleNotifs();}
+  },2*60*1000);
+  // Processar retorno de redirect MSAL (para PWA onde popup é bloqueado)
+  _handleMsalRedirectReturn();
+}
+async function _handleMsalRedirectReturn(){
+  const pending=localStorage.getItem('msal_pending_account');
+  if(!pending)return;
+  try{
+    const loaded=await loadMSAL();
+    if(!loaded)return;
+    const app=getMsalApp();
+    if(!app)return;
+    const resp=await app.handleRedirectPromise();
+    if(!resp)return; // não é um retorno de redirect
+    localStorage.removeItem('msal_pending_account');
+    if(pending==='outlook'){
+      outlookToken=resp.accessToken;
+      integrations.outlookConnected=true;
+      integrations.outlookEmail=resp.account.username||resp.account.name||'';
+      saveInt();updateIntUI();
+      await fetchOutlookCalendarEvents();
+      scheduleAutoSync();
+      notify('Outlook','✓ Outlook Pessoal conectado!');
+    } else if(pending==='outlook2'){
+      outlookToken2=resp.accessToken;
+      integrations.outlook2Connected=true;
+      integrations.outlook2Email=resp.account.username||resp.account.name||'';
+      saveInt();updateIntUI();
+      await fetchOutlookCalendarEvents2();
+      scheduleAutoSync();
+      notify('Outlook Corp','✓ Outlook Corporativo conectado!');
+    }
+  } catch(e){
+    localStorage.removeItem('msal_pending_account');
+    console.error('[MSAL Redirect] Erro ao processar retorno:',e);
+  }
 }
 function doLogout(){
   localStorage.removeItem(SESSION_KEY);user=null;reminders=[];
   if(digestTimer)clearInterval(digestTimer);
   if(autoSyncTimer){clearInterval(autoSyncTimer);autoSyncTimer=null;}
+  if(window._syncInterval){clearInterval(window._syncInterval);window._syncInterval=null;}
   document.getElementById('app-screen').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
   notifTimers.forEach(clearTimeout);notifTimers=[];
@@ -1698,13 +1752,18 @@ async function silentReauthOutlook(){
     updateUnreadBadges();
   } catch(e){console.warn('Outlook silent reauth:',e);}
 }
+// Detectar se está rodando como PWA (standalone) — popups são bloqueados nesse modo
+function isPWA(){
+  return window.matchMedia('(display-mode: standalone)').matches||
+         window.navigator.standalone===true;
+}
 function getMsalApp(){
   if(!msalApp&&typeof msal!=='undefined'){
     // Usar URI fixa para evitar erro de domínio não autorizado no Azure
     const redirectUri='https://lembra-app.vercel.app';
     msalApp=new msal.PublicClientApplication({
       auth:{clientId:OUTLOOK_CLIENT_ID,authority:'https://login.microsoftonline.com/common',redirectUri:redirectUri},
-      cache:{cacheLocation:'localStorage',storeAuthStateInCookie:false}
+      cache:{cacheLocation:'localStorage',storeAuthStateInCookie:true}
     });
   }
   return msalApp;
@@ -1743,58 +1802,63 @@ function connectGoogle(){
     saveInt();updateIntUI();loadMockGoogleEvents();
     return;
   }
-  // Usar Authorization Code flow para obter refresh_token
+  // Em modo PWA (standalone), usar redirect em vez de popup
+  if(isPWA()){
+    const redirectUri=window.location.origin+'/';
+    // Usar GIS com redirect_uri
+    _ensureGcalCodeClient(async(resp)=>{
+      if(resp.error){notify('Erro','Não foi possível conectar ao Google: '+resp.error);return;}
+      await _finishGoogleConnect(resp.code,redirectUri);
+    });
+    gcalCodeClient.requestCode();
+    return;
+  }
+  // Usar Authorization Code flow para obter refresh_token (popup no browser normal)
   _ensureGcalCodeClient(async(resp)=>{
     if(resp.error){notify('Erro','Não foi possível conectar ao Google: '+resp.error);return;}
-    try{
-      const redirectUri=window.location.origin;
-      const userEmail=integrations.googleEmail||'';
-      const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
-      const res=await fetch(SUPABASE_URL+'/functions/v1/refresh-google-token',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
-        body:JSON.stringify({action:'exchange_code',code:resp.code,userEmail:userEmail||'pending',redirectUri:redirectUri})
-      });
-      const data=await res.json();
-      if(data.erro)throw new Error(data.erro);
-      gcalToken=data.access_token;
-      integrations.googleConnected=true;
-      integrations.gcalToken=gcalToken;
-      integrations.gcalTokenExpiry=Date.now()+(data.expires_in||3600)*1000;
-      saveInt();updateIntUI();
-      // Buscar email do usuário
-      const uRes=await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+gcalToken}});
-      if(uRes.ok){const uData=await uRes.json();if(uData.email){integrations.googleEmail=uData.email;saveInt();}}
-      // Atualizar email no banco com o email real
-      if(integrations.googleEmail&&integrations.googleEmail!=='pending'){
-        await fetch(SUPABASE_URL+'/functions/v1/refresh-google-token',{
-          method:'POST',
-          headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
-          body:JSON.stringify({action:'exchange_code',code:resp.code,userEmail:integrations.googleEmail,redirectUri:redirectUri})
-        }).catch(()=>{});
-      }
-      fetchGoogleCalendarEvents();
-      scheduleAutoSync();
-      notify('Google','✓ Google conectado com renovação automática!');
-    }catch(e){
-      console.error('[Google] Erro ao trocar code:',e);
-      // Fallback: usar token client simples
-      _ensureGcalClient();
-      if(gcalTokenClient){
-        _gcalTokenCb=(resp2)=>{
-          if(resp2.error){notify('Erro','Não foi possível conectar ao Google: '+resp2.error);return;}
-          gcalToken=resp2.access_token;
-          integrations.googleConnected=true;
-          integrations.gcalToken=gcalToken;
-          saveInt();updateIntUI();
-          fetchGoogleCalendarEvents();
-          scheduleAutoSync();
-        };
-        gcalTokenClient.requestAccessToken({prompt:'select_account'});
-      }
-    }
+    await _finishGoogleConnect(resp.code,window.location.origin);
   });
   gcalCodeClient.requestCode();
+}
+async function _finishGoogleConnect(code,redirectUri){
+  try{
+    const userEmail=integrations.googleEmail||'';
+    const SUPABASE_URL='https://oziqfjawhqgyxsuzkwxy.supabase.co';
+    const res=await fetch(SUPABASE_URL+'/functions/v1/refresh-google-token',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
+      body:JSON.stringify({action:'exchange_code',code:code,userEmail:userEmail||'pending',redirectUri:redirectUri})
+    });
+    const data=await res.json();
+    if(data.erro)throw new Error(data.erro);
+    gcalToken=data.access_token;
+    integrations.googleConnected=true;
+    integrations.gcalToken=gcalToken;
+    integrations.gcalTokenExpiry=Date.now()+(data.expires_in||3600)*1000;
+    saveInt();updateIntUI();
+    // Buscar email do usuário
+    const uRes=await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+gcalToken}});
+    if(uRes.ok){const uData=await uRes.json();if(uData.email){integrations.googleEmail=uData.email;saveInt();}}
+    fetchGoogleCalendarEvents();
+    scheduleAutoSync();
+    notify('Google','✓ Google conectado com renovação automática!');
+  }catch(e){
+    console.error('[Google] Erro ao trocar code:',e);
+    // Fallback: usar token client simples
+    _ensureGcalClient();
+    if(gcalTokenClient){
+      _gcalTokenCb=(resp2)=>{
+        if(resp2.error){notify('Erro','Não foi possível conectar ao Google: '+resp2.error);return;}
+        gcalToken=resp2.access_token;
+        integrations.googleConnected=true;
+        integrations.gcalToken=gcalToken;
+        saveInt();updateIntUI();
+        fetchGoogleCalendarEvents();
+        scheduleAutoSync();
+      };
+      gcalTokenClient.requestAccessToken({prompt:'select_account'});
+    }
+  }
 }
 
 async function renewGcalToken(){
@@ -1970,6 +2034,14 @@ async function connectOutlook(){
   const app=getMsalApp();
   if(!app){notify('Erro','Biblioteca Microsoft não inicializada. Tente recarregar a página.');return;}
   try{
+    // Processar redirect de retorno antes de iniciar novo login
+    await app.handleRedirectPromise().catch(()=>{});
+    if(isPWA()){
+      // Em modo PWA (standalone), popup é bloqueado — usar redirect
+      localStorage.setItem('msal_pending_account','outlook');
+      await app.loginRedirect({scopes:OUTLOOK_SCOPES});
+      return; // a página será redirecionada
+    }
     const resp=await app.loginPopup({scopes:OUTLOOK_SCOPES});
     outlookToken=resp.accessToken;
     integrations.outlookConnected=true;
@@ -2027,6 +2099,14 @@ async function connectOutlook2(){
   const app=getMsalApp(); // instância única MSAL gerencia múltiplas contas
   if(!app){notify('Erro','Biblioteca Microsoft não inicializada. Tente recarregar a página.');return;}
   try{
+    // Processar redirect de retorno antes de iniciar novo login
+    await app.handleRedirectPromise().catch(()=>{});
+    if(isPWA()){
+      // Em modo PWA (standalone), popup é bloqueado — usar redirect
+      localStorage.setItem('msal_pending_account','outlook2');
+      await app.loginRedirect({scopes:OUTLOOK_SCOPES,prompt:'select_account'});
+      return; // a página será redirecionada
+    }
     // Sempre pedir seleção de conta (permite escolher conta diferente da principal)
     const resp=await app.loginPopup({scopes:OUTLOOK_SCOPES,prompt:'select_account'});
     outlookToken2=resp.accessToken;

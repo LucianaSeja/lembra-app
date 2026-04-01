@@ -1,5 +1,5 @@
-const CACHE = 'lembra-v59';
-const ASSETS = ['/', '/index.html', '/manifest.json', '/icon.svg'];
+const CACHE = 'lembra-v84';
+const ASSETS = ['/', '/index.html', '/manifest.json', '/icon.svg', '/icon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
@@ -17,6 +17,16 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if(e.request.method !== 'GET') return;
+  // Não interceptar requisições de autenticação OAuth (precisam ir direto ao servidor)
+  const url = e.request.url;
+  if(url.includes('accounts.google.com') || 
+     url.includes('login.microsoftonline.com') ||
+     url.includes('oauth2') ||
+     url.includes('googleapis.com') ||
+     url.includes('graph.microsoft.com') ||
+     url.includes('supabase.co')) {
+    return; // deixar passar sem cache
+  }
   e.respondWith(
     fetch(e.request).then(r => {
       const clone = r.clone();
