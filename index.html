@@ -661,7 +661,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 <body>
 
 <!-- LANDING (público, sem login) -->
-<div id="landing-screen">
+<div id="landing-screen" style="display:none">
   <header>
     <span class="lnd-logo">Lemb<em style="font-style:normal">ra</em></span>
     <button class="lnd-cta" onclick="showAuthFromLanding()">Entrar / Criar conta</button>
@@ -700,7 +700,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 </div>
 
 <!-- AUTH -->
-<div id="auth-screen" style="display:none">
+<div id="auth-screen">
   <div class="auth-glow"></div>
   <div class="auth-box">
     <div class="auth-logo">Lemb<em>ra</em></div>
@@ -731,13 +731,13 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
         Criar conta com Google
       </button>
     </div>
-  </div>
-  <div style="margin-top:20px;text-align:center;font-size:12px;color:#6B6B6B">
-    <a href="/sobre.html" style="color:#6B6B6B;text-decoration:none;margin:0 8px" onmouseover="this.style.color='#4ADE80'" onmouseout="this.style.color='#6B6B6B'">Sobre o Lembra</a>
-    <span>·</span>
-    <a href="/privacidade.html" style="color:#6B6B6B;text-decoration:none;margin:0 8px" onmouseover="this.style.color='#4ADE80'" onmouseout="this.style.color='#6B6B6B'">Privacidade</a>
-    <span>·</span>
-    <a href="/termos.html" style="color:#6B6B6B;text-decoration:none;margin:0 8px" onmouseover="this.style.color='#4ADE80'" onmouseout="this.style.color='#6B6B6B'">Termos</a>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);text-align:center;font-size:12px;color:#6B6B6B">
+      <a href="/sobre.html" style="color:#6B6B6B;text-decoration:none;margin:0 8px" onmouseover="this.style.color='#4ADE80'" onmouseout="this.style.color='#6B6B6B'">Sobre o Lembra</a>
+      <span>·</span>
+      <a href="/privacidade.html" style="color:#6B6B6B;text-decoration:none;margin:0 8px" onmouseover="this.style.color='#4ADE80'" onmouseout="this.style.color='#6B6B6B'">Privacidade</a>
+      <span>·</span>
+      <a href="/termos.html" style="color:#6B6B6B;text-decoration:none;margin:0 8px" onmouseover="this.style.color='#4ADE80'" onmouseout="this.style.color='#6B6B6B'">Termos</a>
+    </div>
   </div>
 </div>
 
@@ -1661,8 +1661,7 @@ function doLogout(){
   if(autoSyncTimer){clearInterval(autoSyncTimer);autoSyncTimer=null;}
   if(window._syncInterval){clearInterval(window._syncInterval);window._syncInterval=null;}
   document.getElementById('app-screen').style.display='none';
-  document.getElementById('auth-screen').style.display='none';
-  document.getElementById('landing-screen').style.display='block';
+  document.getElementById('auth-screen').style.display='flex';
   notifTimers.forEach(clearTimeout);notifTimers=[];
 }
 
