@@ -3508,52 +3508,9 @@ function renderAgendaDashboard(){
 }
 // Buscar e exibir contagem de e-mails não lidos
 async function updateUnreadBadges(){
-  // Gmail: usar Gmail API se token Google disponível
-  if(integrations.googleConnected&&gcalToken){
-    try{
-      // Tentar via labels/INBOX primeiro (retorna messagesUnread diretamente)
-      let count=0;
-      let success=false;
-      const res=await fetch('https://www.googleapis.com/gmail/v1/users/me/labels/INBOX',{
-        headers:{Authorization:'Bearer '+gcalToken}
-      });
-      if(res.ok){
-        const data=await res.json();
-        count=data.messagesUnread||0;
-        success=true;
-        console.log('[Unread] Gmail não lidos (labels):',count);
-      } else {
-        const errText=await res.text().catch(()=>'');
-        console.warn('[Unread] Gmail labels falhou ('+res.status+'):',errText);
-      }
-      // Se labels falhou, tentar via messages.list
-      if(!success){
-        try{
-          const res2=await fetch('https://www.googleapis.com/gmail/v1/users/me/messages?q=is%3Aunread+in%3Ainbox&maxResults=100',{
-            headers:{Authorization:'Bearer '+gcalToken}
-          });
-          if(res2.ok){
-            const data2=await res2.json();
-            // resultSizeEstimate é uma estimativa; usar messages.length se disponível
-            count=(data2.messages||[]).length;
-            if(data2.resultSizeEstimate>count)count=data2.resultSizeEstimate;
-            success=true;
-            console.log('[Unread] Gmail não lidos (messages.list):',count);
-          } else {
-            console.warn('[Unread] Gmail messages.list falhou:',res2.status);
-          }
-        }catch(e2){console.warn('[Unread] Gmail messages.list erro:',e2);}
-      }
-      const badge=document.getElementById('dash-badge-gmail');
-      if(badge&&success){
-        badge.textContent=count>99?'99+':count;
-        badge.style.display=count>0?'flex':'none';
-      }
-    }catch(e){console.warn('[Unread] Gmail erro:',e);}
-  } else {
-    const badge=document.getElementById('dash-badge-gmail');
-    if(badge)badge.style.display='none';
-  }
+  // Gmail: contagem de não lidos removida (escopo gmail.readonly não utilizado)
+  const badgeGmail=document.getElementById('dash-badge-gmail');
+  if(badgeGmail)badgeGmail.style.display='none';
   // Outlook 1: usar Graph API se token disponível
   if(integrations.outlookConnected&&outlookToken){
     try{
