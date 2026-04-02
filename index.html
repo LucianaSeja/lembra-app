@@ -1408,28 +1408,47 @@ function loadCats(){userCats=JSON.parse(localStorage.getItem(CATS_KEY(user.email
 function saveCats(){localStorage.setItem(CATS_KEY(user.email),JSON.stringify(userCats))}
 function loadSheets(){userSheets=JSON.parse(localStorage.getItem(SHEETS_KEY(user.email))||'[]')}
 function saveSheets(){localStorage.setItem(SHEETS_KEY(user.email),JSON.stringify(userSheets))}
-function loadInt(){
-  integrations=JSON.parse(localStorage.getItem(INT_KEY(user.email))||'{}');
-  // Normalizar datas de eventos do calendário (corrigir bug +3h de versões antigas)
-  // Datas sem fuso explícito são tratadas como UTC pelo JavaScript
-  if(integrations.calendarEvents&&integrations.calendarEvents.length>0){
-    integrations.calendarEvents=integrations.calendarEvents.map(e=>{
+function _normalizeIntDates(obj){
+  if(obj.calendarEvents&&obj.calendarEvents.length>0){
+    obj.calendarEvents=obj.calendarEvents.map(e=>{
       const norm=dt=>{
         if(!dt||typeof dt!=='string')return dt;
-        // Já tem Z ou offset explícito (+/-HH:MM) — correto
         if(dt.endsWith('Z')||/[+-]\d{2}:\d{2}$/.test(dt))return dt;
-        // Sem fuso: M365 corporativo retorna sem fuso (UTC implícito) — adicionar Z
         return dt.substring(0,19)+'Z';
       };
-      return {
-        ...e,
-        start:e.start?{...e.start,dateTime:e.start.dateTime?norm(e.start.dateTime):e.start.dateTime}:e.start,
-        end:e.end?{...e.end,dateTime:e.end.dateTime?norm(e.end.dateTime):e.end.dateTime}:e.end
-      };
+      return {...e,start:e.start?{...e.start,dateTime:e.start.dateTime?norm(e.start.dateTime):e.start.dateTime}:e.start,end:e.end?{...e.end,dateTime:e.end.dateTime?norm(e.end.dateTime):e.end.dateTime}:e.end};
     });
   }
+  return obj;
 }
-function saveInt(){localStorage.setItem(INT_KEY(user.email),JSON.stringify(integrations))}
+function loadInt(){
+  integrations=_normalizeIntDates(JSON.parse(localStorage.getItem(INT_KEY(user.email))||'{}'));
+}
+async function loadIntFromSupabase(){
+  if(!supabaseClient||!user)return false;
+  try{
+    const {data,error}=await supabaseClient.from('user_settings').select('settings').eq('user_email',user.email).single();
+    if(error||!data)return false;
+    const saved=typeof data.settings==='string'?JSON.parse(data.settings):data.settings;
+    if(!saved)return false;
+    // Mesclar: preservar tokens em memória, restaurar flags de conexão e emails
+    const keysToRestore=['googleConnected','googleEmail','outlookConnected','outlookEmail','outlook2Connected','outlook2Email','gcalToken','gcalTokenExpiry','digest'];
+    keysToRestore.forEach(k=>{if(saved[k]!==undefined)integrations[k]=saved[k];});
+    _normalizeIntDates(integrations);
+    localStorage.setItem(INT_KEY(user.email),JSON.stringify(integrations));
+    console.log('[Sync] Integrações carregadas do Supabase');
+    return true;
+  }catch(e){console.log('[Sync] Erro ao carregar integrações:',e);return false;}
+}
+async function saveInt(){
+  localStorage.setItem(INT_KEY(user.email),JSON.stringify(integrations));
+  if(!supabaseClient||!user)return;
+  // Salvar apenas flags e emails (não tokens de acesso — são temporários)
+  const toSave={googleConnected:integrations.googleConnected||false,googleEmail:integrations.googleEmail||'',outlookConnected:integrations.outlookConnected||false,outlookEmail:integrations.outlookEmail||'',outlook2Connected:integrations.outlook2Connected||false,outlook2Email:integrations.outlook2Email||'',gcalToken:integrations.gcalToken||null,gcalTokenExpiry:integrations.gcalTokenExpiry||null,digest:integrations.digest||false};
+  try{
+    await supabaseClient.from('user_settings').upsert({user_email:user.email,settings:JSON.stringify(toSave),updated_at:new Date().toISOString()},{onConflict:'user_email'});
+  }catch(e){console.log('[Sync] Erro ao salvar integrações:',e);}
+}
 function today(){return new Date().toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'})}
 function tomorrow(){const d=new Date();d.setDate(d.getDate()+1);return d.toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'})}
 function fmtTime(dt){if(!dt)return'';const s=dt.replace(/(\.\d{3})\d+/,'$1');const d=new Date(s);if(isNaN(d))return s.slice(11,16)||'';return d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/Sao_Paulo'})}
@@ -1500,12 +1519,23 @@ function startSession(u){
     // Iniciar sincronização automática a cada 5 minutos
     scheduleAutoSync();
   },2000);
-  // Carregar lembretes do Supabase silenciosamente (sem notificação intrusiva)
-  loadFromSupabase().then(found=>{
-    if(found){
-      render();
-      scheduleNotifs();
-      console.log('[Sync] Lembretes carregados do Supabase');
+  // Carregar lembretes E integrações do Supabase silenciosamente
+  Promise.all([
+    loadFromSupabase(),
+    loadIntFromSupabase()
+  ]).then(([foundReminders, foundInt])=>{
+    if(foundReminders){render();scheduleNotifs();console.log('[Sync] Lembretes carregados do Supabase');}
+    if(foundInt){
+      updateIntUI();
+      // Restaurar token Google se ainda válido
+      restoreGcalToken();
+      console.log('[Sync] Integrações restauradas do Supabase');
+      // Recarregar eventos de agenda com os tokens restaurados
+      setTimeout(()=>{
+        silentReauthGoogle();
+        silentReauthOutlook();
+        silentReauthOutlook2();
+      },1000);
     }
   });
   // Sincronizar periodicamente a cada 2 minutos para manter dispositivos atualizados
