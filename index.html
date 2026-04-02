@@ -52,6 +52,34 @@
   --shadow-lg:0 8px 24px rgba(0,0,0,0.12),0 4px 8px rgba(0,0,0,0.08);
 }
 body{font-family:var(--font,'Inter','Instrument Sans',sans-serif);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+/* LANDING */
+#landing-screen{display:block;background:#0f0f0f;color:#f0f0f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh}
+#landing-screen header{background:#0f0f0f;border-bottom:1px solid #1e1e1e;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.lnd-logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:'Fraunces',serif;font-size:22px;font-weight:300;letter-spacing:-0.5px;color:#4ADE80}
+.lnd-cta{background:#4ADE80;color:#0f0f0f;padding:9px 22px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;border:none;cursor:pointer;font-family:inherit;transition:opacity .2s}
+.lnd-cta:hover{opacity:.85}
+.lnd-hero{text-align:center;padding:72px 24px 52px;max-width:720px;margin:0 auto}
+.lnd-badge{display:inline-block;background:rgba(74,222,128,.12);color:#4ADE80;border:1px solid rgba(74,222,128,.3);border-radius:100px;padding:4px 16px;font-size:13px;font-weight:600;margin-bottom:22px}
+.lnd-hero h1{font-size:clamp(28px,5vw,50px);font-weight:800;line-height:1.15;margin-bottom:18px;color:#fff}
+.lnd-hero h1 span{color:#4ADE80}
+.lnd-hero p{font-size:16px;color:#a0a0a0;max-width:520px;margin:0 auto 32px;line-height:1.8}
+.lnd-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.lnd-btn-p{background:#4ADE80;color:#0f0f0f;padding:13px 30px;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px;border:none;cursor:pointer;font-family:inherit;transition:opacity .2s}
+.lnd-btn-p:hover{opacity:.85}
+.lnd-btn-s{background:rgba(255,255,255,.07);color:#f0f0f0;padding:13px 30px;border-radius:10px;text-decoration:none;font-weight:600;font-size:15px;border:1px solid rgba(255,255,255,.12);transition:background .2s}
+.lnd-btn-s:hover{background:rgba(255,255,255,.12)}
+.lnd-feats{max-width:900px;margin:0 auto;padding:40px 24px 60px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+.lnd-feat{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:20px}
+.lnd-feat h3{font-size:15px;font-weight:700;color:#fff;margin-bottom:6px}
+.lnd-feat p{font-size:13px;color:#a0a0a0;line-height:1.7}
+.lnd-privacy{max-width:700px;margin:0 auto 48px;padding:0 24px}
+.lnd-privacy-box{background:#141414;border:1px solid #2a2a2a;border-radius:12px;padding:20px 24px;font-size:13px;color:#a0a0a0;line-height:1.7}
+.lnd-privacy-box a{color:#4ADE80;text-decoration:none}
+.lnd-footer{background:#0a0a0a;border-top:1px solid #1e1e1e;padding:28px 24px;text-align:center}
+.lnd-footer-links{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.lnd-footer-links a{color:#a0a0a0;text-decoration:none;font-size:13px}
+.lnd-footer-links a:hover{color:#4ADE80}
+.lnd-footer p{font-size:12px;color:#505050}
 /* AUTH */
 #auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;position:relative;overflow:hidden}
 .auth-glow{position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:500px;height:300px;background:radial-gradient(ellipse,rgba(74,222,128,0.08) 0%,transparent 70%);pointer-events:none}
@@ -632,8 +660,47 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 </head>
 <body>
 
+<!-- LANDING (público, sem login) -->
+<div id="landing-screen">
+  <header>
+    <span class="lnd-logo">Lemb<em style="font-style:normal">ra</em></span>
+    <button class="lnd-cta" onclick="showAuthFromLanding()">Entrar / Criar conta</button>
+  </header>
+  <div class="lnd-hero">
+    <div class="lnd-badge">Assistente pessoal de agenda com IA</div>
+    <h1>Seus lembretes e compromissos<br><span>em um único lugar</span></h1>
+    <p>Lembra centraliza seus lembretes, eventos do Google Agenda e Outlook, e e-mails em uma interface simples — com assistente de IA para criar e organizar tudo por voz ou texto.</p>
+    <div class="lnd-btns">
+      <button class="lnd-btn-p" onclick="showAuthFromLanding()">Começar gratuitamente →</button>
+      <a class="lnd-btn-s" href="/sobre.html">Saiba mais</a>
+    </div>
+  </div>
+  <div class="lnd-feats">
+    <div class="lnd-feat"><h3>Lembretes inteligentes</h3><p>Crie lembretes por texto ou voz. O assistente de IA entende linguagem natural e organiza tudo para você.</p></div>
+    <div class="lnd-feat"><h3>Google Agenda integrado</h3><p>Veja seus compromissos do Google Agenda diretamente no painel. Crie eventos e sincronize em tempo real.</p></div>
+    <div class="lnd-feat"><h3>Outlook e e-mail corporativo</h3><p>Conecte sua conta Outlook pessoal ou corporativa. Veja e-mails não lidos e compromissos do calendário Microsoft.</p></div>
+    <div class="lnd-feat"><h3>Assistente de IA</h3><p>Converse com o assistente para criar lembretes, consultar sua agenda, resumir compromissos e muito mais.</p></div>
+    <div class="lnd-feat"><h3>Funciona como app</h3><p>Instale na tela inicial do celular ou computador. Funciona offline e sincroniza automaticamente entre dispositivos.</p></div>
+    <div class="lnd-feat"><h3>Privacidade em primeiro lugar</h3><p>Seus dados ficam na sua conta. O Lembra não vende nem compartilha suas informações com terceiros.</p></div>
+  </div>
+  <div class="lnd-privacy">
+    <div class="lnd-privacy-box">
+      <strong style="color:#fff">Uso de dados do Google:</strong> O Lembra solicita acesso somente de leitura ao Google Agenda e Gmail para exibir compromissos e contagem de e-mails não lidos. O uso está em conformidade com a <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank">Política de Dados de Usuário dos Serviços de API do Google</a>, incluindo os requisitos de Uso Limitado. Leia nossa <a href="/privacidade.html">Política de Privacidade</a> para mais detalhes.
+    </div>
+  </div>
+  <div class="lnd-footer">
+    <div class="lnd-footer-links">
+      <a href="/sobre.html">Sobre</a>
+      <a href="/privacidade.html">Política de Privacidade</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/termos.html">Termos de Uso</a>
+    </div>
+    <p>© 2025 Lembra-App · assistentepessoal55@gmail.com</p>
+  </div>
+</div>
+
 <!-- AUTH -->
-<div id="auth-screen">
+<div id="auth-screen" style="display:none">
   <div class="auth-glow"></div>
   <div class="auth-box">
     <div class="auth-logo">Lemb<em>ra</em></div>
@@ -1594,7 +1661,8 @@ function doLogout(){
   if(autoSyncTimer){clearInterval(autoSyncTimer);autoSyncTimer=null;}
   if(window._syncInterval){clearInterval(window._syncInterval);window._syncInterval=null;}
   document.getElementById('app-screen').style.display='none';
-  document.getElementById('auth-screen').style.display='flex';
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('landing-screen').style.display='block';
   notifTimers.forEach(clearTimeout);notifTimers=[];
 }
 
@@ -4478,11 +4546,18 @@ Exemplo: *"Enviar e-mail para joao@empresa.com, assunto: Reunião, dizendo: Conf
   return `Não encontrei nada relacionado. Pode me perguntar sobre seus lembretes, compromissos de hoje ou amanhã, ou pedir para enviar um e-mail.`;
 }
 
+function showAuthFromLanding(){
+  document.getElementById('landing-screen').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+}
 window.onload=()=>{
   // Restaurar sessão do usuário
   // Nota: retorno OAuth do Google Calendar é tratado pelo Supabase onAuthStateChange
   const s=localStorage.getItem(SESSION_KEY);
-  if(s){const u=JSON.parse(s);if(getUsers()[u.email])startSession(u);}
+  if(s){const u=JSON.parse(s);if(getUsers()[u.email]){
+    document.getElementById('landing-screen').style.display='none';
+    startSession(u);
+  }}
 };
 </script>
 <!-- Supabase -->
@@ -4530,6 +4605,7 @@ function initSupabase(){
           // Só iniciar sessão se o usuário ainda não está logado no app
           // Evita resetar integrações ao detectar sessão Supabase existente
           if(!user){
+            document.getElementById('landing-screen').style.display='none';
             startSession(users[u.email]);
           }
         }
