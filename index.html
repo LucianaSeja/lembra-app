@@ -305,6 +305,14 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 @media(max-width:640px){.notif-bar{bottom:calc(70px + env(safe-area-inset-bottom,0px));right:0.75rem;left:0.75rem;max-width:none}}
 .notif{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px 13px;font-size:12px;color:var(--text2);animation:fadeUp 0.3s ease;pointer-events:auto;box-shadow:0 4px 16px rgba(0,0,0,0.25)}
 .notif-ttl{font-weight:600;color:var(--text);margin-bottom:1px;font-size:12px}
+/* ALARM POPUP — persiste até clicar */
+.alarm-popup-wrap{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:1.5rem;gap:10px;z-index:9999;pointer-events:none}
+.alarm-popup{background:var(--surface);border:2px solid var(--accent);border-radius:14px;padding:14px 18px 12px;max-width:340px;width:calc(100% - 2rem);box-shadow:0 8px 32px rgba(0,0,0,0.5);pointer-events:auto;cursor:pointer;animation:alarmIn 0.35s cubic-bezier(0.34,1.56,0.64,1);position:relative}
+@keyframes alarmIn{from{opacity:0;transform:translateY(-20px) scale(0.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.alarm-popup-icon{font-size:22px;margin-bottom:4px}
+.alarm-popup-title{font-weight:700;font-size:15px;color:var(--text);margin-bottom:2px}
+.alarm-popup-body{font-size:12px;color:var(--text2);line-height:1.4}
+.alarm-popup-dismiss{position:absolute;top:8px;right:10px;font-size:11px;color:var(--text3);opacity:0.7}
 /* COMPLETE MODAL */
 .complete-modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:200;padding:1rem;backdrop-filter:blur(4px)}
 .complete-modal-wrap.open{display:flex}
@@ -1173,6 +1181,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 </div>
 
 <div class="notif-bar" id="notif-bar"></div>
+<div class="alarm-popup-wrap" id="alarm-popup-wrap"></div>
 
 <!-- CONFIRM DELETE MODAL -->
 <div class="modal-wrap" id="confirm-modal">
@@ -2781,25 +2790,43 @@ function startNotifCheck(){
   notifCheckInterval=setInterval(checkUpcomingNotifs,60000); // a cada 1 minuto
 }
 
+function showAlarmPopup(icon,title,body,key){
+  const wrap=document.getElementById('alarm-popup-wrap');
+  if(!wrap)return;
+  // Evitar duplicata visual
+  if(wrap.querySelector(`[data-key="${key}"]`))return;
+  const el=document.createElement('div');
+  el.className='alarm-popup';
+  el.dataset.key=key;
+  el.innerHTML=`<div class="alarm-popup-icon">${icon}</div><div class="alarm-popup-title">${title}</div><div class="alarm-popup-body">${body}</div><div class="alarm-popup-dismiss">toque para fechar</div>`;
+  el.addEventListener('click',()=>{
+    el.style.cssText='opacity:0;transform:scale(0.95);transition:all 0.2s';
+    setTimeout(()=>el.remove(),200);
+  });
+  wrap.appendChild(el);
+  // Também disparar notificação do sistema se permitido
+  if('Notification' in window&&Notification.permission==='granted'){
+    try{
+      const n=new Notification(title,{body,icon:'/icon.svg',requireInteraction:true,tag:key});
+      n.onclick=()=>{window.focus();n.close();};
+    }catch(e){}
+  }
+}
 function checkUpcomingNotifs(){
-  if(Notification.permission!=='granted')return;
   const now=new Date();
-  const todayStr=today();
   // Verificar lembretes
   reminders.filter(r=>!r.done&&r.date&&r.time).forEach(r=>{
     const dt=new Date(r.date+'T'+r.time);
     const diff=Math.round((dt-now)/60000); // minutos
-    const key=`r-${r.id}-${r.date}-${r.time}`;
-    if((diff===0||diff===10||diff===5)&&!notifFired.has(key)){
-      notifFired.add(key);
-      const msg=diff===0?'Agora!':diff===5?'Em 5 minutos':'Em 10 minutos';
-      const n=new Notification(`⏰ ${r.title}`,{
-        body:`${msg} • ${r.time}${r.desc?' • '+r.desc:''}`,
-        icon:'/icon.svg',
-        requireInteraction:true,
-        tag:key
-      });
-      n.onclick=()=>{window.focus();n.close();};
+    const key0=`r-${r.id}-${r.date}-${r.time}-0`;
+    const key15=`r-${r.id}-${r.date}-${r.time}-15`;
+    if(diff===0&&!notifFired.has(key0)){
+      notifFired.add(key0);
+      showAlarmPopup('⏰',r.title,`Agora! • ${r.time}${r.desc?' — '+r.desc:''}`,key0);
+    }
+    if(diff===15&&!notifFired.has(key15)){
+      notifFired.add(key15);
+      showAlarmPopup('⏰',r.title,`Em 15 minutos • ${r.time}${r.desc?' — '+r.desc:''}`,key15);
     }
   });
   // Verificar eventos do calendário
@@ -2808,18 +2835,17 @@ function checkUpcomingNotifs(){
     if(!dtStr)return;
     const dt=new Date(dtStr);
     const diff=Math.round((dt-now)/60000);
-    const key=`e-${e.id}-${dtStr}`;
-    if((diff===0||diff===10||diff===5)&&!notifFired.has(key)){
-      notifFired.add(key);
-      const msg=diff===0?'Agora!':diff===5?'Em 5 minutos':'Em 10 minutos';
-      const src=e.source==='google'?'🗓️ Google':'📧 Outlook';
-      const n=new Notification(`📅 ${e.summary||'Compromisso'}`,{
-        body:`${msg} • ${src}`,
-        icon:'/icon.svg',
-        requireInteraction:true,
-        tag:key
-      });
-      n.onclick=()=>{window.focus();n.close();};
+    const key0=`e-${e.id}-${dtStr}-0`;
+    const key15=`e-${e.id}-${dtStr}-15`;
+    const src=e.source==='google'?'🗓️ Google':'📧 Outlook';
+    const title=e.summary||'Compromisso';
+    if(diff===0&&!notifFired.has(key0)){
+      notifFired.add(key0);
+      showAlarmPopup('📅',title,`Agora! • ${src}`,key0);
+    }
+    if(diff===15&&!notifFired.has(key15)){
+      notifFired.add(key15);
+      showAlarmPopup('📅',title,`Em 15 minutos • ${src}`,key15);
     }
   });
 }
@@ -3358,12 +3384,12 @@ async function updateUnreadBadges(){
   // Gmail: usar Gmail API se token Google disponível
   if(integrations.googleConnected&&gcalToken){
     try{
-      const res=await fetch('https://www.googleapis.com/gmail/v1/users/me/messages?q=is:unread+in:inbox&maxResults=1',{
+      const res=await fetch('https://www.googleapis.com/gmail/v1/users/me/labels/INBOX',{
         headers:{Authorization:'Bearer '+gcalToken}
       });
       if(res.ok){
         const data=await res.json();
-        const count=data.resultSizeEstimate||0;
+        const count=data.messagesUnread||0;
         const badge=document.getElementById('dash-badge-gmail');
         if(badge){badge.textContent=count>99?'99+':count;badge.style.display=count>0?'flex':'none';}
       }
