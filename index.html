@@ -3403,9 +3403,31 @@ function renderAgendaDashboard(){
   // Badges de e-mails não lidos (link para busca de não lidos)
   // Gmail: atualizar link com e-mail do usuário para abrir caixa correta
   const cardGmail=document.getElementById('dash-card-gmail');
-  if(cardGmail&&gc&&integrations.googleEmail){
-    // Tentar abrir a caixa de entrada do usuário correto
-    cardGmail.href='https://mail.google.com/mail/u/'+encodeURIComponent(integrations.googleEmail)+'/#search/is%3Aunread';
+  if(cardGmail){
+    if(gc&&integrations.googleEmail){
+      // Usar authuser=EMAIL para abrir direto na conta integrada (sem pedir escolha)
+      cardGmail.href='https://mail.google.com/mail/u/'+encodeURIComponent(integrations.googleEmail)+'/#inbox';
+    } else {
+      cardGmail.href='https://mail.google.com/mail/#inbox';
+    }
+  }
+  // Agenda Google: atualizar link para abrir direto na conta integrada
+  const cardAgendaGmail=document.getElementById('dash-card-agenda-gmail');
+  if(cardAgendaGmail){
+    if(gc&&integrations.googleEmail){
+      cardAgendaGmail.href='https://calendar.google.com/calendar/u/'+encodeURIComponent(integrations.googleEmail)+'/r';
+    } else {
+      cardAgendaGmail.href='https://calendar.google.com/calendar/r';
+    }
+  }
+  // Header chips: atualizar links também
+  const chipGoogle=document.getElementById('hdr-chip-google');
+  if(chipGoogle&&gc&&integrations.googleEmail){
+    chipGoogle.href='https://calendar.google.com/calendar/u/'+encodeURIComponent(integrations.googleEmail)+'/r';
+  }
+  const chipGmail=document.getElementById('hdr-chip-gmail');
+  if(chipGmail&&gc&&integrations.googleEmail){
+    chipGmail.href='https://mail.google.com/mail/u/'+encodeURIComponent(integrations.googleEmail)+'/#inbox';
   }
   // Buscar contagem de não lidos via Gmail API (se token disponível)
   updateUnreadBadges();
@@ -3415,35 +3437,43 @@ async function updateUnreadBadges(){
   // Gmail: usar Gmail API se token Google disponível
   if(integrations.googleConnected&&gcalToken){
     try{
-      // Primeiro tenta via labels/INBOX (mais rápido)
+      // Tentar via labels/INBOX primeiro (retorna messagesUnread diretamente)
+      let count=0;
+      let success=false;
       const res=await fetch('https://www.googleapis.com/gmail/v1/users/me/labels/INBOX',{
         headers:{Authorization:'Bearer '+gcalToken}
       });
       if(res.ok){
         const data=await res.json();
-        const count=data.messagesUnread||0;
-        const badge=document.getElementById('dash-badge-gmail');
-        if(badge){badge.textContent=count>99?'99+':count;badge.style.display=count>0?'flex':'none';}
-        console.log('[Unread] Gmail não lidos:',count);
+        count=data.messagesUnread||0;
+        success=true;
+        console.log('[Unread] Gmail não lidos (labels):',count);
       } else {
-        // Se falhou (ex: 403 escopo insuficiente), tenta via messages.list
         const errText=await res.text().catch(()=>'');
         console.warn('[Unread] Gmail labels falhou ('+res.status+'):',errText);
-        // Fallback: contar mensagens não lidas via messages.list
+      }
+      // Se labels falhou, tentar via messages.list
+      if(!success){
         try{
-          const res2=await fetch('https://www.googleapis.com/gmail/v1/users/me/messages?q=is:unread+in:inbox&maxResults=1',{
+          const res2=await fetch('https://www.googleapis.com/gmail/v1/users/me/messages?q=is%3Aunread+in%3Ainbox&maxResults=100',{
             headers:{Authorization:'Bearer '+gcalToken}
           });
           if(res2.ok){
             const data2=await res2.json();
-            const count2=data2.resultSizeEstimate||0;
-            const badge=document.getElementById('dash-badge-gmail');
-            if(badge){badge.textContent=count2>99?'99+':count2;badge.style.display=count2>0?'flex':'none';}
-            console.log('[Unread] Gmail fallback não lidos:',count2);
+            // resultSizeEstimate é uma estimativa; usar messages.length se disponível
+            count=(data2.messages||[]).length;
+            if(data2.resultSizeEstimate>count)count=data2.resultSizeEstimate;
+            success=true;
+            console.log('[Unread] Gmail não lidos (messages.list):',count);
           } else {
-            console.warn('[Unread] Gmail fallback também falhou:',res2.status);
+            console.warn('[Unread] Gmail messages.list falhou:',res2.status);
           }
-        }catch(e2){console.warn('[Unread] Gmail fallback erro:',e2);}
+        }catch(e2){console.warn('[Unread] Gmail messages.list erro:',e2);}
+      }
+      const badge=document.getElementById('dash-badge-gmail');
+      if(badge&&success){
+        badge.textContent=count>99?'99+':count;
+        badge.style.display=count>0?'flex':'none';
       }
     }catch(e){console.warn('[Unread] Gmail erro:',e);}
   } else {
@@ -4490,7 +4520,11 @@ function initSupabase(){
             notify('Google','\u2713 Google Calendar conectado!');
             return;
           }
-          startSession(users[u.email]);
+          // Só iniciar sessão se o usuário ainda não está logado no app
+          // Evita resetar integrações ao detectar sessão Supabase existente
+          if(!user){
+            startSession(users[u.email]);
+          }
         }
       });
     }
