@@ -1810,7 +1810,8 @@ function connectGoogle(){
   }
   // Sempre usar redirect (funciona em mobile, PWA e desktop)
   // Construir URL de autorização OAuth2 manualmente e redirecionar
-  const redirectUri=window.location.origin+'/';
+  // URI sem barra no final — deve ser exatamente igual ao cadastrado no Google Cloud Console
+  const redirectUri='https://lembra-app.vercel.app';
   const state='google_oauth_'+Date.now();
   localStorage.setItem('google_oauth_state',state);
   localStorage.setItem('google_oauth_pending','1');
@@ -4379,8 +4380,8 @@ window.onload=async()=>{
     if(oauthError){
       notify('Erro Google','Autenticação cancelada: '+oauthError);
     } else {
-      const redirectUri=window.location.origin+'/';
-      // Aguardar integrations estar carregado (startSession já chamou loadInt)
+      // URI fixa — deve ser exatamente igual ao cadastrado no Google Cloud Console
+      const redirectUri='https://lembra-app.vercel.app';
       await _finishGoogleConnect(oauthCode,redirectUri);
     }
   }
