@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Política de Privacidade — Lembra-App</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.7}
+    header{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;padding:40px 24px;text-align:center}
+    header h1{font-size:28px;font-weight:700;margin-bottom:8px}
+    header p{font-size:15px;opacity:0.85}
+    .container{max-width:760px;margin:40px auto;padding:0 24px 60px}
+    h2{font-size:20px;font-weight:700;color:#6366f1;margin:36px 0 12px;padding-bottom:6px;border-bottom:2px solid #e5e7eb}
+    p{margin-bottom:14px;font-size:15px;color:#374151}
+    ul{margin:0 0 14px 20px}
+    ul li{font-size:15px;color:#374151;margin-bottom:6px}
+    .updated{text-align:center;font-size:13px;color:#9ca3af;margin-top:40px}
+    a{color:#6366f1;text-decoration:none}
+    a:hover{text-decoration:underline}
+    .back{display:inline-block;margin-bottom:24px;color:#6366f1;font-size:14px;font-weight:600}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Política de Privacidade</h1>
+  <p>Lembra-App — Assistente Pessoal de Lembretes e Agenda</p>
+</header>
+<div class="container">
+  <a class="back" href="/">← Voltar ao app</a>
+
+  <h2>1. Informações Gerais</h2>
+  <p>O <strong>Lembra-App</strong> é um aplicativo web pessoal de gerenciamento de lembretes, compromissos e integrações com serviços de agenda (Google Calendar e Microsoft Outlook). Esta política descreve como coletamos, usamos e protegemos suas informações.</p>
+
+  <h2>2. Dados Coletados</h2>
+  <p>O Lembra-App coleta apenas os dados estritamente necessários para seu funcionamento:</p>
+  <ul>
+    <li><strong>Dados de conta:</strong> nome e endereço de e-mail utilizados no cadastro</li>
+    <li><strong>Lembretes e compromissos:</strong> títulos, datas, horários e categorias criados pelo usuário</li>
+    <li><strong>Tokens de acesso OAuth:</strong> tokens temporários do Google e Microsoft para leitura e escrita na agenda, armazenados de forma segura no Supabase</li>
+    <li><strong>Eventos de agenda:</strong> dados de eventos do Google Calendar e Outlook sincronizados pelo usuário</li>
+  </ul>
+
+  <h2>3. Uso das Informações</h2>
+  <p>Os dados coletados são utilizados exclusivamente para:</p>
+  <ul>
+    <li>Exibir e gerenciar lembretes e compromissos do usuário</li>
+    <li>Sincronizar eventos com Google Calendar e Microsoft Outlook</li>
+    <li>Enviar notificações de lembretes no dispositivo do usuário</li>
+    <li>Manter a sessão do usuário ativa entre dispositivos</li>
+  </ul>
+  <p><strong>Não vendemos, compartilhamos ou utilizamos seus dados para fins publicitários.</strong></p>
+
+  <h2>4. Integração com Google</h2>
+  <p>O Lembra-App utiliza a API do Google Calendar com os seguintes escopos de acesso:</p>
+  <ul>
+    <li><code>calendar.events</code> — criar, editar e excluir eventos na agenda</li>
+    <li><code>calendar.readonly</code> — ler eventos da agenda</li>
+    <li><code>userinfo.email</code> — identificar o e-mail da conta conectada</li>
+    <li><code>gmail.readonly</code> — verificar contagem de e-mails não lidos</li>
+  </ul>
+  <p>O uso de dados obtidos via APIs do Google segue a <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank">Política de Dados do Usuário dos Serviços de API do Google</a>, incluindo os requisitos de Uso Limitado.</p>
+
+  <h2>5. Integração com Microsoft Outlook</h2>
+  <p>O Lembra-App utiliza a API Microsoft Graph para leitura e escrita de eventos no Outlook Calendar e verificação de e-mails não lidos. Os tokens de acesso são armazenados localmente no dispositivo e nunca compartilhados com terceiros.</p>
+
+  <h2>6. Armazenamento e Segurança</h2>
+  <p>Os dados são armazenados de duas formas:</p>
+  <ul>
+    <li><strong>Localmente:</strong> no <code>localStorage</code> do navegador do usuário (lembretes, preferências)</li>
+    <li><strong>Nuvem:</strong> no Supabase (plataforma segura com criptografia em trânsito e em repouso) para sincronização entre dispositivos</li>
+  </ul>
+  <p>Tokens OAuth são armazenados de forma segura e nunca expostos publicamente.</p>
+
+  <h2>7. Retenção de Dados</h2>
+  <p>Os dados são mantidos enquanto o usuário utilizar o aplicativo. O usuário pode excluir todos os seus dados a qualquer momento acessando <strong>Configurações → Limpar dados</strong> dentro do app.</p>
+
+  <h2>8. Direitos do Usuário</h2>
+  <p>O usuário tem direito a:</p>
+  <ul>
+    <li>Acessar todos os seus dados armazenados</li>
+    <li>Excluir sua conta e todos os dados associados</li>
+    <li>Revogar o acesso do app ao Google ou Outlook a qualquer momento em <a href="https://myaccount.google.com/permissions" target="_blank">myaccount.google.com/permissions</a></li>
+  </ul>
+
+  <h2>9. Contato</h2>
+  <p>Para dúvidas sobre esta política de privacidade ou sobre o uso dos seus dados, entre em contato pelo e-mail: <a href="mailto:assistentepessoal55@gmail.com">assistentepessoal55@gmail.com</a></p>
+
+  <p class="updated">Última atualização: 2 de abril de 2025</p>
+</div>
+</body>
+</html>
