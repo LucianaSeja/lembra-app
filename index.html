@@ -1677,7 +1677,7 @@ async function silentCalendarSync(){
   try{
     // Só busca eventos se já temos token válido no storage
     // NÃO tenta renovar automaticamente (evita popup OAuth visível)
-    if(integrations.googleConnected&&gcalToken)await fetchGoogleCalendarEvents();
+    if(integrations.googleConnected&&gcalToken){await fetchGoogleCalendarEvents();updateUnreadBadges();}
   }catch(e){console.warn('[AutoSync] Google:',e);}
   try{
     if(integrations.outlookConnected){
@@ -2024,6 +2024,7 @@ async function fetchGoogleCalendarEvents(){
     notify('Google Agenda',`✓ ${googleEvts.length} evento(s) — ${hojeEvts.length} hoje${emailInfo}`);
     renderAgendaDashboard();
     updateBadges();
+    updateUnreadBadges();
     if(view==='compromissos-hoje')loadCompromissosDia('hoje');
     if(view==='compromissos-amanha')loadCompromissosDia('amanha');
   } catch(err){
@@ -3414,6 +3415,7 @@ async function updateUnreadBadges(){
   // Gmail: usar Gmail API se token Google disponível
   if(integrations.googleConnected&&gcalToken){
     try{
+      // Primeiro tenta via labels/INBOX (mais rápido)
       const res=await fetch('https://www.googleapis.com/gmail/v1/users/me/labels/INBOX',{
         headers:{Authorization:'Bearer '+gcalToken}
       });
@@ -3422,8 +3424,28 @@ async function updateUnreadBadges(){
         const count=data.messagesUnread||0;
         const badge=document.getElementById('dash-badge-gmail');
         if(badge){badge.textContent=count>99?'99+':count;badge.style.display=count>0?'flex':'none';}
+        console.log('[Unread] Gmail não lidos:',count);
+      } else {
+        // Se falhou (ex: 403 escopo insuficiente), tenta via messages.list
+        const errText=await res.text().catch(()=>'');
+        console.warn('[Unread] Gmail labels falhou ('+res.status+'):',errText);
+        // Fallback: contar mensagens não lidas via messages.list
+        try{
+          const res2=await fetch('https://www.googleapis.com/gmail/v1/users/me/messages?q=is:unread+in:inbox&maxResults=1',{
+            headers:{Authorization:'Bearer '+gcalToken}
+          });
+          if(res2.ok){
+            const data2=await res2.json();
+            const count2=data2.resultSizeEstimate||0;
+            const badge=document.getElementById('dash-badge-gmail');
+            if(badge){badge.textContent=count2>99?'99+':count2;badge.style.display=count2>0?'flex':'none';}
+            console.log('[Unread] Gmail fallback não lidos:',count2);
+          } else {
+            console.warn('[Unread] Gmail fallback também falhou:',res2.status);
+          }
+        }catch(e2){console.warn('[Unread] Gmail fallback erro:',e2);}
       }
-    }catch(e){console.warn('[Unread] Gmail:',e);}
+    }catch(e){console.warn('[Unread] Gmail erro:',e);}
   } else {
     const badge=document.getElementById('dash-badge-gmail');
     if(badge)badge.style.display='none';
@@ -4463,7 +4485,7 @@ function initSupabase(){
             // Garantir que o usuário está na sessão antes de salvar
             if(!user) startSession(users[u.email]);
             saveInt(); updateIntUI();
-            fetchGoogleCalendarEvents();
+            fetchGoogleCalendarEvents().then(()=>updateUnreadBadges());
             scheduleAutoSync();
             notify('Google','\u2713 Google Calendar conectado!');
             return;
